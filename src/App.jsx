@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import _ from 'lodash';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -11,7 +11,7 @@ import {
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
-const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
+const projectProgress = (project) => Object.values(project?.validated || {}).filter(Boolean).length;
 
 const STEPS = [
   { id: 0, title: 'Préparer', objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
@@ -438,9 +438,15 @@ function presetProjects() {
   return PROCESS_PROJECT_TEMPLATES.map(buildProcessProject);
 }
 
+function isValidProject(project) {
+  return project && typeof project === 'object' && typeof project._projectId === 'string';
+}
+
 function mergePresetProjects(projects) {
   const removedPresetIds = new Set(['preset-credit-immobilier', 'preset-procure-to-pay', 'preset-incidents-paiement']);
-  const baseProjects = Array.isArray(projects) ? projects.filter(project => !removedPresetIds.has(project._projectId)) : [];
+  const baseProjects = Array.isArray(projects)
+    ? projects.filter(project => isValidProject(project) && !removedPresetIds.has(project._projectId))
+    : [];
   const base = baseProjects.length ? baseProjects : [createProject()];
   const existingIds = new Set(base.map(project => project._projectId));
   const missing = presetProjects().filter(project => !existingIds.has(project._projectId));
@@ -2607,7 +2613,8 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
-  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+  const safeProjects = useMemo(() => mergePresetProjects(projects), [projects]);
+  const data = safeProjects.find(p => p._projectId === activeProjectId) || safeProjects[0] || createProject();
 
   useEffect(() => {
     (async () => {
@@ -2629,12 +2636,12 @@ export default function App() {
     if (!loaded) return;
     const t = setTimeout(async () => {
       try {
-        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
+        window.localStorage.setItem('lean-projects-data', JSON.stringify(safeProjects));
         setSavedAt(new Date());
       } catch (e) { console.error('Erreur de sauvegarde', e); }
     }, 600);
     return () => clearTimeout(t);
-  }, [projects, loaded]);
+  }, [safeProjects, loaded]);
 
   const updateField = useCallback((path, value) => {
     setProjects(prev => prev.map(project => {
@@ -2689,14 +2696,14 @@ export default function App() {
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet Lean ${projects.length + 1}`,
+      projectName: `Nouveau projet Lean ${safeProjects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
-  const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
-  const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
+  const filteredProjects = safeProjects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
+  const incompleteProjects = safeProjects.filter(project => projectProgress(project) < STEPS.length).length;
   const appClass = 'lean-app theme-light';
 
   const charteFields = [
