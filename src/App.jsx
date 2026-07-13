@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, Moon, Plus, RotateCcw, Search, Sparkles, Sun
+  FolderKanban, Moon, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles, Sun
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -1035,6 +1035,49 @@ const CSS = `
 .theme-light .status-badge{ background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
 .theme-light .status-badge.done{ background:#ECFDF3; border-color:#BBF7D0; color:#166534; }
 
+/* Readability and collapsible project sidebar */
+.sidebar{ transition:width .22s ease, min-width .22s ease, background .2s ease; }
+.main{ transition:padding .22s ease; }
+.sidebar-top-actions{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+.collapse-btn{ display:grid; place-items:center; width:34px; height:34px; flex:0 0 34px; border:1px solid #334155; background:#111827; color:#E5E7EB; border-radius:8px; }
+.collapse-btn:hover{ background:#172033; border-color:#475569; }
+.sidebar-collapsed .sidebar{ width:76px; min-width:76px; }
+.sidebar-collapsed .sidebar-head{ padding:18px 12px 12px; }
+.sidebar-collapsed .sidebar-top-actions{ flex-direction:column-reverse; margin-bottom:8px; }
+.sidebar-collapsed .back-home{ width:42px; height:36px; padding:0; justify-content:center; }
+.sidebar-collapsed .back-home span,.sidebar-collapsed .sidebar-expanded-only,.sidebar-collapsed .step-title,.sidebar-collapsed .step-stamp,.sidebar-collapsed .sidebar-foot,.sidebar-collapsed .pdf-hint{ display:none; }
+.sidebar-collapsed .steps-nav{ padding:8px; }
+.sidebar-collapsed .step-item{ width:44px; height:44px; padding:0; justify-content:center; margin:4px auto; }
+.sidebar-collapsed .step-num{ min-width:0; font-size:12px; }
+.sidebar-collapsed .main{ padding-left:clamp(24px,4vw,64px); }
+
+.lean-app{ background:#0A1020; }
+.home-hero,.home-widget,.home-search,.project-card,.empty-projects,.dossier-card{ border-color:#334155; }
+.home-hero,.home-widget,.home-search,.project-card,.empty-projects,.dossier-card,.sidebar{ background:#111827; }
+.home-hero p,.project-card p,.objectif,.livrable{ color:#CBD5E1; }
+.home-widget span,.project-progress strong,.eyebrow,.field label,.progress-text,.pdf-hint,.save-indicator{ color:#94A3B8; }
+.home-widget small{ color:#94A3B8; }
+.ledger-table th{ color:#CBD5E1; }
+.ledger-table td{ color:#F8FAFC; }
+.lean-app input,.lean-app select,.lean-app textarea{ background:#0F172A; border-color:#334155; color:#F8FAFC; }
+.lean-app input::placeholder,.lean-app textarea::placeholder{ color:#94A3B8; }
+.btn-add,.nav-btn,.ghost-btn,.back-home{ background:#0F172A; border-color:#334155; color:#E5E7EB; }
+.btn-add:hover,.nav-btn:not(:disabled):hover,.ghost-btn:hover,.back-home:hover{ background:#172554; border-color:#3B82F6; color:#FFFFFF; }
+
+.theme-light{ background:#F5F7FB; }
+.theme-light .home-hero,.theme-light .home-widget,.theme-light .home-search,.theme-light .project-card,.theme-light .empty-projects,.theme-light .dossier-card,.theme-light .sidebar{ background:#FFFFFF; border-color:#CBD5E1; }
+.theme-light .home-hero p,.theme-light .project-card p,.theme-light .objectif,.theme-light .livrable{ color:#334155; }
+.theme-light .home-widget span,.theme-light .project-progress strong,.theme-light .eyebrow,.theme-light .field label,.theme-light .progress-text,.theme-light .pdf-hint,.theme-light .save-indicator{ color:#475569; }
+.theme-light .home-widget small{ color:#64748B; }
+.theme-light .home-widget strong,.theme-light .project-card h2,.theme-light .dossier-card h2,.theme-light .sub-title{ color:#0F172A; }
+.theme-light .lean-app input,.theme-light input,.theme-light select,.theme-light textarea{ background:#FFFFFF; border-color:#CBD5E1; color:#0F172A; }
+.theme-light input::placeholder,.theme-light textarea::placeholder{ color:#64748B; }
+.theme-light .ledger-table th{ background:#F1F5F9; color:#334155; }
+.theme-light .ledger-table td{ color:#111827; border-bottom-color:#E2E8F0; }
+.theme-light .ledger-table tr:hover td{ background:#EFF6FF; }
+.theme-light .btn-add,.theme-light .nav-btn,.theme-light .ghost-btn,.theme-light .back-home,.theme-light .collapse-btn{ background:#FFFFFF; border-color:#CBD5E1; color:#1E293B; }
+.theme-light .btn-add:hover,.theme-light .nav-btn:not(:disabled):hover,.theme-light .ghost-btn:hover,.theme-light .back-home:hover,.theme-light .collapse-btn:hover{ background:#EFF6FF; border-color:#60A5FA; color:#1D4ED8; }
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -1208,6 +1251,7 @@ export default function App() {
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
   const [theme, setTheme] = useState(() => window.localStorage.getItem('lean-ui-theme') || 'light');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
@@ -1589,16 +1633,23 @@ export default function App() {
   }
 
   return (
-    <div className={appClass}>
+    <div className={`${appClass} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <style>{CSS}</style>
       <aside className="sidebar">
         <div className="sidebar-head">
-          <button className="back-home" onClick={() => setView('home')}><ArrowLeft size={15} /> Projets</button>
-          <div className="sidebar-eyebrow">Tour de contrôle</div>
-          <h1>Lean Finance</h1>
-          <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
-          <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
-          <div className="progress-text">{validatedCount}/9 étapes validées</div>
+          <div className="sidebar-top-actions">
+            <button className="back-home" onClick={() => setView('home')} title="Retour aux projets"><ArrowLeft size={15} /> <span>Projets</span></button>
+            <button className="collapse-btn" onClick={() => setSidebarCollapsed(v => !v)} title={sidebarCollapsed ? 'Afficher la sidebar' : 'Réduire la sidebar'}>
+              {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            </button>
+          </div>
+          <div className="sidebar-expanded-only">
+            <div className="sidebar-eyebrow">Tour de contrôle</div>
+            <h1>Lean Finance</h1>
+            <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
+            <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
+            <div className="progress-text">{validatedCount}/9 étapes validées</div>
+          </div>
         </div>
         <nav className="steps-nav">
           {STEPS.map(s => (
