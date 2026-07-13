@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import _ from 'lodash';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -11,7 +11,7 @@ import {
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
-const projectProgress = (project) => Object.values(project?.validated || {}).filter(Boolean).length;
+const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
   { id: 0, title: 'Préparer', objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
@@ -23,25 +23,6 @@ const STEPS = [
   { id: 6, title: 'Concevoir', objectif: 'Construire la cible TO-BE, les standards, les automatisations, les KPI et les contrôles.', livrable: 'Cartographie cible, business case.' },
   { id: 7, title: 'Déployer', objectif: 'Piloter les actions, conduire le changement, tester, former, migrer.', livrable: "Plan d'action, supports, PV de recette." },
   { id: 8, title: 'Contrôler', objectif: 'Mesurer les gains, installer des rituels, ajuster et maintenir.', livrable: 'Dashboard, plan de contrôle, REX.' },
-];
-
-const PROCESS_PROJECT_TEMPLATES = [
-  {
-    id: 'preset-reclamations-clients',
-    sector: 'Banque',
-    title: 'Traitement des reclamations clients',
-    problem: 'Relances clients frequentes, tickets mal qualifies et reponses non homogenes selon les canaux.',
-    objective: 'Repondre a 85% des reclamations sous 7 jours et reduire les reouvertures.',
-    deliverable: 'Typologie cible, RACI, modeles de reponse, KPI de suivi.'
-  },
-  {
-    id: 'preset-changement-serie',
-    sector: 'Industrie',
-    title: 'Reduction du temps de changement de serie',
-    problem: 'Temps de changement trop long, preparation outillage tardive et redemarrages instables.',
-    objective: 'Passer de 96 a 55 minutes par changement de serie avec une logique SMED.',
-    deliverable: 'Observation terrain, VSM, matrice impact / effort, standard cible.'
-  },
 ];
 
 function defaultData() {
@@ -240,217 +221,6 @@ function defaultData() {
       rex: "Les premiers résultats du pilote montrent une réduction du délai de 15 à 8 jours en moyenne, avec un potentiel de gain supplémentaire une fois l'interfaçage CRM / Core Banking finalisé. Principale difficulté : l'appropriation de la nouvelle règle de priorisation par les équipes back-office. Action d'amélioration : renforcer le coaching terrain les deux premières semaines post-déploiement.",
     },
   };
-}
-
-const presetRow = (data) => ({ _id: uid(), ...data });
-
-function buildProcessProject(template) {
-  const project = defaultData();
-  const isIndustry = template.sector === 'Industrie';
-  const owner = isIndustry ? 'Responsable Excellence Industrielle' : 'Responsable Operations';
-  const sponsor = isIndustry ? 'Directeur Industriel' : 'Directeur des Operations';
-  const system = isIndustry ? 'ERP / GMAO / MES' : 'CRM / Workflow / Core Banking';
-  const client = isIndustry ? 'Production et fournisseurs internes' : 'Client et front-office';
-  const processName = template.title;
-
-  return {
-    ...project,
-    _projectId: template.id,
-    projectName: template.title,
-    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
-    step0: {
-      note: `${template.title}. ${template.problem} Le perimetre couvre le processus de bout en bout, depuis la demande initiale jusqu'au suivi des resultats apres deploiement. L'enjeu est de reduire les attentes, les reprises et les ruptures de responsabilite tout en securisant les controles metier.`,
-      planning: [
-        presetRow({ phase: 'Cadrage', debut: '01/09/2026', fin: '12/09/2026', responsable: 'Chef de projet Lean' }),
-        presetRow({ phase: 'Observation terrain', debut: '15/09/2026', fin: '26/09/2026', responsable: owner }),
-        presetRow({ phase: 'Cartographie & diagnostic', debut: '29/09/2026', fin: '17/10/2026', responsable: 'Equipe Lean + metier' }),
-        presetRow({ phase: 'Priorisation & conception cible', debut: '20/10/2026', fin: '31/10/2026', responsable: sponsor }),
-        presetRow({ phase: 'Deploiement pilote', debut: '03/11/2026', fin: '12/12/2026', responsable: owner }),
-        presetRow({ phase: 'Pilotage', debut: '15/12/2026', fin: 'Continu', responsable: 'Pilote processus' }),
-      ],
-      parties: [
-        presetRow({ nom: sponsor, role: 'Sponsor', service: 'Direction', interet: 'Favorable', influence: 'Fort' }),
-        presetRow({ nom: owner, role: 'Pilote metier', service: template.sector, interet: 'Favorable', influence: 'Fort' }),
-        presetRow({ nom: 'Equipe operationnelle', role: 'Utilisateurs', service: 'Operations', interet: 'Neutre', influence: 'Moyen' }),
-        presetRow({ nom: isIndustry ? 'Qualite / HSE' : 'Conformite / Risques', role: 'Controle', service: isIndustry ? 'Qualite' : 'Conformite', interet: 'Neutre', influence: 'Fort' }),
-        presetRow({ nom: 'IT / Data', role: 'Support outils', service: 'Systemes information', interet: 'Neutre', influence: 'Moyen' }),
-      ],
-    },
-    step1: {
-      charte: {
-        titre: template.title,
-        sponsor,
-        probleme: template.problem,
-        objectifs: template.objective,
-        perimetreIn: `Processus ${processName}, demandes standards, traitement operationnel, controles, reporting et pilotage de la performance.`,
-        perimetreOut: 'Cas contentieux, exceptions reglementaires majeures, refonte complete du systeme coeur et changements organisationnels hors perimetre.',
-        contraintes: `Disponibilite des equipes terrain, dependance aux donnees ${system}, respect des controles internes et capacite de deploiement progressive.`,
-        risques: 'Resistance au changement, qualite insuffisante des donnees source, priorisation difficile entre production courante et chantier amelioration.',
-        budget: isIndustry ? '48 000 EUR' : '62 000 EUR',
-        dateDebut: '01/09/2026',
-        dateFin: '15/12/2026',
-        gains: 'Reduction des delais, baisse des reprises, meilleure tracabilite et amelioration de la satisfaction des clients internes ou externes.',
-      },
-      sipoc: [
-        presetRow({ supplier: client, input: 'Demande, donnees initiales et justificatifs', process: processName, output: 'Dossier traite et statut mis a jour', customer: client }),
-        presetRow({ supplier: owner, input: 'Regles metier et priorites', process: processName, output: 'Decision ou intervention validee', customer: 'Pilotage operationnel' }),
-        presetRow({ supplier: 'Systeme information', input: 'Workflow, historiques et pieces', process: processName, output: 'Trace de traitement exploitable', customer: 'Management et controle' }),
-      ],
-      raci: {
-        roles: ['Metier', 'Operations', 'Controle', 'IT'],
-        activites: [
-          presetRow({ nom: 'Qualifier la demande', assign: { Metier: 'R', Operations: 'C', Controle: 'I', IT: 'I' } }),
-          presetRow({ nom: 'Analyser et traiter le dossier', assign: { Metier: 'C', Operations: 'R', Controle: 'C', IT: 'I' } }),
-          presetRow({ nom: 'Valider les controles', assign: { Metier: 'I', Operations: 'C', Controle: 'A', IT: 'I' } }),
-          presetRow({ nom: 'Mettre a jour le systeme', assign: { Metier: 'I', Operations: 'R', Controle: 'I', IT: 'C' } }),
-        ],
-      },
-    },
-    step2: {
-      questions: [
-        presetRow({ question: 'Quelles informations manquent le plus souvent au demarrage du traitement ?' }),
-        presetRow({ question: 'Quelles etapes generent le plus de reprises ou de relances ?' }),
-        presetRow({ question: 'Comment les priorites sont-elles definies et partagees ?' }),
-        presetRow({ question: 'Quels controles sont indispensables avant cloture ?' }),
-        presetRow({ question: 'Quels outils ou fichiers paralleles sont utilises hors processus officiel ?' }),
-      ],
-      journal: [
-        presetRow({ date: '16/09/2026', lieu: isIndustry ? 'Atelier pilote' : 'Back-office pilote', observateur: 'Equipe Lean', type: 'Irritant', constat: 'Les priorites sont gerees oralement et ne sont pas visibles dans le systeme de suivi.' }),
-        presetRow({ date: '18/09/2026', lieu: 'Equipe operationnelle', observateur: 'Equipe Lean', type: 'Gaspillage', constat: 'Une partie importante du temps est consacree a rechercher des informations deja disponibles dans un autre outil.' }),
-        presetRow({ date: '23/09/2026', lieu: 'Revue de dossiers', observateur: 'Equipe Lean', type: 'Risque', constat: 'Certains dossiers sont clotures sans justification suffisante de la decision ou de l ecart.' }),
-      ],
-    },
-    step3: {
-      referentiel: [
-        presetRow({ processus: processName, macro: isIndustry ? 'Operations industrielles' : 'Operations services', niveau: 'N1', proprietaire: owner, systeme }),
-        presetRow({ processus: 'Qualification initiale', macro: 'Preparation operationnelle', niveau: 'N2', proprietaire: 'Equipe operationnelle', systeme }),
-        presetRow({ processus: 'Controle et cloture', macro: 'Pilotage qualite', niveau: 'N2', proprietaire: isIndustry ? 'Qualite' : 'Conformite', systeme }),
-      ],
-      flow: [
-        presetRow({ label: 'Demande recue', type: 'Evenement', acteur: client, systeme, painpoint: false }),
-        presetRow({ label: 'Qualification initiale', type: 'Tache', acteur: 'Equipe operationnelle', systeme, painpoint: true }),
-        presetRow({ label: 'Controle informations', type: 'Controle', acteur: 'Pilote processus', systeme, painpoint: true }),
-        presetRow({ label: 'Traitement metier', type: 'Tache', acteur: owner, systeme, painpoint: false }),
-        presetRow({ label: 'Validation resultat', type: 'Decision', acteur: 'Controle', systeme, painpoint: false }),
-        presetRow({ label: 'Cloture et reporting', type: 'Tache', acteur: 'Equipe operationnelle', systeme, painpoint: true }),
-      ],
-      vsm: [
-        presetRow({ etape: 'Qualification initiale', tempsTraitement: 18, tempsAttente: 480 }),
-        presetRow({ etape: 'Recherche informations', tempsTraitement: 35, tempsAttente: 960 }),
-        presetRow({ etape: 'Traitement metier', tempsTraitement: 70, tempsAttente: 1440 }),
-        presetRow({ etape: 'Validation', tempsTraitement: 20, tempsAttente: 720 }),
-        presetRow({ etape: 'Cloture systeme', tempsTraitement: 12, tempsAttente: 240 }),
-      ],
-    },
-    step4: {
-      pareto: [
-        presetRow({ cause: 'Informations initiales incompletes', occurrences: 44 }),
-        presetRow({ cause: 'Attente validation metier', occurrences: 33 }),
-        presetRow({ cause: 'Recherche multi-outils', occurrences: 26 }),
-        presetRow({ cause: 'Priorisation non standardisee', occurrences: 19 }),
-        presetRow({ cause: 'Erreur de saisie', occurrences: 12 }),
-      ],
-      ishikawa: {
-        "Main d'Å“uvre": ['Formation heterogene', 'Dependance a quelques experts'],
-        'MÃ©thode': ['Regles de priorisation non formalisees', 'Check-list non obligatoire'],
-        'MatÃ©riel': ['Outils non synchronises', 'Tableaux Excel paralleles'],
-        'Milieu': ['Pics d activite non anticipes', 'Interruptions frequentes'],
-        'MatiÃ¨re': ['Donnees incompletes', 'Historique difficile a exploiter'],
-      },
-      fivewhy: {
-        probleme: template.problem,
-        why1: 'Parce que de nombreux dossiers restent en attente de clarification.',
-        why2: 'Parce que les informations necessaires ne sont pas controlees au depart.',
-        why3: "Parce que la check-list d entree n est pas bloquante.",
-        why4: 'Parce que les equipes ont adapte localement le mode operatoire.',
-        why5: 'Parce que le processus n a pas ete standardise autour d un flux unique.',
-        causeRacine: 'Absence de standard d entree et de priorisation partage dans le systeme.',
-        action: 'Creer une check-list d entree obligatoire et une file de traitement priorisee.',
-      },
-      amdec: [
-        presetRow({ mode: 'Dossier incomplet accepte', effet: 'Reprise et delai allonge', cause: 'Controle entree non bloquant', F: 7, G: 6, D: 5, actions: 'Check-list obligatoire' }),
-        presetRow({ mode: 'Priorite mal affectee', effet: 'Retard dossier critique', cause: 'Regles de priorisation floues', F: 5, G: 8, D: 5, actions: 'Matrice priorite impact / urgence' }),
-        presetRow({ mode: 'Cloture systeme incomplete', effet: 'Reporting faux', cause: 'Saisie manuelle', F: 4, G: 6, D: 6, actions: 'Champs obligatoires et controles automatiques' }),
-      ],
-    },
-    step5: {
-      actions: [
-        presetRow({ action: 'Standardiser la check-list d entree', impact: 9, effort: 3, responsable: owner, echeance: '31/10/2026', statut: 'En cours' }),
-        presetRow({ action: 'Mettre en place une file priorisee', impact: 8, effort: 4, responsable: 'Equipe operationnelle', echeance: '15/11/2026', statut: 'A faire' }),
-        presetRow({ action: 'Supprimer le suivi parallele Excel', impact: 6, effort: 3, responsable: 'IT', echeance: '30/11/2026', statut: 'A faire' }),
-        presetRow({ action: 'Automatiser les controles de cloture', impact: 7, effort: 6, responsable: 'IT / Controle', echeance: '15/12/2026', statut: 'A faire' }),
-      ],
-    },
-    step6: {
-      flow: [
-        presetRow({ label: 'Demande recue', type: 'Evenement', acteur: client, systeme, painpoint: false }),
-        presetRow({ label: 'Check-list obligatoire', type: 'Controle', acteur: 'Equipe operationnelle', systeme, painpoint: false }),
-        presetRow({ label: 'Priorisation automatique', type: 'Decision', acteur: 'Systeme', systeme, painpoint: false }),
-        presetRow({ label: 'Traitement standard', type: 'Tache', acteur: owner, systeme, painpoint: false }),
-        presetRow({ label: 'Controle cloture', type: 'Controle', acteur: 'Controle', systeme, painpoint: false }),
-        presetRow({ label: 'Reporting automatique', type: 'Tache', acteur: 'Systeme', systeme, painpoint: false }),
-      ],
-      businessCase: {
-        gains: isIndustry ? 156000 : 128000,
-        couts: isIndustry ? 48000 : 62000,
-        risques: 'La cible doit rester compatible avec les contraintes operationnelles, les controles internes et la disponibilite des donnees.',
-      },
-      roadmap: [
-        presetRow({ phase: 'Standard entree', debut: '20/10/2026', fin: '31/10/2026', responsable: owner, livrable: 'Check-list validee' }),
-        presetRow({ phase: 'Parametrage workflow', debut: '03/11/2026', fin: '21/11/2026', responsable: 'IT', livrable: 'File priorisee' }),
-        presetRow({ phase: 'Pilote operationnel', debut: '24/11/2026', fin: '12/12/2026', responsable: owner, livrable: 'Bilan pilote' }),
-      ],
-    },
-    step7: {
-      plan: [
-        presetRow({ action: 'Former les utilisateurs au standard cible', responsable: owner, echeance: '15/11/2026', statut: 'A faire' }),
-        presetRow({ action: 'Suivre quotidiennement les blocages du pilote', responsable: 'Chef de projet Lean', echeance: '29/11/2026', statut: 'A faire' }),
-        presetRow({ action: 'Mettre a jour les modes operatoires', responsable: 'Pilote processus', echeance: '12/12/2026', statut: 'A faire' }),
-      ],
-      changement: [
-        presetRow({ item: 'Identifier des referents terrain', done: false }),
-        presetRow({ item: 'Afficher les indicateurs dans le rituel hebdomadaire', done: false }),
-        presetRow({ item: 'Organiser des retours utilisateurs chaque semaine', done: false }),
-        presetRow({ item: 'Documenter les cas d exception', done: false }),
-      ],
-      recette: 'Pilote realise sur un perimetre representatif : baisse des attentes, meilleure qualite des donnees et adoption correcte du standard. Reserve : finaliser la suppression des suivis paralleles.',
-    },
-    step8: {
-      kpis: [
-        presetRow({ nom: 'Delai moyen traitement', unite: 'jours', cible: 8, actuel: 10, frequence: 'Hebdomadaire' }),
-        presetRow({ nom: 'Dossiers complets entree', unite: '%', cible: 90, actuel: 83, frequence: 'Hebdomadaire' }),
-        presetRow({ nom: 'Reprises dossier', unite: '%', cible: 10, actuel: 16, frequence: 'Mensuel' }),
-      ],
-      rituels: [
-        presetRow({ nom: 'Point flux operationnel', frequence: 'Hebdomadaire', participants: `${owner}, IT, Sponsor`, objet: 'Suivi delais et blocages' }),
-        presetRow({ nom: 'Revue qualite donnees', frequence: 'Mensuel', participants: 'Pilote processus, Controle, IT', objet: 'Echantillon dossiers clotures' }),
-      ],
-      controle: [
-        presetRow({ point: 'Check-list entree', frequence: 'Systematique', responsable: owner, seuil: '95% dossiers conformes' }),
-        presetRow({ point: 'Dossiers en retard', frequence: 'Hebdomadaire', responsable: 'Pilote processus', seuil: 'Alerte si > 10%' }),
-      ],
-      rex: 'Le projet montre que la standardisation de l entree et la visualisation des priorites reduisent rapidement les attentes. Les prochains gains dependront de l automatisation des controles et de la qualite des donnees source.',
-    },
-  };
-}
-
-function presetProjects() {
-  return PROCESS_PROJECT_TEMPLATES.map(buildProcessProject);
-}
-
-function isValidProject(project) {
-  return project && typeof project === 'object' && typeof project._projectId === 'string';
-}
-
-function mergePresetProjects(projects) {
-  const removedPresetIds = new Set(['preset-credit-immobilier', 'preset-procure-to-pay', 'preset-incidents-paiement']);
-  const baseProjects = Array.isArray(projects)
-    ? projects.filter(project => isValidProject(project) && !removedPresetIds.has(project._projectId))
-    : [];
-  const base = baseProjects.length ? baseProjects : [createProject()];
-  const existingIds = new Set(base.map(project => project._projectId));
-  const missing = presetProjects().filter(project => !existingIds.has(project._projectId));
-  return [...base, ...missing];
 }
 
 function roiText(bc) {
@@ -2605,7 +2375,7 @@ function PrintSummary({ data }) {
 }
 
 export default function App() {
-  const [projects, setProjects] = useState(() => mergePresetProjects([]));
+  const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
@@ -2613,8 +2383,7 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
-  const safeProjects = useMemo(() => mergePresetProjects(projects), [projects]);
-  const data = safeProjects.find(p => p._projectId === activeProjectId) || safeProjects[0] || createProject();
+  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
 
   useEffect(() => {
     (async () => {
@@ -2622,10 +2391,10 @@ export default function App() {
         const savedProjects = window.localStorage.getItem('lean-projects-data');
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
-          setProjects(mergePresetProjects(parsed));
+          setProjects(Array.isArray(parsed) && parsed.length ? parsed : [createProject()]);
         } else {
           const legacy = window.localStorage.getItem('lean-projet-data');
-          setProjects(mergePresetProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]));
+          setProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
         }
       } catch (e) { /* pas de projet sauvegardé */ }
       setLoaded(true);
@@ -2636,12 +2405,12 @@ export default function App() {
     if (!loaded) return;
     const t = setTimeout(async () => {
       try {
-        window.localStorage.setItem('lean-projects-data', JSON.stringify(safeProjects));
+        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
         setSavedAt(new Date());
       } catch (e) { console.error('Erreur de sauvegarde', e); }
     }, 600);
     return () => clearTimeout(t);
-  }, [safeProjects, loaded]);
+  }, [projects, loaded]);
 
   const updateField = useCallback((path, value) => {
     setProjects(prev => prev.map(project => {
@@ -2696,14 +2465,14 @@ export default function App() {
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet Lean ${safeProjects.length + 1}`,
+      projectName: `Nouveau projet Lean ${projects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
-  const filteredProjects = safeProjects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
-  const incompleteProjects = safeProjects.filter(project => projectProgress(project) < STEPS.length).length;
+  const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
+  const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
   const appClass = 'lean-app theme-light';
 
   const charteFields = [
