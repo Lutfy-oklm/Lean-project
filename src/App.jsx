@@ -3156,7 +3156,8 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
-  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+  const portfolioProjects = mergePresetProjects(projects);
+  const data = portfolioProjects.find(p => p._projectId === activeProjectId) || portfolioProjects[0] || createProject();
 
   useEffect(() => {
     (async () => {
@@ -3234,22 +3235,23 @@ export default function App() {
     setTimeout(() => { document.title = previousTitle; }, 1000);
   };
   const openProject = (id) => {
+    setProjects(prev => mergePresetProjects(prev));
     setActiveProjectId(id);
     setActive(0);
     setView('project');
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet d'amelioration ${projects.length + 1}`,
+      projectName: `Nouveau projet d'amelioration ${portfolioProjects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
-  const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
-  const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
-  const completedProjects = projects.filter(project => projectProgress(project) === STEPS.length).length;
-  const averageProgress = projects.length ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100) : 0;
+  const filteredProjects = portfolioProjects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
+  const incompleteProjects = portfolioProjects.filter(project => projectProgress(project) < STEPS.length).length;
+  const completedProjects = portfolioProjects.filter(project => projectProgress(project) === STEPS.length).length;
+  const averageProgress = portfolioProjects.length ? Math.round(portfolioProjects.reduce((sum, project) => sum + projectProgress(project), 0) / (portfolioProjects.length * STEPS.length) * 100) : 0;
   const appClass = 'lean-app theme-light';
   const projectSector = (project) => {
     const text = `${project.projectName || ''} ${project.step1?.charte?.perimetreIn || ''} ${project.step0?.note || ''}`.toLowerCase();
@@ -3493,7 +3495,7 @@ export default function App() {
           <section className="home-widgets">
             <div className="home-widget">
               <span>Portefeuille</span>
-              <strong>{projects.length}</strong>
+              <strong>{portfolioProjects.length}</strong>
               <small>Projets d'amelioration</small>
             </div>
             <div className="home-widget warning">
