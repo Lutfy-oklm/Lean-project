@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, Plus, RotateCcw, Search, Sparkles
+  FolderKanban, Moon, Plus, RotateCcw, Search, Sparkles, Sun
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -922,6 +922,51 @@ const CSS = `
 .btn-add:hover,.nav-btn:not(:disabled):hover,.ghost-btn:hover{ background:rgba(79,124,255,.14); border-color:rgba(79,124,255,.45); color:#fff; }
 .validate-btn{ background:linear-gradient(135deg,#4F7CFF,#7C4DFF); box-shadow:0 16px 34px rgba(79,124,255,.22); }
 .validate-btn.is-validated{ background:#22C55E; color:#06130A; }
+.theme-toggle{ display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:0 13px; border:1px solid rgba(255,255,255,.13); border-radius:999px; background:rgba(255,255,255,.08); color:#F8FAFC; font-weight:800; }
+.home-theme-toggle{ position:absolute; top:24px; right:0; z-index:3; }
+
+/* Light SaaS theme */
+.theme-light{
+  --ink:#111827; --ink-soft:#667085; --paper:#F8FAFC; --paper-2:#FFFFFF; --line:#E5E7EB;
+  background:
+    radial-gradient(circle at 10% -8%, rgba(79,124,255,.16), transparent 30rem),
+    radial-gradient(circle at 88% 0%, rgba(0,194,255,.12), transparent 26rem),
+    linear-gradient(135deg,#FFFFFF 0%,#F7F8FC 48%,#EEF4FF 100%);
+  color:#111827;
+}
+.theme-light::before{ background:linear-gradient(rgba(17,24,39,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(17,24,39,.035) 1px,transparent 1px); background-size:48px 48px; mask-image:linear-gradient(to bottom,rgba(0,0,0,.4),transparent 70%); }
+.theme-light .home-hero,.theme-light .home-widget,.theme-light .home-search,.theme-light .project-card,.theme-light .empty-projects,.theme-light .dossier-card{
+  background:rgba(255,255,255,.82); border-color:rgba(17,24,39,.09); color:#111827; box-shadow:0 24px 70px rgba(31,41,55,.12); backdrop-filter:blur(18px);
+}
+.theme-light .home-hero h1,.theme-light .project-card h2,.theme-light .empty-projects h2,.theme-light .dossier-card h2,.theme-light .sub-title{ color:#0F172A; }
+.theme-light .home-hero p,.theme-light .project-card p,.theme-light .home-widget small,.theme-light .project-progress strong,.theme-light .objectif,.theme-light .livrable{ color:#667085; }
+.theme-light .home-kicker,.theme-light .objectif em,.theme-light .livrable em{ color:#4F7CFF; }
+.theme-light .home-widget span{ color:#667085; }
+.theme-light .home-widget strong{ color:#111827; }
+.theme-light .home-search{ color:#667085; }
+.theme-light .home-search input{ color:#111827!important; }
+.theme-light .home-search input::placeholder{ color:#98A2B3; }
+.theme-light .theme-toggle{ background:#fff; border-color:#E5E7EB; color:#344054; box-shadow:0 10px 30px rgba(31,41,55,.08); }
+.theme-light .sidebar{ background:rgba(255,255,255,.86); border-right:1px solid rgba(17,24,39,.09); color:#111827; box-shadow:18px 0 48px rgba(31,41,55,.08); }
+.theme-light .sidebar-head h1,.theme-light .step-item.is-active,.theme-light .step-title{ color:#111827; }
+.theme-light .sidebar-eyebrow,.theme-light .progress-text,.theme-light .pdf-hint,.theme-light .save-indicator,.theme-light .eyebrow,.theme-light .field label{ color:#667085; }
+.theme-light .project-name{ background:#fff!important; border-color:#D0D5DD!important; color:#111827!important; }
+.theme-light .progress-line,.theme-light .project-progress div{ background:#E5E7EB; }
+.theme-light .step-item{ color:#475467; }
+.theme-light .step-item:hover{ background:#F3F6FF; }
+.theme-light .step-item.is-active{ background:#EEF4FF; border-color:#C7D7FE; box-shadow:none; }
+.theme-light .back-home,.theme-light .ghost-btn,.theme-light .btn-add,.theme-light .nav-btn{ background:#fff; border-color:#D0D5DD; color:#344054; }
+.theme-light .back-home:hover,.theme-light .ghost-btn:hover,.theme-light .btn-add:hover,.theme-light .nav-btn:not(:disabled):hover{ background:#F3F6FF; border-color:#A8BFFF; color:#1D4ED8; }
+.theme-light .lean-app input,.theme-light input,.theme-light select,.theme-light textarea{ background:#fff; border-color:#D0D5DD; color:#111827; }
+.theme-light select option{ background:#fff; color:#111827; }
+.theme-light .ledger-table-wrap,.theme-light .flow-node,.theme-light .pain-callout,.theme-light .fivewhy,.theme-light .vsm-summary div,.theme-light .kpi-card{ background:#fff; border-color:#E5E7EB; }
+.theme-light .ledger-table th{ background:#F9FAFB; color:#667085; border-bottom-color:#E5E7EB; }
+.theme-light .ledger-table td{ color:#1F2937; border-bottom-color:#EEF2F7; }
+.theme-light .ledger-table tr:hover td{ background:#F8FAFF; }
+.theme-light .status-badge{ color:#B45309; background:#FEF3C7; border-color:#FDE68A; }
+.theme-light .status-badge.done{ color:#15803D; background:#DCFCE7; border-color:#BBF7D0; }
+.theme-light .validate-btn{ background:linear-gradient(135deg,#4F7CFF,#7C4DFF); color:#fff; }
+.theme-light .validate-btn.is-validated{ background:#22C55E; color:#052E16; }
 
 @media print {
   @page{ margin:12mm; }
@@ -1095,10 +1140,15 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
+  const [theme, setTheme] = useState(() => window.localStorage.getItem('lean-ui-theme') || 'light');
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+
+  useEffect(() => {
+    window.localStorage.setItem('lean-ui-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     (async () => {
@@ -1188,6 +1238,8 @@ export default function App() {
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  const appClass = `lean-app ${theme === 'light' ? 'theme-light' : 'theme-dark'}`;
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -1403,9 +1455,13 @@ export default function App() {
 
   if (view === 'home') {
     return (
-      <div className="lean-app home-mode">
+      <div className={`${appClass} home-mode`}>
         <style>{CSS}</style>
         <main className="project-home">
+          <button className="theme-toggle home-theme-toggle" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+          </button>
           <header className="home-hero">
             <div>
               <div className="home-kicker"><Sparkles size={16} /> Lean Command Center</div>
@@ -1466,7 +1522,7 @@ export default function App() {
   }
 
   return (
-    <div className="lean-app">
+    <div className={appClass}>
       <style>{CSS}</style>
       <aside className="sidebar">
         <div className="sidebar-head">
@@ -1489,6 +1545,7 @@ export default function App() {
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
+          <button className="ghost-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />} {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</button>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
