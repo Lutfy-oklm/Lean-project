@@ -3168,13 +3168,15 @@ export default function App() {
           const legacy = window.localStorage.getItem('lean-projet-data');
           setProjects(mergePresetProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]));
         }
-      } catch (e) { /* pas de projet sauvegardé */ }
+      } catch (e) {
+        setProjects(mergePresetProjects([]));
+      }
       setLoaded(true);
     })();
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || projects.length === 0) return;
     const t = setTimeout(async () => {
       try {
         window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
@@ -3242,6 +3244,12 @@ export default function App() {
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
+  };
+  const restorePresetProjects = () => {
+    const restored = mergePresetProjects(projects);
+    setProjects(restored);
+    setProjectQuery('');
+    if (restored[0]) setActiveProjectId(restored[0]._projectId);
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
@@ -3551,6 +3559,7 @@ export default function App() {
                 <BriefcaseBusiness size={28} />
                 <h2>Aucun projet trouvé</h2>
                 <p>Modifiez votre recherche ou creez un nouveau projet d'amelioration.</p>
+                <button className="home-primary" onClick={restorePresetProjects}><Plus size={16} /> Restaurer les projets modeles</button>
               </div>
             )}
           </section>
