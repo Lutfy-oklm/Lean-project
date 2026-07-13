@@ -4,10 +4,7 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell
 } from 'recharts';
-import {
-  Bell, Building2, CalendarDays, CheckCircle2, ChevronRight, ChevronLeft,
-  Command, Download, RotateCcw, Search, Sparkles, Star, User, Zap
-} from 'lucide-react';
+import { ChevronRight, ChevronLeft, Download, RotateCcw } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 
@@ -851,90 +848,6 @@ const CSS = `
 .validate-btn{ min-height:40px; background:#167A66; box-shadow:none; }
 .validate-btn.is-validated{ background:#172033; }
 
-/* Premium dark SaaS 2026 */
-.lean-app{
-  --ink:#F8FAFC; --ink-soft:#A1A1AA; --paper:#09090B; --paper-2:#18181B; --line:rgba(255,255,255,.10);
-  --teal:#00C2FF; --blue:#4F7CFF; --violet:#7C4DFF; --amber:#F59E0B; --red:#EF4444;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(79,124,255,.22), transparent 32rem),
-    radial-gradient(circle at 86% 12%, rgba(0,194,255,.14), transparent 28rem),
-    linear-gradient(135deg,#09090B 0%,#0D111B 48%,#09090B 100%);
-  color:#F8FAFC;
-}
-.lean-app::before{ content:""; position:fixed; inset:0; pointer-events:none; background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px); background-size:48px 48px; mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 72%); }
-.sidebar{ background:rgba(9,9,11,.72); border-right:1px solid rgba(255,255,255,.09); backdrop-filter:blur(20px); box-shadow:18px 0 48px rgba(0,0,0,.32); }
-.workspace-switcher{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.workspace-mark{ width:38px; height:38px; display:grid; place-items:center; border-radius:8px; color:#fff; background:linear-gradient(135deg,#4F7CFF,#7C4DFF 58%,#00C2FF); box-shadow:0 12px 28px rgba(79,124,255,.28); }
-.sidebar-head h1{ color:#fff; margin:2px 0 0; font-size:22px; }
-.sidebar-eyebrow{ color:#A1A1AA; }
-.project-name{ background:rgba(255,255,255,.06)!important; border-color:rgba(255,255,255,.12)!important; color:#F8FAFC!important; }
-.project-name:focus{ border-color:#4F7CFF!important; box-shadow:0 0 0 3px rgba(79,124,255,.18)!important; }
-.progress-line{ background:rgba(255,255,255,.08); }
-.progress-fill{ background:linear-gradient(90deg,#4F7CFF,#7C4DFF,#00C2FF); }
-.progress-text,.pdf-hint,.save-indicator{ color:#A1A1AA; }
-.step-item{ color:#D4D4D8; }
-.step-item:hover{ background:rgba(255,255,255,.06); }
-.step-item.is-active{ background:linear-gradient(135deg,rgba(79,124,255,.2),rgba(124,77,255,.12)); color:#fff; border:1px solid rgba(255,255,255,.12); box-shadow:0 18px 42px rgba(0,0,0,.28); }
-.step-num,.step-item.is-active .step-num{ color:#00C2FF; }
-.step-stamp{ color:#22C55E; }
-.sidebar-foot{ background:rgba(255,255,255,.03); }
-.ghost-btn{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.12); color:#FAFAFA; }
-.ghost-btn:hover{ background:rgba(79,124,255,.16); border-color:rgba(79,124,255,.55); }
-.main{ background:transparent; padding:24px clamp(18px,3vw,42px) 54px; }
-.app-topbar{ position:sticky; top:16px; z-index:5; max-width:1280px; background:rgba(17,24,39,.68); border:1px solid rgba(255,255,255,.11); box-shadow:0 24px 60px rgba(0,0,0,.28); backdrop-filter:blur(22px); }
-.topbar-left{ min-width:210px; }
-.breadcrumbs{ color:#A1A1AA; font-size:12px; font-weight:700; margin-bottom:4px; }
-.topbar-title{ color:#fff; font-size:17px; }
-.search-shell{ flex:1; max-width:520px; display:flex; align-items:center; gap:10px; min-height:42px; padding:0 12px; border-radius:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:#A1A1AA; }
-.search-shell input{ flex:1; min-width:0; border:0!important; box-shadow:none!important; background:transparent!important; color:#FAFAFA; padding:0; }
-.search-shell input::placeholder{ color:#71717A; }
-.search-shell kbd{ display:inline-flex; align-items:center; gap:3px; color:#A1A1AA; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); border-radius:6px; padding:3px 6px; font-size:11px; }
-.topbar-actions{ display:flex; align-items:center; gap:10px; }
-.icon-btn{ position:relative; width:40px; height:40px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.11); background:rgba(255,255,255,.06); color:#FAFAFA; }
-.notify-dot{ position:absolute; top:9px; right:9px; width:8px; height:8px; border-radius:50%; background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,.18); }
-.primary-action{ display:flex; align-items:center; gap:8px; min-height:40px; padding:0 14px; border:0; color:#fff; background:linear-gradient(135deg,#4F7CFF,#7C4DFF); box-shadow:0 16px 34px rgba(79,124,255,.24); }
-.avatar{ width:40px; height:40px; display:grid; place-items:center; border-radius:50%; color:#fff; background:linear-gradient(135deg,#18181B,#111827); border:1px solid rgba(255,255,255,.14); }
-.saas-dashboard{ max-width:1280px; margin:0 auto 18px; display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:14px; }
-.hero-panel,.metric-card,.widget,.dossier-card{ background:rgba(24,24,27,.76); border:1px solid rgba(255,255,255,.1); box-shadow:0 24px 60px rgba(0,0,0,.24); backdrop-filter:blur(18px); }
-.hero-panel{ grid-row:span 2; border-radius:8px; padding:22px; overflow:hidden; position:relative; }
-.hero-panel::after{ content:""; position:absolute; inset:auto -20% -55% 20%; height:220px; background:radial-gradient(circle,rgba(79,124,255,.22),transparent 68%); pointer-events:none; }
-.hero-meta{ display:inline-flex; align-items:center; gap:8px; color:#00C2FF; font-size:12px; font-weight:800; text-transform:uppercase; }
-.hero-panel h2{ margin:16px 0 8px; color:#fff; font-size:34px; line-height:1; letter-spacing:0; }
-.hero-panel p{ max-width:560px; color:#A1A1AA; line-height:1.55; margin:0; }
-.hero-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
-.pill{ display:inline-flex; align-items:center; gap:6px; min-height:30px; padding:0 10px; border-radius:999px; color:#D4D4D8; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); font-size:12px; font-weight:800; }
-.pill.success{ color:#86EFAC; background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.24); }
-.metrics-grid{ grid-column:span 2; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
-.metric-card{ border-radius:8px; padding:16px; min-height:118px; }
-.metric-card span{ color:#A1A1AA; font-size:12px; font-weight:800; text-transform:uppercase; }
-.metric-card strong{ display:block; color:#fff; font-size:31px; line-height:1; margin:14px 0 7px; }
-.metric-card small{ color:#71717A; }
-.widget{ border-radius:8px; padding:16px; min-height:176px; }
-.widget-head{ display:flex; align-items:center; justify-content:space-between; color:#FAFAFA; font-weight:850; margin-bottom:12px; }
-.activity-widget ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
-.activity-widget li,.task-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; border-radius:8px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07); }
-.activity-widget b,.task-row span{ color:#FAFAFA; font-size:13px; }
-.activity-widget small,.task-row em{ color:#A1A1AA; font-size:12px; font-style:normal; }
-.mini-badge{ min-width:24px; height:24px; display:grid; place-items:center; border-radius:999px; background:rgba(79,124,255,.16); color:#9DB5FF; }
-.tasks-widget{ display:flex; flex-direction:column; gap:8px; }
-.dossier-card{ max-width:1280px; color:#F8FAFC; }
-.eyebrow{ color:#A1A1AA; border-bottom-color:rgba(255,255,255,.1); }
-.dossier-card h2{ color:#fff; }
-.objectif,.livrable{ color:#D4D4D8; }
-.objectif em,.livrable em{ color:#00C2FF; }
-.sub-title{ color:#fff; border-top-color:rgba(255,255,255,.09); }
-.field label{ color:#A1A1AA; }
-.lean-app input,.lean-app select,.lean-app textarea{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.11); color:#FAFAFA; }
-.lean-app select option{ background:#111827; color:#FAFAFA; }
-.ledger-table-wrap,.flow-node,.pain-callout,.fivewhy,.vsm-summary div,.kpi-card{ background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.1); box-shadow:none; }
-.ledger-table th{ background:rgba(255,255,255,.06); color:#A1A1AA; border-bottom-color:rgba(255,255,255,.1); }
-.ledger-table td{ color:#F4F4F5; border-bottom-color:rgba(255,255,255,.08); }
-.ledger-table tr:hover td{ background:rgba(79,124,255,.08); }
-.btn-add,.nav-btn{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.13); color:#FAFAFA; }
-.btn-add:hover,.nav-btn:not(:disabled):hover{ background:rgba(79,124,255,.14); border-color:rgba(79,124,255,.45); color:#fff; }
-.validate-btn{ background:linear-gradient(135deg,#4F7CFF,#7C4DFF); box-shadow:0 16px 34px rgba(79,124,255,.22); }
-.validate-btn.is-validated{ background:#22C55E; color:#06130A; }
-
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -1135,11 +1048,6 @@ export default function App() {
   const toggleValidated = (id) => updateField(`validated.${id}`, !data.validated[id]);
   const validatedCount = Object.values(data.validated || {}).filter(Boolean).length;
   const progressPct = Math.round((validatedCount / STEPS.length) * 100);
-  const openActions = (data.step5.actions || []).filter(a => a.statut !== 'Fait').length;
-  const kpiCount = (data.step8.kpis || []).filter(k => k.nom).length;
-  const painPoints = [...(data.step3.flow || []), ...(data.step6.flow || [])].filter(s => s.painpoint).length;
-  const nextMilestone = (data.step6.roadmap || [])[0];
-  const activeStep = STEPS[active];
 
   const resetAll = () => {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) setData(defaultData());
@@ -1368,13 +1276,8 @@ export default function App() {
       <style>{CSS}</style>
       <aside className="sidebar">
         <div className="sidebar-head">
-          <div className="workspace-switcher">
-            <div className="workspace-mark"><Building2 size={16} /></div>
-            <div>
-              <div className="sidebar-eyebrow">Workspace</div>
-              <h1>Lean Finance</h1>
-            </div>
-          </div>
+          <div className="sidebar-eyebrow">Tour de contrôle</div>
+          <h1>Lean Finance</h1>
           <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
           <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
           <div className="progress-text">{validatedCount}/9 étapes validées</div>
@@ -1397,55 +1300,15 @@ export default function App() {
       </aside>
       <main className="main">
         <div className="app-topbar">
-          <div className="topbar-left">
-            <div className="breadcrumbs">Dashboard / Transformation / {activeStep.title}</div>
+          <div>
+            <div className="topbar-kicker">Workspace Lean Finance</div>
             <div className="topbar-title">{data.projectName || 'Projet Lean'}</div>
           </div>
-          <label className="search-shell">
-            <Search size={16} />
-            <input placeholder="Rechercher une action, un KPI, une étape..." />
-            <kbd><Command size={12} />K</kbd>
-          </label>
-          <div className="topbar-actions">
-            <button className="icon-btn" title="Notifications"><Bell size={17} /><span className="notify-dot" /></button>
-            <button className="primary-action"><Sparkles size={16} /> Nouveau rituel</button>
-            <div className="avatar"><User size={16} /></div>
+          <div className="topbar-status">
+            <span>{progressPct}% complété</span>
+            <strong>{STEPS[active].title}</strong>
           </div>
         </div>
-        <section className="saas-dashboard" aria-label="Vue synthèse">
-          <div className="hero-panel">
-            <div className="hero-meta"><Zap size={15} /> Étape active</div>
-            <h2>{activeStep.title}</h2>
-            <p>{activeStep.objectif}</p>
-            <div className="hero-row">
-              <span className="pill success"><CheckCircle2 size={14} /> {progressPct}% complété</span>
-              <span className="pill"><CalendarDays size={14} /> {nextMilestone ? nextMilestone.fin : 'Roadmap à jour'}</span>
-            </div>
-          </div>
-          <div className="metrics-grid">
-            <div className="metric-card"><span>Étapes validées</span><strong>{validatedCount}/{STEPS.length}</strong><small>Progression globale</small></div>
-            <div className="metric-card"><span>Actions ouvertes</span><strong>{openActions}</strong><small>Backlog priorisé</small></div>
-            <div className="metric-card"><span>KPI suivis</span><strong>{kpiCount}</strong><small>Tableau de bord</small></div>
-            <div className="metric-card"><span>Points sensibles</span><strong>{painPoints}</strong><small>AS-IS / TO-BE</small></div>
-          </div>
-          <div className="widget activity-widget">
-            <div className="widget-head"><span>Activité récente</span><Star size={15} /></div>
-            <ul>
-              <li><b>Projet sauvegardé</b><small>{savedAt ? savedAt.toLocaleTimeString('fr-FR') : 'En attente'}</small></li>
-              <li><b>{activeStep.title}</b><small>{data.validated[active] ? 'Validée' : 'À finaliser'}</small></li>
-              <li><b>Export PDF</b><small>Dossier prêt à générer</small></li>
-            </ul>
-          </div>
-          <div className="widget tasks-widget">
-            <div className="widget-head"><span>Tâches prioritaires</span><span className="mini-badge">{openActions}</span></div>
-            {(data.step5.actions || []).slice(0, 3).map(a => (
-              <div className="task-row" key={a._id}>
-                <span>{a.action}</span>
-                <em>{a.statut}</em>
-              </div>
-            ))}
-          </div>
-        </section>
         <div className="dossier-card">
           <div className="eyebrow">Étape {String(active).padStart(2, '0')} — {STEPS[active].title}</div>
           <h2>{STEPS[active].title}</h2>
