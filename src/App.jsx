@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import _ from 'lodash';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -795,14 +795,6 @@ function genericScenarioProject(s) {
 
 function createPresetProjects() {
   return [...PROJECT_SCENARIOS.map(scenarioProject), ...EXTRA_PROJECT_SCENARIOS.slice(0, 3).map(genericScenarioProject)];
-}
-
-function mergePresetProjects(existingProjects) {
-  const base = Array.isArray(existingProjects) ? existingProjects.filter(project => project && project._projectId) : [];
-  if (base.length === 0) return createPresetProjects();
-  const ids = new Set(base.map(project => project._projectId));
-  const missing = createPresetProjects().filter(project => !ids.has(project._projectId));
-  return [...base, ...missing];
 }
 
 function roiText(bc) {
@@ -3154,39 +3146,8 @@ export default function App() {
   const [projectQuery, setProjectQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const [savedAt, setSavedAt] = useState(null);
-  const portfolioProjects = mergePresetProjects(projects);
+  const portfolioProjects = projects;
   const data = portfolioProjects.find(p => p._projectId === activeProjectId) || portfolioProjects[0] || createProject();
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const savedProjects = window.localStorage.getItem('lean-projects-data');
-        if (savedProjects) {
-          const parsed = JSON.parse(savedProjects);
-          setProjects(mergePresetProjects(parsed));
-        } else {
-          const legacy = window.localStorage.getItem('lean-projet-data');
-          setProjects(mergePresetProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]));
-        }
-      } catch (e) {
-        setProjects(mergePresetProjects([]));
-      }
-      setLoaded(true);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!loaded || projects.length === 0) return;
-    const t = setTimeout(async () => {
-      try {
-        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
-        setSavedAt(new Date());
-      } catch (e) { console.error('Erreur de sauvegarde', e); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [projects, loaded]);
 
   const updateField = useCallback((path, value) => {
     setProjects(prev => prev.map(project => {
@@ -3235,7 +3196,6 @@ export default function App() {
     setTimeout(() => { document.title = previousTitle; }, 1000);
   };
   const openProject = (id) => {
-    setProjects(prev => mergePresetProjects(prev));
     setActiveProjectId(id);
     setActive(0);
     setView('project');
@@ -3596,7 +3556,7 @@ export default function App() {
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
-          <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
+          <div className="save-indicator">Mode demonstration - 5 projets integres</div>
         </div>
       </aside>
       <main className="main">
