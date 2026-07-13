@@ -25,6 +25,44 @@ const STEPS = [
   { id: 8, title: 'Contrôler', objectif: 'Mesurer les gains, installer des rituels, ajuster et maintenir.', livrable: 'Dashboard, plan de contrôle, REX.' },
 ];
 
+const EXAMPLE_PROJECTS = [
+  {
+    sector: 'Banque',
+    title: "Reduction du delai d'octroi de credit immobilier",
+    problem: 'Dossiers incomplets, allers-retours agence / analyste et delais de decision superieurs a 20 jours.',
+    objective: 'Ramener la decision a 10 jours ouvres et fiabiliser la completude des dossiers.',
+    deliverable: 'Checklist de recevabilite, SIPOC, VSM, backlog actions.'
+  },
+  {
+    sector: 'Banque',
+    title: 'Traitement des reclamations clients',
+    problem: 'Relances clients frequentes, tickets mal qualifies et reponses non homogenes selon les canaux.',
+    objective: 'Repondre a 85% des reclamations sous 7 jours et reduire les reouvertures.',
+    deliverable: 'Typologie cible, RACI, modeles de reponse, KPI de suivi.'
+  },
+  {
+    sector: 'Industrie',
+    title: 'Optimisation Procure-to-Pay fournisseurs',
+    problem: 'Factures bloquees, ecarts de reception et relances fournisseurs importantes.',
+    objective: 'Reduire les factures bloquees sous 12% et accelerer le bon a payer.',
+    deliverable: 'Cartographie P2P, causes racines, AMDEC, plan de controle.'
+  },
+  {
+    sector: 'Industrie',
+    title: 'Reduction du temps de changement de serie',
+    problem: 'Temps de changement trop long, preparation outillage tardive et redemarrages instables.',
+    objective: 'Passer de 96 a 55 minutes par changement de serie avec une logique SMED.',
+    deliverable: 'Observation terrain, VSM, matrice impact / effort, standard cible.'
+  },
+  {
+    sector: 'Services / Operations',
+    title: 'Gestion des incidents de paiement entreprises',
+    problem: 'Tickets ouverts sans cause qualifiee, relances clients sensibles et manque de priorisation.',
+    objective: 'Resoudre 80% des incidents sous 24h et fiabiliser la communication client.',
+    deliverable: 'Flux cible, rituels de pilotage, KPI, REX.'
+  },
+];
+
 function defaultData() {
   return {
     projectName: 'Optimisation du processus de clôture de compte bancaire',
@@ -2207,6 +2245,87 @@ const CSS = `
   font-size:11.5px;
 }
 
+.theme-light .example-section{
+  margin:18px 0 22px;
+  padding:18px 0 20px;
+  border-top:2px solid #11233F;
+  border-bottom:1px solid #D8DEE8;
+}
+.theme-light .example-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:12px;
+}
+.theme-light .example-section-head span{
+  display:block;
+  color:#4B5C73;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .example-section-head h2{
+  margin:4px 0 0;
+  color:#11233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+}
+.theme-light .example-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:10px;
+}
+.theme-light .example-card{
+  background:#FFFFFF;
+  border:1px solid #D8DEE8;
+  border-top:3px solid #11233F;
+  padding:14px 14px 13px;
+}
+.theme-light .example-sector{
+  display:inline-flex;
+  border:1px solid #CBD4E1;
+  background:#F6F8FB;
+  color:#40516A;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  padding:3px 7px;
+}
+.theme-light .example-card h3{
+  margin:12px 0 8px;
+  color:#11233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:19px;
+  font-weight:500;
+  line-height:1.18;
+}
+.theme-light .example-card p{
+  margin:7px 0;
+  color:#40516A;
+  font-size:12.5px;
+  line-height:1.45;
+}
+.theme-light .example-card p strong{
+  display:block;
+  color:#11233F;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.theme-light .example-card small{
+  display:block;
+  margin-top:10px;
+  color:#2E6F64;
+  font-size:11px;
+  line-height:1.35;
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -2716,6 +2835,24 @@ export default function App() {
               <Search size={18} />
               <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
             </label>
+          </section>
+
+          <section className="example-section">
+            <div className="example-section-head">
+              <span>Exemples de projets</span>
+              <h2>Amelioration de processus banque, industrie et operations</h2>
+            </div>
+            <div className="example-grid">
+              {EXAMPLE_PROJECTS.map(example => (
+                <article className="example-card" key={example.title}>
+                  <span className="example-sector">{example.sector}</span>
+                  <h3>{example.title}</h3>
+                  <p><strong>Probleme</strong>{example.problem}</p>
+                  <p><strong>Objectif</strong>{example.objective}</p>
+                  <small>{example.deliverable}</small>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className="project-grid">
