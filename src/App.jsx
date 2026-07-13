@@ -778,22 +778,26 @@ const CSS = `
 .save-indicator{ text-align:center; }
 
 @media print {
-  @page{ margin:14mm; }
+  @page{ margin:12mm; }
   body *{ visibility:hidden; }
   .lean-app, .lean-app *{ visibility:visible; }
-  .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; }
+  body{ background:#fff!important; }
+  .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; background:#fff!important; color:#10233F; }
   .sidebar, .main{ display:none; }
   .print-only{ display:block; font-family:var(--font-body); color:var(--ink); }
-  .print-only h1{ font-family:var(--font-display); font-size:26px; margin-bottom:2px; }
-  .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin-bottom:18px; }
-  .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:20px; border-top:1px solid var(--line); padding-top:10px; }
-  .print-step h2{ font-family:var(--font-display); font-size:16px; margin-bottom:6px; }
-  .print-table-block h4{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin:8px 0 3px; }
-  .print-table{ width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:6px; }
-  .print-table th{ text-align:left; background:#EFEBDE; font-size:9px; text-transform:uppercase; letter-spacing:.03em; padding:3px 5px; border:1px solid var(--line); }
-  .print-table td{ border:1px solid var(--line); padding:3px 5px; }
-  .print-field{ font-size:11px; margin:2px 0; }
-  .print-field strong{ text-transform:capitalize; color:var(--ink-soft); font-weight:600; }
+  .print-only::before{ content:"Tour de contrôle Lean Finance"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
+  .print-only h1{ font-family:var(--font-display); font-size:28px; line-height:1.12; margin:0 0 5px; color:#10233F; }
+  .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:18px; border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#fff; }
+  .print-step h2{ font-family:var(--font-display); font-size:18px; margin:0 0 8px; color:#10233F; }
+  .print-table-block{ margin-top:8px; page-break-inside:avoid; break-inside:avoid; }
+  .print-table-block h4{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:#2F6F63; margin:10px 0 4px; }
+  .print-table{ width:100%; border-collapse:collapse; font-size:9.5px; margin-bottom:6px; table-layout:fixed; }
+  .print-table th{ text-align:left; background:#EDEFE8; font-size:8.5px; text-transform:uppercase; letter-spacing:.02em; padding:5px 6px; border:1px solid #C9CFC2; color:#10233F; }
+  .print-table td{ border:1px solid #D8D2C4; padding:5px 6px; vertical-align:top; overflow-wrap:anywhere; }
+  .print-table tr:nth-child(even) td{ background:#FBFAF6; }
+  .print-field{ font-size:10.5px; line-height:1.42; margin:4px 0; }
+  .print-field strong{ text-transform:capitalize; color:var(--ink-soft); font-weight:700; }
 }
 
 @media (max-width: 820px){
@@ -974,13 +978,11 @@ export default function App() {
   const resetAll = () => {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) setData(defaultData());
   };
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${(data.projectName || 'projet-lean').replace(/\s+/g, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportPdf = () => {
+    const previousTitle = document.title;
+    document.title = `${(data.projectName || 'projet-lean').replace(/\s+/g, '_')}_dossier_lean`;
+    window.print();
+    setTimeout(() => { document.title = previousTitle; }, 1000);
   };
 
   const charteFields = [
@@ -1216,8 +1218,8 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-foot">
-          <button className="ghost-btn" onClick={exportJson}><Download size={14} /> Télécharger les données (JSON)</button>
-          <div className="pdf-hint">Les données sont sauvegardées dans ce navigateur. L’export JSON permet de réutiliser ou d’archiver le projet.</div>
+          <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
+          <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
