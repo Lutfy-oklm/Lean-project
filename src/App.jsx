@@ -1966,6 +1966,16 @@ const CSS = `
   border:1px solid #D7A6A0;
   background:#FFF5F3;
   color:var(--red);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .16s ease, visibility .16s ease, background .16s ease, border-color .16s ease;
+}
+.theme-light .project-card:hover .delete-project,
+.theme-light .project-card:focus-within .delete-project{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
 }
 .theme-light .delete-project:hover{
   background:#FCE8E5;
