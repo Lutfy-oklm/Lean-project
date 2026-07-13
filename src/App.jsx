@@ -11,6 +11,7 @@ import {
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
+const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
@@ -219,6 +220,92 @@ function defaultData() {
         { _id: uid(), point: 'Taux de réclamation', frequence: 'Mensuel', responsable: 'Relation Client', seuil: 'Alerte si > 7%' },
       ],
       rex: "Les premiers résultats du pilote montrent une réduction du délai de 15 à 8 jours en moyenne, avec un potentiel de gain supplémentaire une fois l'interfaçage CRM / Core Banking finalisé. Principale difficulté : l'appropriation de la nouvelle règle de priorisation par les équipes back-office. Action d'amélioration : renforcer le coaching terrain les deux premières semaines post-déploiement.",
+    },
+  };
+}
+
+function blankData() {
+  return {
+    projectName: '',
+    validated: {},
+    step0: {
+      note: '',
+      planning: [],
+      parties: [],
+    },
+    step1: {
+      charte: {
+        titre: '',
+        sponsor: '',
+        probleme: '',
+        objectifs: '',
+        perimetreIn: '',
+        perimetreOut: '',
+        contraintes: '',
+        risques: '',
+        budget: '',
+        dateDebut: '',
+        dateFin: '',
+        gains: '',
+      },
+      sipoc: [],
+      raci: {
+        roles: [],
+        activites: [],
+      },
+    },
+    step2: {
+      questions: [],
+      journal: [],
+    },
+    step3: {
+      referentiel: [],
+      flow: [],
+      vsm: [],
+    },
+    step4: {
+      pareto: [],
+      ishikawa: {
+        "Main d'œuvre": [],
+        'Méthode': [],
+        'Matériel': [],
+        'Milieu': [],
+        'Matière': [],
+      },
+      fivewhy: {
+        probleme: '',
+        why1: '',
+        why2: '',
+        why3: '',
+        why4: '',
+        why5: '',
+        causeRacine: '',
+        action: '',
+      },
+      amdec: [],
+    },
+    step5: {
+      actions: [],
+    },
+    step6: {
+      flow: [],
+      businessCase: {
+        gains: '',
+        couts: '',
+        risques: '',
+      },
+      roadmap: [],
+    },
+    step7: {
+      plan: [],
+      changement: [],
+      recette: '',
+    },
+    step8: {
+      kpis: [],
+      rituels: [],
+      controle: [],
+      rex: '',
     },
   };
 }
@@ -2468,7 +2555,7 @@ export default function App() {
 
   const resetAll = () => {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) {
-      setProjects(prev => prev.map(project => project._projectId === activeProjectId ? createProject({ _projectId: activeProjectId }) : project));
+      setProjects(prev => prev.map(project => project._projectId === activeProjectId ? createBlankProject({ _projectId: activeProjectId }) : project));
     }
   };
   const exportPdf = () => {
@@ -2483,7 +2570,7 @@ export default function App() {
     setView('project');
   };
   const createNewProject = () => {
-    const project = createProject({
+    const project = createBlankProject({
       projectName: `Nouveau projet d'amélioration ${projects.length + 1}`,
       validated: {},
     });
