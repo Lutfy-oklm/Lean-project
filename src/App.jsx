@@ -748,10 +748,35 @@ const CSS = `
 .flow-viz{ display:flex; align-items:center; flex-wrap:wrap; gap:2px; padding:20px 4px; }
 .flow-node{ min-width:110px; max-width:150px; padding:10px 14px; border:1.5px solid var(--ink); background:var(--paper-2); font-size:12px; cursor:pointer; text-align:center; position:relative; }
 .flow-node:hover{ border-color:var(--teal); }
-.shape-diamond{ clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); padding:26px 20px; }
+.shape-diamond{
+  width:118px;
+  height:82px;
+  min-width:118px;
+  max-width:118px;
+  padding:0 18px;
+  border:0!important;
+  background:transparent!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+}
+.shape-diamond::before{
+  content:"";
+  position:absolute;
+  inset:8px 18px;
+  background:var(--paper-2);
+  border:1.5px solid var(--ink);
+  transform:rotate(45deg);
+  z-index:0;
+}
+.shape-diamond:hover::before{ border-color:var(--teal); }
+.flow-node-label{ position:relative; z-index:1; }
 .shape-circle{ border-radius:50%; width:92px; height:92px; display:flex; align-items:center; justify-content:center; min-width:92px; }
 .shape-ctrl{ border-style:dashed; border-color:var(--amber); }
 .is-pain{ border-color:var(--amber)!important; box-shadow:0 0 0 3px rgba(201,125,46,0.16); }
+.shape-diamond.is-pain{ box-shadow:none; }
+.shape-diamond.is-pain::before{ border-color:var(--amber)!important; box-shadow:0 0 0 3px rgba(201,125,46,0.16); }
 .flow-pain-badge{ position:absolute; top:-8px; right:-8px; background:var(--amber); color:#fff; border-radius:50%; width:18px; height:18px; font-size:11px; display:flex; align-items:center; justify-content:center; }
 .flow-arrow{ color:var(--ink-soft); font-size:16px; padding:0 2px; }
 .pain-callout{ background:rgba(201,125,46,0.08); border-left:3px solid var(--amber); padding:10px 14px; font-size:12.5px; margin-top:6px; }
@@ -2287,7 +2312,19 @@ const CSS = `
   min-width:76px;
 }
 .theme-light .shape-diamond{
-  padding:20px 16px;
+  width:116px;
+  height:84px;
+  min-width:116px;
+  max-width:116px;
+  padding:0 18px;
+}
+.theme-light .shape-diamond::before{
+  inset:9px 18px;
+  background:#FFFFFF;
+  border-color:var(--line-strong);
+}
+.theme-light .shape-diamond:hover::before{
+  border-color:var(--teal);
 }
 .theme-light .pain-callout{
   border-left:3px solid var(--amber);
