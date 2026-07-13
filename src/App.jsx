@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles
+  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -1781,6 +1781,25 @@ const CSS = `
   border-color:#9DCBA9;
   color:#155D35;
 }
+.theme-light .project-card-top .status-badge{
+  margin-left:auto;
+}
+.theme-light .delete-project{
+  order:3;
+  width:30px;
+  height:30px;
+  margin-left:8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #D7A6A0;
+  background:#FFF5F3;
+  color:var(--red);
+}
+.theme-light .delete-project:hover{
+  background:#FCE8E5;
+  border-color:#C78078;
+}
 .theme-light .home-primary,
 .theme-light .open-project{
   min-height:34px;
@@ -2391,7 +2410,7 @@ export default function App() {
         const savedProjects = window.localStorage.getItem('lean-projects-data');
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
-          setProjects(Array.isArray(parsed) && parsed.length ? parsed : [createProject()]);
+          setProjects(Array.isArray(parsed) ? parsed : [createProject()]);
         } else {
           const legacy = window.localStorage.getItem('lean-projet-data');
           setProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
@@ -2470,6 +2489,16 @@ export default function App() {
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
+  };
+  const deleteProject = (project) => {
+    const name = project.projectName || 'ce projet';
+    if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
+    setProjects(prev => prev.filter(item => item._projectId !== project._projectId));
+    if (activeProjectId === project._projectId) {
+      setActiveProjectId(null);
+      setActive(0);
+      setView('home');
+    }
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
@@ -2726,6 +2755,9 @@ export default function App() {
                 <article className="project-card" key={project._projectId}>
                   <div className="project-card-top">
                     <div className="project-icon"><FolderKanban size={20} /></div>
+                    <button className="delete-project" onClick={() => deleteProject(project)} title="Supprimer le projet" aria-label={`Supprimer ${project.projectName || 'ce projet'}`}>
+                      <Trash2 size={15} />
+                    </button>
                     <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Terminé' : 'En cours'}</span>
                   </div>
                   <h2>{project.projectName || 'Projet Lean'}</h2>
