@@ -1743,8 +1743,8 @@ const CSS = `
   transform:none!important;
 }
 .theme-light .project-home{
-  width:min(1180px,calc(100vw - 44px));
-  padding:24px 0 42px;
+  width:min(1220px,calc(100vw - 40px));
+  padding:28px 0 48px;
 }
 .theme-light .home-hero,
 .theme-light .home-widget,
@@ -1757,8 +1757,13 @@ const CSS = `
   box-shadow:none;
 }
 .theme-light .home-hero{
-  padding:20px 22px;
-  border-top:3px solid var(--line-strong);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:24px;
+  align-items:end;
+  padding:24px 26px;
+  border-top:4px solid var(--line-strong);
+  border-bottom-color:#B9C3D2;
 }
 .theme-light .home-kicker{
   color:var(--ink-soft);
@@ -1770,26 +1775,50 @@ const CSS = `
 .theme-light .home-hero h1{
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:clamp(28px,3.2vw,42px);
+  font-size:clamp(34px,4vw,54px);
   font-weight:500;
   line-height:1.08;
   margin:8px 0 6px;
 }
 .theme-light .home-hero p{
   color:var(--ink-soft);
-  font-size:13px;
-  line-height:1.5;
+  max-width:760px;
+  font-size:14px;
+  line-height:1.55;
 }
-.theme-light .home-widgets{
-  gap:10px;
+.theme-light .home-hero-actions{
+  min-width:210px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:12px;
+}
+.theme-light .home-hero-actions span{
+  color:var(--ink-muted);
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.theme-light .home-dashboard{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:18px 0 20px;
 }
 .theme-light .home-widget{
-  min-height:86px;
-  padding:14px 16px;
+  min-height:102px;
+  padding:16px 18px;
   border-top:2px solid #8A96A8;
 }
 .theme-light .home-widget.warning{
   border-top-color:var(--amber);
+}
+.theme-light .home-widget.success{
+  border-top-color:var(--teal);
+}
+.theme-light .home-widget.progress-widget{
+  border-top-color:var(--blue);
 }
 .theme-light .home-widget span,
 .theme-light .home-widget small,
@@ -1800,24 +1829,53 @@ const CSS = `
 .theme-light .home-widget strong{
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:26px;
+  font-size:31px;
+  font-weight:500;
+  line-height:1.1;
+  display:block;
+  margin:8px 0 4px;
+}
+.theme-light .portfolio-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,420px);
+  gap:18px;
+  align-items:end;
+  padding:14px 0 12px;
+  border-bottom:2px solid var(--line-strong);
+  margin-bottom:14px;
+}
+.theme-light .section-eyebrow{
+  color:var(--ink-muted);
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .portfolio-toolbar h2{
+  margin:4px 0 0;
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
   font-weight:500;
 }
 .theme-light .home-search{
-  border-left:0;
-  padding:10px 12px;
+  min-height:42px;
+  border-left:1px solid var(--line);
+  padding:8px 12px;
   color:var(--ink-soft);
+  background:#F8FAFC;
 }
 .theme-light .home-search input{
   font-size:14px!important;
   color:var(--ink)!important;
+  background:transparent!important;
 }
 .theme-light .project-grid{
-  gap:12px;
+  gap:14px;
 }
 .theme-light .project-card{
-  min-height:210px;
-  padding:16px;
+  min-height:220px;
+  padding:18px;
   border-top:2px solid var(--line-strong);
 }
 .theme-light .project-card:hover{
@@ -1834,14 +1892,15 @@ const CSS = `
 .theme-light .project-card h2{
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:20px;
+  font-size:21px;
   font-weight:500;
   line-height:1.18;
+  margin-top:2px;
 }
 .theme-light .project-card p{
   color:var(--ink-soft);
-  font-size:12.5px;
-  line-height:1.45;
+  font-size:13px;
+  line-height:1.5;
 }
 .theme-light .project-progress div,
 .theme-light .progress-line{
@@ -2339,10 +2398,12 @@ const CSS = `
 @media (max-width: 820px){
   .lean-app{ flex-direction:column; width:100vw; min-height:100vh; margin:0; max-height:none; border-radius:0; border:0; }
   .project-home{ width:calc(100vw - 28px); padding:18px 0 40px; }
-  .home-hero{ flex-direction:column; align-items:flex-start; padding:22px; border-radius:22px; }
+  .home-hero{ grid-template-columns:1fr; align-items:flex-start; padding:20px; }
   .home-hero h1{ font-size:38px; }
+  .home-hero-actions{ width:100%; align-items:stretch; }
   .home-primary{ width:100%; }
-  .home-widgets{ grid-template-columns:1fr; }
+  .home-dashboard{ grid-template-columns:1fr 1fr; }
+  .portfolio-toolbar{ grid-template-columns:1fr; }
   .project-grid{ grid-template-columns:1fr; }
   .sidebar{ width:100%; min-width:0; }
   .steps-nav{ display:flex; overflow-x:auto; }
@@ -2354,6 +2415,11 @@ const CSS = `
   .ishikawa-grid{ grid-template-columns:repeat(2,1fr); }
   .kpi-grid{ grid-template-columns:1fr; }
   .main{ padding:20px; }
+}
+
+@media (max-width: 560px){
+  .home-dashboard{ grid-template-columns:1fr; }
+  .portfolio-toolbar h2{ font-size:22px; }
 }
 `;
 
@@ -2589,6 +2655,10 @@ export default function App() {
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
+  const completedProjects = projects.filter(project => projectProgress(project) === STEPS.length).length;
+  const averageProgress = projects.length
+    ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
+    : 0;
   const appClass = 'lean-app theme-light';
 
   const charteFields = [
@@ -2812,21 +2882,41 @@ export default function App() {
             <div>
               <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets d'amélioration</div>
               <h1>ProcessPilot</h1>
-              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche d'amélioration de bout en bout, quel que soit le secteur.</p>
+              <p>Un espace de pilotage clair pour cadrer, analyser, prioriser et suivre vos démarches d'amélioration de processus, quel que soit le secteur.</p>
             </div>
-            <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
+            <div className="home-hero-actions">
+              <span>{STEPS.length} étapes structurées</span>
+              <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
+            </div>
           </header>
 
-          <section className="home-widgets">
+          <section className="home-dashboard" aria-label="Synthèse du portefeuille">
             <div className="home-widget">
-              <span>Projets sauvegardés</span>
+              <span>Total projets</span>
               <strong>{projects.length}</strong>
               <small>Portefeuille total</small>
             </div>
             <div className="home-widget warning">
-              <span>Non terminés</span>
+              <span>À finaliser</span>
               <strong>{incompleteProjects}</strong>
-              <small>Validation incomplète</small>
+              <small>Projets non validés</small>
+            </div>
+            <div className="home-widget success">
+              <span>Terminés</span>
+              <strong>{completedProjects}</strong>
+              <small>Dossiers complets</small>
+            </div>
+            <div className="home-widget progress-widget">
+              <span>Avancement moyen</span>
+              <strong>{averageProgress}%</strong>
+              <small>Sur les 9 étapes</small>
+            </div>
+          </section>
+
+          <section className="portfolio-toolbar">
+            <div>
+              <span className="section-eyebrow">Portefeuille</span>
+              <h2>Projets sauvegardés</h2>
             </div>
             <label className="home-search">
               <Search size={18} />
