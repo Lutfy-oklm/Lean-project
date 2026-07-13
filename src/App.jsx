@@ -2234,7 +2234,7 @@ const CSS = `
   .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; background:#fff!important; color:#10233F; }
   .sidebar, .main{ display:none; }
   .print-only{ display:block; font-family:var(--font-body); color:var(--ink); }
-  .print-only::before{ content:"Tour de contrôle Lean Finance"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
+  .print-only::before{ content:"ProcessPilot"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
   .print-only h1{ font-family:var(--font-display); font-size:28px; line-height:1.12; margin:0 0 5px; color:#10233F; }
   .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:18px; border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#fff; }
@@ -2308,7 +2308,7 @@ function PrintSummary({ data }) {
   return (
     <div className="print-only">
       <h1>{data.projectName || 'Projet Lean'}</h1>
-      <p className="print-subtitle">Tour de contrôle Lean — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
+      <p className="print-subtitle">ProcessPilot — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
 
       <section className="print-step">
         <h2>Étape 00 — Préparer</h2>
@@ -2484,7 +2484,7 @@ export default function App() {
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet Lean ${projects.length + 1}`,
+      projectName: `Nouveau projet d'amélioration ${projects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
@@ -2723,9 +2723,9 @@ export default function App() {
         <main className="project-home">
           <header className="home-hero">
             <div>
-              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets Lean</div>
-              <h1>Pilotage des projets Lean Finance</h1>
-              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche Lean de bout en bout.</p>
+              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets d'amélioration</div>
+              <h1>ProcessPilot</h1>
+              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche d'amélioration de bout en bout, quel que soit le secteur.</p>
             </div>
             <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
           </header>
@@ -2760,8 +2760,8 @@ export default function App() {
                     </button>
                     <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Terminé' : 'En cours'}</span>
                   </div>
-                  <h2>{project.projectName || 'Projet Lean'}</h2>
-                  <p>{project.step1?.charte?.probleme || project.step0?.note || 'Projet Lean Finance à compléter.'}</p>
+                  <h2>{project.projectName || "Projet d'amélioration"}</h2>
+                  <p>{project.step1?.charte?.probleme || project.step0?.note || "Projet d'amélioration à compléter."}</p>
                   <div className="project-progress">
                     <div><span style={{ width: `${pct}%` }} /></div>
                     <strong>{done}/{STEPS.length} étapes validées</strong>
@@ -2774,7 +2774,7 @@ export default function App() {
               <div className="empty-projects">
                 <BriefcaseBusiness size={28} />
                 <h2>Aucun projet trouvé</h2>
-                <p>Modifiez votre recherche ou créez un nouveau projet Lean.</p>
+                <p>Modifiez votre recherche ou créez un nouveau projet d'amélioration.</p>
               </div>
             )}
           </section>
@@ -2796,7 +2796,7 @@ export default function App() {
           </div>
           <div className="sidebar-expanded-only">
             <div className="sidebar-eyebrow">Tour de contrôle</div>
-            <h1>Lean Finance</h1>
+            <h1>ProcessPilot</h1>
             <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
             <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
             <div className="progress-text">{validatedCount}/9 étapes validées</div>
