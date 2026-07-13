@@ -14,6 +14,7 @@ const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId
 const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
 const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId: uid(), _templateKey: 'industrial-aircraft-turnaround-example', updatedAt: new Date().toISOString() });
+const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: uid(), _templateKey: 'insurance-home-claims-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
@@ -686,6 +687,198 @@ function industrialAircraftData() {
   };
 }
 
+function insuranceClaimsData() {
+  return {
+    projectName: 'Optimisation du traitement des sinistres habitation',
+    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
+    step0: {
+      note: "Le processus de gestion des sinistres habitation présente des délais d'indemnisation élevés, des demandes de pièces répétées et une expérience client dégradée. Le projet couvre les sinistres simples et intermédiaires, de la déclaration à l'indemnisation, pour les dégâts des eaux, bris de glace et événements climatiques standards.",
+      planning: [
+        { _id: uid(), phase: 'Cadrage et périmètre', debut: '08/03/2027', fin: '19/03/2027', responsable: 'Chef de projet amélioration' },
+        { _id: uid(), phase: 'Observation gestionnaires et experts', debut: '22/03/2027', fin: '02/04/2027', responsable: 'Équipe processus sinistres' },
+        { _id: uid(), phase: 'Cartographie AS-IS', debut: '05/04/2027', fin: '23/04/2027', responsable: 'Process owner indemnisation' },
+        { _id: uid(), phase: 'Conception parcours cible', debut: '26/04/2027', fin: '14/05/2027', responsable: 'Indemnisation + Digital + Réseau experts' },
+        { _id: uid(), phase: 'Pilote portefeuille habitation', debut: '17/05/2027', fin: '11/06/2027', responsable: 'Responsable sinistres habitation' },
+        { _id: uid(), phase: 'Déploiement et pilotage', debut: '14/06/2027', fin: 'Continu', responsable: 'Direction indemnisation' },
+      ],
+      parties: [
+        { _id: uid(), nom: 'Directeur Indemnisation', role: 'Sponsor', service: 'Sinistres', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Responsable Sinistres Habitation', role: 'Pilote métier', service: 'Indemnisation habitation', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Gestionnaires sinistres', role: 'Utilisateurs clés', service: 'Back-office sinistres', interet: 'Favorable', influence: 'Moyen' },
+        { _id: uid(), nom: 'Réseau experts partenaires', role: 'Contributeur externe', service: 'Expertise', interet: 'Neutre', influence: 'Fort' },
+        { _id: uid(), nom: 'Équipe Digital Client', role: 'Contributeur', service: 'Digital', interet: 'Favorable', influence: 'Moyen' },
+        { _id: uid(), nom: 'Contrôle interne', role: 'Contrôle', service: 'Risques / conformité', interet: 'Neutre', influence: 'Fort' },
+      ],
+    },
+    step1: {
+      charte: {
+        titre: 'Optimisation du traitement des sinistres habitation',
+        sponsor: 'Directeur Indemnisation',
+        probleme: 'Le délai moyen entre déclaration et indemnisation est de 24 jours calendaires sur les sinistres habitation simples/intermédiaires, avec 41% de dossiers nécessitant au moins une relance de pièce et une forte variabilité selon les experts.',
+        objectifs: 'Réduire le délai moyen à 12 jours calendaires, atteindre 85% de dossiers complets dès la première semaine, réduire de 40% les relances clients et standardiser les critères de passage en expertise.',
+        perimetreIn: 'Dégâts des eaux, bris de glace habitation, événements climatiques standards, clients particuliers, canaux agence, téléphone et digital.',
+        perimetreOut: 'Sinistres corporels, contentieux, fraude suspectée, catastrophes naturelles exceptionnelles, grands comptes professionnels.',
+        contraintes: 'Obligations contractuelles, disponibilité experts, qualité des justificatifs, règles de délégation d’indemnisation.',
+        risques: 'Risque de paiement non conforme, contestation client, surcharge des gestionnaires pendant le pilote, adoption insuffisante du parcours digital.',
+        budget: '54 000 €',
+        dateDebut: '08/03/2027',
+        dateFin: '30/06/2027',
+        gains: 'Baisse des coûts de gestion, réduction des appels entrants, amélioration de la satisfaction client et meilleure maîtrise des délais d’indemnisation.',
+      },
+      sipoc: [
+        { _id: uid(), supplier: 'Assuré', input: 'Déclaration sinistre et justificatifs', process: 'Traiter un sinistre habitation', output: 'Décision et indemnisation', customer: 'Assuré' },
+        { _id: uid(), supplier: 'Expert partenaire', input: 'Rapport d’expertise, photos, estimation', process: 'Traiter un sinistre habitation', output: 'Montant validé', customer: 'Gestionnaire sinistre' },
+        { _id: uid(), supplier: 'Contrat / garanties', input: 'Conditions, franchises, plafonds', process: 'Traiter un sinistre habitation', output: 'Position de garantie', customer: 'Indemnisation' },
+      ],
+      raci: {
+        roles: ['Gestionnaire', 'Expert', 'Digital', 'Contrôle interne', 'Comptabilité'],
+        activites: [
+          { _id: uid(), nom: 'Enregistrer la déclaration', assign: { Gestionnaire: 'R', Digital: 'C' } },
+          { _id: uid(), nom: 'Vérifier garantie et complétude', assign: { Gestionnaire: 'R', 'Contrôle interne': 'C' } },
+          { _id: uid(), nom: 'Déclencher expertise si nécessaire', assign: { Gestionnaire: 'R', Expert: 'A' } },
+          { _id: uid(), nom: 'Valider montant d’indemnisation', assign: { Gestionnaire: 'R', 'Contrôle interne': 'A' } },
+          { _id: uid(), nom: 'Effectuer le paiement', assign: { Comptabilité: 'R', Gestionnaire: 'I' } },
+        ],
+      },
+    },
+    step2: {
+      questions: [
+        { _id: uid(), question: 'Quelles informations manquent le plus souvent à la déclaration ?' },
+        { _id: uid(), question: 'Quels critères déclenchent une expertise terrain ou à distance ?' },
+        { _id: uid(), question: 'Combien de relances sont nécessaires avant dossier complet ?' },
+        { _id: uid(), question: 'Quels blocages retardent la validation du montant indemnisable ?' },
+        { _id: uid(), question: 'Comment le client suit-il l’avancement de son dossier ?' },
+      ],
+      journal: [
+        { _id: uid(), date: '24/03/2027', lieu: 'Plateau gestion sinistres', observateur: 'Équipe processus', type: 'Gaspillage', constat: 'Les gestionnaires consultent en moyenne 4 écrans pour vérifier garantie, franchise et historique client.' },
+        { _id: uid(), date: '28/03/2027', lieu: 'Cellule relation client', observateur: 'Process owner', type: 'Irritant', constat: 'Près d’un appel entrant sur trois concerne le suivi d’avancement d’un sinistre déjà déclaré.' },
+        { _id: uid(), date: '31/03/2027', lieu: 'Réseau experts', observateur: 'Responsable sinistres', type: 'Risque', constat: 'Les délais de retour d’expertise varient de 3 à 12 jours selon région et type de dommage.' },
+        { _id: uid(), date: '02/04/2027', lieu: 'Équipe digitale', observateur: 'Équipe processus', type: 'Bonne pratique', constat: 'Les dossiers avec photos et facture déposées dès la déclaration sont indemnisés deux fois plus vite.' },
+      ],
+    },
+    step3: {
+      referentiel: [
+        { _id: uid(), processus: 'Gestion sinistre habitation', macro: 'Indemnisation', niveau: 'N1', proprietaire: 'Responsable Sinistres Habitation', systeme: 'SI Sinistres' },
+        { _id: uid(), processus: 'Qualification garantie et complétude', macro: 'Indemnisation', niveau: 'N2', proprietaire: 'Gestionnaire sinistre', systeme: 'SI Contrats / Sinistres' },
+        { _id: uid(), processus: 'Expertise dommage', macro: 'Réseau experts', niveau: 'N2', proprietaire: 'Responsable expertise', systeme: 'Portail expert' },
+      ],
+      flow: [
+        { _id: uid(), label: 'Sinistre déclaré', type: 'Événement', acteur: 'Assuré', systeme: 'Digital / CRC', painpoint: false },
+        { _id: uid(), label: 'Création dossier', type: 'Tâche', acteur: 'Gestionnaire', systeme: 'SI Sinistres', painpoint: false },
+        { _id: uid(), label: 'Dossier complet ?', type: 'Décision', acteur: 'Gestionnaire', systeme: 'SI Sinistres', painpoint: true },
+        { _id: uid(), label: 'Relance pièces client', type: 'Tâche', acteur: 'Gestionnaire', systeme: 'Email / SMS', painpoint: true },
+        { _id: uid(), label: 'Expertise requise ?', type: 'Décision', acteur: 'Gestionnaire', systeme: '', painpoint: true },
+        { _id: uid(), label: 'Rapport expert', type: 'Tâche', acteur: 'Expert', systeme: 'Portail expert', painpoint: true },
+        { _id: uid(), label: 'Validation indemnité', type: 'Contrôle', acteur: 'Gestionnaire', systeme: 'SI Sinistres', painpoint: false },
+        { _id: uid(), label: 'Paiement assuré', type: 'Tâche', acteur: 'Comptabilité', systeme: 'Paiement', painpoint: false },
+      ],
+      vsm: [
+        { _id: uid(), etape: 'Déclaration et création dossier', tempsTraitement: 15, tempsAttente: 0 },
+        { _id: uid(), etape: 'Contrôle complétude', tempsTraitement: 20, tempsAttente: 1440 },
+        { _id: uid(), etape: 'Relance justificatifs', tempsTraitement: 8, tempsAttente: 4320 },
+        { _id: uid(), etape: 'Expertise', tempsTraitement: 45, tempsAttente: 7200 },
+        { _id: uid(), etape: 'Validation indemnité', tempsTraitement: 25, tempsAttente: 1440 },
+        { _id: uid(), etape: 'Paiement', tempsTraitement: 10, tempsAttente: 720 },
+      ],
+    },
+    step4: {
+      pareto: [
+        { _id: uid(), cause: 'Pièces justificatives manquantes', occurrences: 54 },
+        { _id: uid(), cause: 'Attente rapport expert', occurrences: 37 },
+        { _id: uid(), cause: 'Vérification garantie complexe', occurrences: 22 },
+        { _id: uid(), cause: 'Client relancé plusieurs fois', occurrences: 18 },
+        { _id: uid(), cause: 'Validation paiement tardive', occurrences: 11 },
+      ],
+      ishikawa: {
+        "Main d'œuvre": ['Niveaux d’expérience gestionnaires hétérogènes', 'Charge élevée après épisodes climatiques'],
+        Méthode: ['Check-list de pièces non adaptée au type de sinistre', 'Critères expertise peu explicites'],
+        Matériel: ['SI sinistres non guidant', 'Portail expert non synchronisé en temps réel'],
+        Milieu: ['Pics saisonniers de dégâts des eaux et événements météo'],
+        Matière: ['Photos peu exploitables', 'Factures absentes ou incomplètes'],
+      },
+      fivewhy: {
+        probleme: 'Le délai moyen d’indemnisation dépasse 24 jours calendaires.',
+        why1: 'Parce que les dossiers restent souvent en attente de pièces ou de rapport expert.',
+        why2: 'Parce que la complétude n’est pas vérifiée de façon guidée dès la déclaration.',
+        why3: 'Parce que les pièces demandées ne sont pas personnalisées selon le type de sinistre.',
+        why4: 'Parce que le parcours digital et le SI gestionnaire ne partagent pas une check-list commune.',
+        why5: 'Parce que le processus cible de déclaration complète n’a pas été standardisé.',
+        causeRacine: 'Absence de check-list dynamique par type de sinistre et manque de pilotage des délais experts.',
+        action: 'Mettre en place une déclaration guidée avec pièces obligatoires et suivi automatique des rapports experts.',
+      },
+      amdec: [
+        { _id: uid(), mode: 'Paiement sur dossier incomplet', effet: 'Risque financier et contestation', cause: 'Contrôle complétude non bloquant', F: 3, G: 8, D: 5, actions: 'Ajouter contrôle bloquant avant paiement' },
+        { _id: uid(), mode: 'Expertise déclenchée trop tard', effet: 'Délai allongé et insatisfaction client', cause: 'Critères de déclenchement flous', F: 6, G: 6, D: 6, actions: 'Créer règles de routage expertise automatique' },
+        { _id: uid(), mode: 'Relances client répétées', effet: 'Hausse appels entrants et NPS dégradé', cause: 'Demande initiale incomplète', F: 8, G: 4, D: 5, actions: 'Déclaration guidée et dépôt digital des pièces' },
+      ],
+    },
+    step5: {
+      actions: [
+        { _id: uid(), action: 'Créer une check-list dynamique par type de sinistre', impact: 9, effort: 4, responsable: 'Indemnisation / Digital', echeance: '30/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Automatiser le suivi des rapports experts en retard', impact: 8, effort: 3, responsable: 'Responsable expertise', echeance: '07/05/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Définir les règles de passage expertise à distance', impact: 7, effort: 3, responsable: 'Sinistres habitation', echeance: '28/04/2027', statut: 'En cours' },
+        { _id: uid(), action: 'Afficher le statut d’avancement côté client', impact: 8, effort: 6, responsable: 'Digital Client', echeance: '21/05/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Mettre en place un contrôle bloquant avant paiement', impact: 7, effort: 2, responsable: 'Contrôle interne', echeance: '12/05/2027', statut: 'À faire' },
+      ],
+    },
+    step6: {
+      flow: [
+        { _id: uid(), label: 'Déclaration guidée', type: 'Événement', acteur: 'Assuré', systeme: 'Espace client', painpoint: false },
+        { _id: uid(), label: 'Check-list dynamique', type: 'Tâche', acteur: 'SI Sinistres', systeme: 'Digital / SI', painpoint: false },
+        { _id: uid(), label: 'Dossier complet ?', type: 'Décision', acteur: 'SI Sinistres', systeme: 'SI Sinistres', painpoint: false },
+        { _id: uid(), label: 'Routage expertise automatique', type: 'Tâche', acteur: 'SI Sinistres', systeme: 'Portail expert', painpoint: false },
+        { _id: uid(), label: 'Suivi SLA expert', type: 'Contrôle', acteur: 'Responsable expertise', systeme: 'Portail expert', painpoint: false },
+        { _id: uid(), label: 'Validation indemnité guidée', type: 'Tâche', acteur: 'Gestionnaire', systeme: 'SI Sinistres', painpoint: false },
+        { _id: uid(), label: 'Paiement et notification', type: 'Tâche', acteur: 'Comptabilité', systeme: 'Paiement / SMS', painpoint: false },
+      ],
+      businessCase: {
+        gains: 185000,
+        couts: 54000,
+        risques: 'Dépendance aux évolutions du portail client, qualité des règles de routage expertise et capacité des experts partenaires à respecter les nouveaux SLA.',
+      },
+      roadmap: [
+        { _id: uid(), phase: 'Définition check-list par sinistre', debut: '26/04/2027', fin: '07/05/2027', responsable: 'Indemnisation / Digital', livrable: 'Catalogue de pièces obligatoires' },
+        { _id: uid(), phase: 'Paramétrage parcours digital', debut: '10/05/2027', fin: '28/05/2027', responsable: 'Digital Client', livrable: 'Déclaration guidée' },
+        { _id: uid(), phase: 'Pilote dégâts des eaux', debut: '31/05/2027', fin: '11/06/2027', responsable: 'Responsable sinistres habitation', livrable: 'Bilan pilote' },
+        { _id: uid(), phase: 'Extension bris de glace et météo', debut: '14/06/2027', fin: '30/06/2027', responsable: 'Direction indemnisation', livrable: 'Déploiement élargi' },
+      ],
+    },
+    step7: {
+      plan: [
+        { _id: uid(), action: 'Former les gestionnaires au nouveau parcours guidé', responsable: 'Responsable sinistres habitation', echeance: '28/05/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Informer les experts des nouveaux SLA', responsable: 'Responsable expertise', echeance: '31/05/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Lancer pilote sur dégâts des eaux', responsable: 'Process owner indemnisation', echeance: '02/06/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Suivre les relances client chaque semaine', responsable: 'Manager indemnisation', echeance: '11/06/2027', statut: 'À faire' },
+      ],
+      changement: [
+        { _id: uid(), item: 'Partager le standard de complétude aux équipes gestion', done: false },
+        { _id: uid(), item: 'Mettre à jour les scripts relation client', done: false },
+        { _id: uid(), item: 'Former les experts au portail et aux SLA', done: false },
+        { _id: uid(), item: 'Mesurer l’adoption du dépôt digital des pièces', done: false },
+      ],
+      recette: 'Pilote réalisé sur 310 sinistres dégâts des eaux : délai moyen ramené de 24 à 13,5 jours, dossiers complets dès la première semaine à 81%, baisse de 32% des appels de suivi.',
+    },
+    step8: {
+      kpis: [
+        { _id: uid(), nom: 'Délai moyen déclaration-indemnisation', unite: 'jours', cible: 12, actuel: 13.5, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Dossiers complets première semaine', unite: '%', cible: 85, actuel: 81, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Rapports experts dans SLA', unite: '%', cible: 90, actuel: 84, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Appels de suivi par dossier', unite: 'nombre', cible: 0.7, actuel: 1.1, frequence: 'Mensuel' },
+      ],
+      rituels: [
+        { _id: uid(), nom: 'Point sinistres à risque', frequence: 'Hebdomadaire', participants: 'Indemnisation, experts, digital', objet: 'Dossiers en retard et causes de blocage' },
+        { _id: uid(), nom: 'Comité expérience assuré', frequence: 'Mensuel', participants: 'Sponsor, relation client, contrôle interne', objet: 'KPI, NPS et conformité indemnisation' },
+      ],
+      controle: [
+        { _id: uid(), point: 'Complétude avant paiement', frequence: 'Systématique', responsable: 'Gestionnaire sinistre', seuil: '100% dossiers contrôlés' },
+        { _id: uid(), point: 'Respect SLA expert', frequence: 'Hebdomadaire', responsable: 'Responsable expertise', seuil: 'Alerte si < 85%' },
+        { _id: uid(), point: 'Dossiers sans action depuis 5 jours', frequence: 'Quotidien', responsable: 'Manager indemnisation', seuil: '0 dossier sans justification' },
+      ],
+      rex: 'La déclaration guidée réduit fortement les retours client et améliore la qualité des dossiers. Les gains restants dépendront de la maîtrise des délais experts et de l’adoption du suivi digital par les assurés.',
+    },
+  };
+}
+
 function ensureExampleProjects(projects) {
   const list = Array.isArray(projects) ? projects.filter(project => project && typeof project === 'object') : [];
   const hasBankExample = list.some(project =>
@@ -696,10 +889,15 @@ function ensureExampleProjects(projects) {
     project._templateKey === 'industrial-aircraft-turnaround-example' ||
     project.projectName === 'Réduction du temps d’immobilisation avion en maintenance'
   );
+  const hasInsuranceExample = list.some(project =>
+    project._templateKey === 'insurance-home-claims-example' ||
+    project.projectName === 'Optimisation du traitement des sinistres habitation'
+  );
   return [
     ...list,
     ...(!hasBankExample ? [createBankExample()] : []),
     ...(!hasIndustrialExample ? [createIndustrialExample()] : []),
+    ...(!hasInsuranceExample ? [createInsuranceExample()] : []),
   ];
 }
 
