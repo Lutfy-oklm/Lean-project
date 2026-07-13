@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, Moon, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles, Sun
+  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -1238,6 +1238,140 @@ const CSS = `
 }
 .theme-light .step-actions{ border-top-color:#CBD5E1; }
 
+/* Final light-only color system */
+.theme-light{
+  --blue:#2454D6; --teal:#0F766E; --amber:#C47A16; --red:#B42318;
+  --ink:#102033; --ink-soft:#4B5F78; --paper:#EAF1FA; --paper-2:#FFFFFF; --line:#B9C7D8;
+  background:
+    linear-gradient(180deg,#F7FAFF 0%,#EAF1FA 42%,#E4EDF8 100%);
+  color:#102033;
+}
+.theme-light::before{ display:none; }
+.theme-light .project-home{ width:min(1240px,calc(100vw - 48px)); }
+.theme-light .home-hero{
+  background:linear-gradient(135deg,#FFFFFF 0%,#F3F7FF 100%);
+  border:1px solid #B9C7D8;
+  border-top:4px solid #2454D6;
+  box-shadow:0 10px 28px rgba(36,84,214,.10);
+}
+.theme-light .home-kicker{ color:#2454D6; }
+.theme-light .home-hero h1{ color:#102033; }
+.theme-light .home-hero p{ color:#40536B; }
+.theme-light .home-widget,.theme-light .home-search,.theme-light .project-card,.theme-light .empty-projects{
+  background:#FFFFFF;
+  border-color:#B9C7D8;
+  box-shadow:0 8px 20px rgba(16,32,51,.07);
+}
+.theme-light .home-widget{ border-top:3px solid #6B7F99; }
+.theme-light .home-widget.warning{ border-top-color:#C47A16; }
+.theme-light .home-widget span,.theme-light .home-widget small,.theme-light .project-progress strong{ color:#4B5F78; }
+.theme-light .home-widget strong{ color:#102033; }
+.theme-light .home-search{ border-left:4px solid #2454D6; color:#4B5F78; }
+.theme-light .home-search input{ color:#102033!important; }
+.theme-light .home-primary,.theme-light .open-project,.theme-light .validate-btn{
+  background:#2454D6;
+  color:#FFFFFF;
+}
+.theme-light .home-primary:hover,.theme-light .open-project:hover,.theme-light .validate-btn:hover{ background:#1E3FAE; }
+.theme-light .project-card{ border-top:3px solid #2454D6; }
+.theme-light .project-card:hover{ background:#F8FBFF; border-color:#8AA7E8; }
+.theme-light .project-card h2{ color:#102033; }
+.theme-light .project-card p{ color:#40536B; }
+.theme-light .project-icon{ background:#2454D6; }
+.theme-light .project-progress div,.theme-light .progress-line{ background:#D9E4F2; }
+.theme-light .project-progress span,.theme-light .progress-fill{ background:#2454D6; }
+.theme-light .status-badge{ background:#FFF2DB; border-color:#F3C47A; color:#8A4B00; }
+.theme-light .status-badge.done{ background:#E2F7EA; border-color:#8BD3A4; color:#0F6B34; }
+.theme-light .sidebar{
+  background:#102033;
+  border-right-color:#203B5A;
+  color:#F8FAFC;
+}
+.theme-light .sidebar-head{ border-bottom-color:#203B5A; }
+.theme-light .sidebar-head h1,.theme-light .step-title{ color:#F8FAFC; }
+.theme-light .sidebar-eyebrow,.theme-light .progress-text,.theme-light .pdf-hint,.theme-light .save-indicator{ color:#B9C7D8; }
+.theme-light .project-name{
+  background:#172B45!important;
+  border-color:#365574!important;
+  color:#FFFFFF!important;
+}
+.theme-light .step-item{ color:#DDE7F3; }
+.theme-light .step-item:hover{ background:#172B45; }
+.theme-light .step-item.is-active{
+  background:#EAF1FA;
+  border-color:#8AA7E8;
+  color:#102033;
+}
+.theme-light .step-item.is-active .step-title{ color:#102033; }
+.theme-light .step-num,.theme-light .step-item.is-active .step-num{ color:#5FA8FF; }
+.theme-light .back-home,.theme-light .collapse-btn,.theme-light .ghost-btn{
+  background:#172B45;
+  border-color:#365574;
+  color:#F8FAFC;
+}
+.theme-light .back-home:hover,.theme-light .collapse-btn:hover,.theme-light .ghost-btn:hover{
+  background:#203B5A;
+  border-color:#5FA8FF;
+  color:#FFFFFF;
+}
+.theme-light .btn-add,.theme-light .nav-btn{
+  background:#FFFFFF;
+  border-color:#AEBED1;
+  color:#102033;
+}
+.theme-light .btn-add:hover,.theme-light .nav-btn:not(:disabled):hover{
+  background:#EFF5FF;
+  border-color:#2454D6;
+  color:#1E3FAE;
+}
+.theme-light .main{ background:transparent; }
+.theme-light .dossier-card{
+  background:#FFFFFF;
+  border-color:#B9C7D8;
+  border-top:4px solid #2454D6;
+  box-shadow:0 10px 26px rgba(16,32,51,.08);
+}
+.theme-light .dossier-card h2,.theme-light .sub-title{ color:#102033; }
+.theme-light .eyebrow,.theme-light .field label{ color:#4B5F78; }
+.theme-light .objectif,.theme-light .livrable{
+  background:#F3F7FF;
+  border-color:#C9D8EC;
+  border-left-color:#2454D6;
+  color:#40536B;
+}
+.theme-light .objectif em,.theme-light .livrable em{ color:#2454D6; }
+.theme-light .sub-title{
+  background:#EAF1FA;
+  border-color:#B9C7D8;
+}
+.theme-light .lean-app input,.theme-light input,.theme-light select,.theme-light textarea{
+  background:#FFFFFF;
+  border-color:#AEBED1;
+  color:#102033;
+}
+.theme-light input::placeholder,.theme-light textarea::placeholder{ color:#6B7F99; }
+.theme-light .ledger-table-wrap{
+  background:#FFFFFF;
+  border-color:#AEBED1;
+}
+.theme-light .ledger-table th{
+  background:#DDE8F5;
+  color:#102033;
+  border-bottom-color:#AEBED1;
+  border-right-color:#C2D0E0;
+}
+.theme-light .ledger-table td{
+  color:#102033;
+  border-bottom-color:#D7E1ED;
+  border-right-color:#E0E8F1;
+}
+.theme-light .ledger-table tr:hover td{ background:#F0F6FF; }
+.theme-light .flow-node,.theme-light .pain-callout,.theme-light .fivewhy,.theme-light .vsm-summary div,.theme-light .kpi-card{
+  background:#FFFFFF;
+  border-color:#B9C7D8;
+}
+.theme-light .step-actions{ border-top-color:#B9C7D8; }
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -1410,16 +1544,11 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
-  const [theme, setTheme] = useState(() => window.localStorage.getItem('lean-ui-theme') || 'light');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
-
-  useEffect(() => {
-    window.localStorage.setItem('lean-ui-theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     (async () => {
@@ -1509,8 +1638,7 @@ export default function App() {
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
-  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  const appClass = `lean-app ${theme === 'light' ? 'theme-light' : 'theme-dark'}`;
+  const appClass = 'lean-app theme-light';
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -1729,10 +1857,6 @@ export default function App() {
       <div className={`${appClass} home-mode`}>
         <style>{CSS}</style>
         <main className="project-home">
-          <button className="theme-toggle home-theme-toggle" onClick={toggleTheme}>
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-          </button>
           <header className="home-hero">
             <div>
               <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets Lean</div>
@@ -1823,7 +1947,6 @@ export default function App() {
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
-          <button className="ghost-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />} {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</button>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
