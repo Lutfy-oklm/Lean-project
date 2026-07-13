@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import _ from 'lodash';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -221,580 +221,6 @@ function defaultData() {
       rex: "Les premiers résultats du pilote montrent une réduction du délai de 15 à 8 jours en moyenne, avec un potentiel de gain supplémentaire une fois l'interfaçage CRM / Core Banking finalisé. Principale difficulté : l'appropriation de la nouvelle règle de priorisation par les équipes back-office. Action d'amélioration : renforcer le coaching terrain les deux premières semaines post-déploiement.",
     },
   };
-}
-
-const row = (data) => ({ _id: uid(), ...data });
-
-function scenarioProject(s) {
-  return createProject({
-    _projectId: s.id,
-    projectName: s.name,
-    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
-    step0: {
-      note: s.note,
-      planning: [
-        row({ phase: 'Cadrage', debut: s.dates[0], fin: s.dates[1], responsable: 'Chef de projet Lean' }),
-        row({ phase: 'Observation terrain', debut: s.dates[2], fin: s.dates[3], responsable: s.owner }),
-        row({ phase: 'Cartographie & diagnostic', debut: s.dates[4], fin: s.dates[5], responsable: 'Equipe Lean + metier' }),
-        row({ phase: 'Priorisation & conception cible', debut: s.dates[6], fin: s.dates[7], responsable: 'Sponsor + pilotes processus' }),
-        row({ phase: 'Deploiement pilote', debut: s.dates[8], fin: s.dates[9], responsable: s.owner }),
-        row({ phase: 'Pilotage et stabilisation', debut: s.dates[10], fin: 'Continu', responsable: s.pilot }),
-      ],
-      parties: s.parties.map(row),
-    },
-    step1: {
-      charte: {
-        titre: s.name,
-        sponsor: s.sponsor,
-        probleme: s.probleme,
-        objectifs: s.objectifs,
-        perimetreIn: s.perimetreIn,
-        perimetreOut: s.perimetreOut,
-        contraintes: s.contraintes,
-        risques: s.risques,
-        budget: s.budget,
-        dateDebut: s.dates[0],
-        dateFin: s.dates[10],
-        gains: s.gainsText,
-      },
-      sipoc: s.sipoc.map(row),
-      raci: {
-        roles: s.roles,
-        activites: s.raci.map(a => row({ nom: a.nom, assign: a.assign })),
-      },
-    },
-    step2: {
-      questions: s.questions.map(question => row({ question })),
-      journal: s.journal.map(row),
-    },
-    step3: {
-      referentiel: s.referentiel.map(row),
-      flow: s.flow.map(row),
-      vsm: s.vsm.map(row),
-    },
-    step4: {
-      pareto: s.pareto.map(row),
-      ishikawa: s.ishikawa,
-      fivewhy: s.fivewhy,
-      amdec: s.amdec.map(row),
-    },
-    step5: {
-      actions: s.actions.map(row),
-    },
-    step6: {
-      flow: s.targetFlow.map(row),
-      businessCase: { gains: s.gains, couts: s.couts, risques: s.businessRisks },
-      roadmap: s.roadmap.map(row),
-    },
-    step7: {
-      plan: s.deployPlan.map(row),
-      changement: s.change.map(item => row({ item, done: false })),
-      recette: s.recette,
-    },
-    step8: {
-      kpis: s.kpis.map(row),
-      rituels: s.rituels.map(row),
-      controle: s.controle.map(row),
-      rex: s.rex,
-    },
-  });
-}
-
-const PROJECT_SCENARIOS = [
-  {
-    id: 'preset-credit-immobilier',
-    name: "Reduction du delai d'octroi de credit immobilier",
-    sponsor: 'Directeur Credit Retail',
-    owner: 'Equipe Credit Immobilier',
-    pilot: 'Responsable Production Credits',
-    budget: '72 000 EUR',
-    gains: 185000,
-    couts: 72000,
-    dates: ['02/02/2026', '13/02/2026', '16/02/2026', '28/02/2026', '02/03/2026', '20/03/2026', '23/03/2026', '03/04/2026', '06/04/2026', '15/05/2026', '29/05/2026'],
-    note: "Le parcours d'octroi de credit immobilier presente un delai moyen de decision de 21 jours ouvres, avec de fortes variations selon les agences et les analystes. Le projet couvre les demandes de credit immobilier particulier, de la reception du dossier complet jusqu'a l'edition de l'offre. L'objectif est de reduire les reprises de dossier, les attentes entre agence et centre de credit, et la re-saisie dans les outils de scoring.",
-    probleme: "Delai moyen de decision de 21 jours ouvres, 34% de dossiers incomplets au premier passage et 18% de demandes necessitant au moins deux allers-retours agence / analyste.",
-    objectifs: "Ramener le delai de decision a 10 jours ouvres, reduire les dossiers incomplets sous 12%, standardiser les controles d'entree et automatiser le suivi des pieces manquantes.",
-    perimetreIn: "Credits immobiliers particuliers, demandes agence et courtage, analyse risque, controle pieces, decision et edition de l'offre.",
-    perimetreOut: "Renegociations de taux, rachats complexes multi-banques, dossiers contentieux ou financements professionnels.",
-    contraintes: "Reglementation credit immobilier, dependance au moteur de scoring, disponibilite limitee des analystes seniors pour les ateliers.",
-    risques: "Risque de degradation de la qualite risque si l'acceleration contourne les controles, resistance des agences aux nouvelles regles de complétude.",
-    gainsText: "Gain annuel estime a 185 000 EUR via reduction des reprises, baisse du cout de traitement et amelioration du taux de transformation commercial.",
-    parties: [
-      { nom: 'Directeur Credit Retail', role: 'Sponsor', service: 'Direction Credit', interet: 'Favorable', influence: 'Fort' },
-      { nom: 'Responsable Production Credits', role: 'Pilote metier', service: 'Centre de credit', interet: 'Favorable', influence: 'Fort' },
-      { nom: 'Analystes credit', role: 'Utilisateurs', service: 'Analyse risque', interet: 'Neutre', influence: 'Fort' },
-      { nom: 'Directeurs agence', role: 'Contributeurs', service: 'Reseau', interet: 'Favorable', influence: 'Moyen' },
-      { nom: 'Conformite credit', role: 'Controle', service: 'Conformite', interet: 'Neutre', influence: 'Fort' },
-    ],
-    sipoc: [
-      { supplier: 'Client / Courtier', input: 'Demande de financement et justificatifs', process: 'Instruire un credit immobilier', output: 'Decision de principe', customer: 'Client' },
-      { supplier: 'Agence', input: 'Dossier qualifie', process: 'Controler la completude', output: 'Dossier recevable', customer: 'Centre de credit' },
-      { supplier: 'Moteur de scoring', input: 'Donnees emprunteur', process: 'Analyser le risque', output: 'Score et alertes', customer: 'Analyste credit' },
-    ],
-    roles: ['Agence', 'Analyste credit', 'Conformite', 'IT'],
-    raci: [
-      { nom: 'Verifier la completude initiale', assign: { Agence: 'R', 'Analyste credit': 'C', Conformite: 'I' } },
-      { nom: 'Analyser la solvabilite', assign: { Agence: 'C', 'Analyste credit': 'R', Conformite: 'I' } },
-      { nom: 'Valider les controles reglementaires', assign: { 'Analyste credit': 'C', Conformite: 'A', IT: 'I' } },
-      { nom: "Editer l'offre", assign: { 'Analyste credit': 'R', IT: 'C', Agence: 'I' } },
-    ],
-    questions: [
-      'Quelles pieces manquent le plus souvent au premier depot du dossier ?',
-      "A quel moment le dossier est-il considere comme recevable par l'analyste ?",
-      'Quels controles sont refaits plusieurs fois entre agence et centre de credit ?',
-      'Quelles alertes du moteur de scoring generent le plus de reprises ?',
-      'Comment le client est-il informe des pieces manquantes ?',
-    ],
-    journal: [
-      { date: '18/02/2026', lieu: 'Agence Lyon Part-Dieu', observateur: 'Equipe Lean', type: 'Irritant', constat: 'Les conseillers utilisent une checklist locale differente de celle du centre de credit.' },
-      { date: '20/02/2026', lieu: 'Centre de credit', observateur: 'Equipe Lean', type: 'Gaspillage', constat: 'Un analyste consacre 35 minutes par dossier a rechercher des pieces deja presentes dans un autre outil.' },
-      { date: '24/02/2026', lieu: 'Back-office credit', observateur: 'Equipe Lean', type: 'Risque', constat: 'Les alertes scoring ne sont pas priorisees par criticite, ce qui retarde les dossiers simples.' },
-    ],
-    referentiel: [
-      { processus: "Octroi credit immobilier", macro: 'Credit Retail', niveau: 'N1', proprietaire: 'Responsable Production Credits', systeme: 'Loan Origination System' },
-      { processus: 'Controle completude', macro: 'Credit Retail', niveau: 'N2', proprietaire: 'Centre de credit', systeme: 'GED / CRM' },
-      { processus: 'Analyse risque emprunteur', macro: 'Risque', niveau: 'N2', proprietaire: 'Direction Risques', systeme: 'Moteur de scoring' },
-    ],
-    flow: [
-      { label: 'Demande client', type: 'Evenement', acteur: 'Client', systeme: 'Portail / Agence', painpoint: false },
-      { label: 'Constitution dossier', type: 'Tache', acteur: 'Conseiller', systeme: 'CRM', painpoint: true },
-      { label: 'Controle completude', type: 'Controle', acteur: 'Centre credit', systeme: 'GED', painpoint: true },
-      { label: 'Analyse solvabilite', type: 'Tache', acteur: 'Analyste', systeme: 'Scoring', painpoint: false },
-      { label: 'Decision credit', type: 'Decision', acteur: 'Comite credit', systeme: 'LOS', painpoint: false },
-      { label: "Edition de l'offre", type: 'Tache', acteur: 'Back-office', systeme: 'LOS', painpoint: true },
-    ],
-    vsm: [
-      { etape: 'Constitution dossier', tempsTraitement: 45, tempsAttente: 2880 },
-      { etape: 'Controle completude', tempsTraitement: 30, tempsAttente: 2160 },
-      { etape: 'Analyse solvabilite', tempsTraitement: 80, tempsAttente: 4320 },
-      { etape: 'Validation reglementaire', tempsTraitement: 25, tempsAttente: 1440 },
-      { etape: "Edition de l'offre", tempsTraitement: 20, tempsAttente: 720 },
-    ],
-    pareto: [
-      { cause: 'Pieces justificatives manquantes', occurrences: 58 },
-      { cause: 'Re-saisie donnees client', occurrences: 34 },
-      { cause: 'Alertes scoring non qualifiees', occurrences: 27 },
-      { cause: 'Dossiers non priorises', occurrences: 21 },
-      { cause: 'Erreur de simulation initiale', occurrences: 12 },
-    ],
-    ishikawa: {
-      "Main d'oeuvre": ['Niveaux de formation agence heterogenes', 'Analystes seniors sur-sollicites'],
-      Methode: ['Checklist agence non standardisee', 'Pas de critere de dossier recevable partage'],
-      Materiel: ['GED non synchronisee avec le CRM', 'Scoring peu lisible pour les cas simples'],
-      Milieu: ['Pics de demandes avant vacances scolaires'],
-      Matiere: ['Pieces clients incompletes ou illisibles'],
-    },
-    fivewhy: {
-      probleme: 'Le delai de decision credit depasse 21 jours ouvres.',
-      why1: 'Parce que beaucoup de dossiers sont repris apres arrivee au centre de credit.',
-      why2: "Parce que les pieces obligatoires ne sont pas controlees de la meme maniere en agence.",
-      why3: "Parce qu'il n'existe pas de checklist unique integree au CRM.",
-      why4: 'Parce que la regle de recevabilite est documentee mais non bloquante dans le parcours.',
-      why5: "Parce que le processus a ete construit autour de l'expertise individuelle plutot que de controles standardises.",
-      causeRacine: 'Absence de controle de completude unique et bloquant avant transmission au centre de credit.',
-      action: 'Integrer une checklist dynamique obligatoire au CRM et prioriser automatiquement les dossiers complets.',
-    },
-    amdec: [
-      { mode: 'Dossier transmis incomplet', effet: 'Aller-retour client et retard decision', cause: 'Checklist non bloquante', F: 8, G: 6, D: 5, actions: 'Controle de completude obligatoire avant transfert' },
-      { mode: 'Erreur de re-saisie revenus', effet: 'Score incorrect', cause: 'Double saisie CRM / scoring', F: 4, G: 8, D: 4, actions: 'Interface automatique CRM vers scoring' },
-      { mode: 'Offre editee avec condition manquante', effet: 'Non-conformite et reprise', cause: 'Modele offre non alimente', F: 3, G: 9, D: 4, actions: 'Controle automatique des conditions suspensives' },
-    ],
-    actions: [
-      { action: 'Deployer une checklist unique de completude', impact: 9, effort: 3, responsable: 'Centre credit', echeance: '27/03/2026', statut: 'En cours' },
-      { action: 'Mettre en place une file prioritaire dossiers complets', impact: 8, effort: 4, responsable: 'Production Credits', echeance: '03/04/2026', statut: 'A faire' },
-      { action: 'Automatiser la notification pieces manquantes', impact: 7, effort: 5, responsable: 'Digital / IT', echeance: '24/04/2026', statut: 'A faire' },
-      { action: 'Supprimer la double saisie revenus', impact: 9, effort: 8, responsable: 'IT Credit', echeance: '29/05/2026', statut: 'A faire' },
-    ],
-    targetFlow: [
-      { label: 'Demande client', type: 'Evenement', acteur: 'Client', systeme: 'Portail', painpoint: false },
-      { label: 'Checklist dynamique', type: 'Controle', acteur: 'Agence', systeme: 'CRM', painpoint: false },
-      { label: 'Dossier complet ?', type: 'Decision', acteur: 'Systeme', systeme: 'CRM', painpoint: false },
-      { label: 'Scoring auto', type: 'Tache', acteur: 'Systeme', systeme: 'Scoring', painpoint: false },
-      { label: 'Analyse ciblee', type: 'Tache', acteur: 'Analyste', systeme: 'LOS', painpoint: false },
-      { label: 'Offre editee', type: 'Evenement', acteur: 'Back-office', systeme: 'LOS', painpoint: false },
-    ],
-    businessRisks: "La reduction du delai ne doit pas degrader la maitrise du risque credit ; les controles bloquants doivent etre valides par Risques et Conformite.",
-    roadmap: [
-      { phase: 'Checklist cible', debut: '23/03/2026', fin: '27/03/2026', responsable: 'Centre credit', livrable: 'Regles de completude' },
-      { phase: 'Parametrage CRM', debut: '30/03/2026', fin: '10/04/2026', responsable: 'IT Credit', livrable: 'Formulaire bloquant' },
-      { phase: 'Pilote 8 agences', debut: '13/04/2026', fin: '30/04/2026', responsable: 'Reseau', livrable: 'Bilan pilote' },
-      { phase: 'Generalisation', debut: '04/05/2026', fin: '29/05/2026', responsable: 'Production Credits', livrable: 'Deploiement national' },
-    ],
-    deployPlan: [
-      { action: 'Former les conseillers aux nouveaux criteres de recevabilite', responsable: 'Formation Reseau', echeance: '10/04/2026', statut: 'A faire' },
-      { action: 'Publier le tableau de bord delai par agence', responsable: 'PMO Credit', echeance: '17/04/2026', statut: 'A faire' },
-      { action: 'Accompagner les analystes sur la file prioritaire', responsable: 'Centre credit', echeance: '24/04/2026', statut: 'A faire' },
-    ],
-    change: ['Nommer un referent credit par region', 'Communiquer la definition du dossier complet', 'Organiser un retour hebdomadaire des irritants pilote', 'Mettre a jour les modes operatoires agence'],
-    recette: "Pilote realise sur 142 dossiers : delai median ramene de 18 a 9 jours, taux de dossiers incomplets reduit de 34% a 14%. Reserve : renforcer le controle des justificatifs revenus non salaries.",
-    kpis: [
-      { nom: 'Delai moyen decision', unite: 'jours', cible: 10, actuel: 11, frequence: 'Hebdomadaire' },
-      { nom: 'Dossiers complets premier passage', unite: '%', cible: 88, actuel: 82, frequence: 'Hebdomadaire' },
-      { nom: 'Taux de reprise analyste', unite: '%', cible: 10, actuel: 15, frequence: 'Mensuel' },
-    ],
-    rituels: [
-      { nom: 'Revue file credit', frequence: 'Hebdomadaire', participants: 'Centre credit, Reseau, PMO', objet: 'Suivi delais et reprises' },
-      { nom: 'Comite risque process', frequence: 'Mensuel', participants: 'Risques, Conformite, Credit', objet: 'Controle qualite dossiers' },
-    ],
-    controle: [
-      { point: 'Completude avant transfert', frequence: 'Systematique', responsable: 'Agence', seuil: '100% dossiers controles' },
-      { point: 'Revue dossiers refuses', frequence: 'Mensuel', responsable: 'Risques', seuil: 'Echantillon 30 dossiers' },
-    ],
-    rex: "Le pilote confirme que le principal levier est la qualite d'entree du dossier. Les agences ayant un referent credit atteignent plus vite la cible. Prochaine amelioration : automatiser la lecture des justificatifs revenus.",
-  },
-  {
-    id: 'preset-reclamations-bancaires',
-    name: 'Amelioration du traitement des reclamations clients bancaires',
-    sponsor: 'Directrice Experience Client',
-    owner: 'Service Relation Client',
-    pilot: 'Responsable Reclamations',
-    budget: '54 000 EUR',
-    gains: 128000,
-    couts: 54000,
-    dates: ['04/03/2026', '13/03/2026', '16/03/2026', '27/03/2026', '30/03/2026', '10/04/2026', '13/04/2026', '24/04/2026', '27/04/2026', '29/05/2026', '12/06/2026'],
-    note: "Le processus de reclamation client est fragmente entre agences, centre de relation client, back-offices produits et conformite. Les delais de reponse depassent frequemment les engagements internes, notamment sur les litiges carte et frais bancaires. Le projet vise un parcours unifie, mesurable et priorise par criticite client.",
-    probleme: 'Delai moyen de reponse de 18 jours calendaires, 22% de relances clients et 11% de reclamations re-ouvertes faute de reponse complete.',
-    objectifs: 'Repondre a 85% des reclamations sous 7 jours, reduire les re-ouvertures sous 4%, fiabiliser la qualification initiale et la traçabilite des decisions.',
-    perimetreIn: 'Reclamations particuliers sur frais, cartes, virements, delais de traitement et qualite de service.',
-    perimetreOut: 'Contentieux judiciaires, mediation bancaire, reclamations entreprises complexes.',
-    contraintes: 'Obligations ACPR, conservation des preuves, coordination multi-metiers, volumetrie elevee en debut de mois.',
-    risques: 'Reponse trop rapide mais incomplete, mauvaise qualification reglementaire, surcharge temporaire du centre de relation client.',
-    gainsText: 'Gain estime : 128 000 EUR par an via reduction des relances, baisse des gestes commerciaux injustifies et amelioration NPS.',
-    parties: [
-      { nom: 'Directrice Experience Client', role: 'Sponsor', service: 'Experience Client', interet: 'Favorable', influence: 'Fort' },
-      { nom: 'Responsable Reclamations', role: 'Pilote', service: 'Relation Client', interet: 'Favorable', influence: 'Fort' },
-      { nom: 'Back-office Paiements', role: 'Contributeur', service: 'Operations', interet: 'Neutre', influence: 'Moyen' },
-      { nom: 'Conformite', role: 'Controle', service: 'Conformite', interet: 'Neutre', influence: 'Fort' },
-      { nom: 'Agences', role: 'Canal entree', service: 'Reseau', interet: 'Favorable', influence: 'Moyen' },
-    ],
-    sipoc: [
-      { supplier: 'Client', input: 'Reclamation et pieces justificatives', process: 'Traiter une reclamation bancaire', output: 'Reponse motivee', customer: 'Client' },
-      { supplier: 'Agence / CRC', input: 'Qualification initiale', process: 'Orienter la reclamation', output: 'Ticket qualifie', customer: 'Back-office competent' },
-      { supplier: 'Back-office produit', input: 'Analyse operationnelle', process: 'Statuer sur la reclamation', output: 'Decision et correction', customer: 'Relation Client' },
-    ],
-    roles: ['CRC', 'Agence', 'Back-office', 'Conformite'],
-    raci: [
-      { nom: 'Qualifier la reclamation', assign: { CRC: 'R', Agence: 'C', 'Back-office': 'I', Conformite: 'I' } },
-      { nom: 'Analyser le dossier', assign: { CRC: 'C', 'Back-office': 'R', Conformite: 'C' } },
-      { nom: 'Valider la reponse sensible', assign: { CRC: 'R', 'Back-office': 'C', Conformite: 'A' } },
-      { nom: 'Cloturer et tracer la decision', assign: { CRC: 'R', Agence: 'I', 'Back-office': 'I' } },
-    ],
-    questions: ['Comment identifiez-vous une reclamation reglementaire ?', 'Quelles familles de reclamation reviennent le plus souvent ?', 'Quels dossiers necessitent plusieurs services ?', 'Comment les relances clients sont-elles traitees ?', 'Quelles preuves sont consultees pour statuer ?'],
-    journal: [
-      { date: '17/03/2026', lieu: 'Centre Relation Client', observateur: 'Equipe Lean', type: 'Gaspillage', constat: 'Les agents copient manuellement les informations du CRM vers un fichier de suivi Excel.' },
-      { date: '19/03/2026', lieu: 'Back-office Paiements', observateur: 'Equipe Lean', type: 'Irritant', constat: 'Les tickets litiges carte arrivent avec des categories trop generales.' },
-      { date: '25/03/2026', lieu: 'Agence Nantes', observateur: 'Equipe Lean', type: 'Risque', constat: 'Certaines demandes client sont traitees comme simples demandes alors qu elles relèvent d une reclamation.' },
-    ],
-    referentiel: [
-      { processus: 'Traitement reclamation client', macro: 'Experience Client', niveau: 'N1', proprietaire: 'Responsable Reclamations', systeme: 'CRM Reclamations' },
-      { processus: 'Analyse litige paiement', macro: 'Operations Paiements', niveau: 'N2', proprietaire: 'Back-office Paiements', systeme: 'Outil cartes / virements' },
-      { processus: 'Controle reponse reglementaire', macro: 'Conformite', niveau: 'N2', proprietaire: 'Conformite', systeme: 'Base documentaire' },
-    ],
-    flow: [
-      { label: 'Reclamation recue', type: 'Evenement', acteur: 'Client', systeme: 'CRM', painpoint: false },
-      { label: 'Qualification initiale', type: 'Tache', acteur: 'CRC / Agence', systeme: 'CRM', painpoint: true },
-      { label: 'Affectation service', type: 'Decision', acteur: 'Superviseur', systeme: 'CRM', painpoint: true },
-      { label: 'Analyse metier', type: 'Tache', acteur: 'Back-office', systeme: 'Outil produit', painpoint: false },
-      { label: 'Validation reponse', type: 'Controle', acteur: 'Conformite', systeme: 'Base reglementaire', painpoint: false },
-      { label: 'Envoi reponse', type: 'Tache', acteur: 'CRC', systeme: 'CRM', painpoint: false },
-    ],
-    vsm: [
-      { etape: 'Qualification', tempsTraitement: 12, tempsAttente: 360 },
-      { etape: 'Affectation', tempsTraitement: 8, tempsAttente: 720 },
-      { etape: 'Analyse metier', tempsTraitement: 45, tempsAttente: 2880 },
-      { etape: 'Validation sensible', tempsTraitement: 20, tempsAttente: 1440 },
-      { etape: 'Reponse client', tempsTraitement: 15, tempsAttente: 240 },
-    ],
-    pareto: [
-      { cause: 'Mauvaise qualification initiale', occurrences: 46 },
-      { cause: 'Attente reponse back-office', occurrences: 39 },
-      { cause: 'Pieces client manquantes', occurrences: 23 },
-      { cause: 'Absence de modele de reponse', occurrences: 18 },
-      { cause: 'Relance non rattachee au ticket', occurrences: 11 },
-    ],
-    ishikawa: {
-      "Main d'oeuvre": ['Nouveaux agents peu formes a la typologie ACPR', 'Back-offices non dedies aux reclamations'],
-      Methode: ['Regles de priorisation peu claires', 'Pas de modele de reponse par motif'],
-      Materiel: ['CRM non connecte aux outils produits', 'Suivi Excel parallele'],
-      Milieu: ['Pic apres prelevements mensuels', 'Pression client forte sur incidents carte'],
-      Matiere: ['Pieces justificatives absentes', 'Motifs clients ambigus'],
-    },
-    fivewhy: {
-      probleme: 'Les reclamations depassent le delai cible de reponse.',
-      why1: 'Parce que les tickets restent en attente dans les files back-office.',
-      why2: "Parce qu'ils sont souvent mal qualifies et arrivent au mauvais service.",
-      why3: "Parce que la typologie CRM n'aide pas l'agent a choisir le bon motif.",
-      why4: "Parce que les regles d'orientation sont dans une procedure separee.",
-      why5: "Parce que le processus n'a pas ete concu autour d'une qualification assistee.",
-      causeRacine: 'Qualification initiale insuffisamment guidee et non controlee avant orientation.',
-      action: 'Mettre en place une typologie guidee, avec champs obligatoires par motif et routage automatique.',
-    },
-    amdec: [
-      { mode: 'Ticket mal qualifie', effet: 'Retard de traitement et relance client', cause: 'Typologie trop large', F: 7, G: 6, D: 5, actions: 'Assistant de qualification CRM' },
-      { mode: 'Reponse non conforme', effet: 'Risque reglementaire', cause: 'Modele non valide', F: 3, G: 9, D: 4, actions: 'Bibliotheque de reponses validee Conformite' },
-      { mode: 'Relance non rattachee', effet: 'Double traitement', cause: 'Absence de detection doublon', F: 5, G: 4, D: 6, actions: 'Detection doublon par client et motif' },
-    ],
-    actions: [
-      { action: 'Revoir la typologie CRM des reclamations', impact: 9, effort: 3, responsable: 'Relation Client', echeance: '10/04/2026', statut: 'En cours' },
-      { action: 'Creer des modeles de reponse valides', impact: 7, effort: 3, responsable: 'Conformite', echeance: '17/04/2026', statut: 'A faire' },
-      { action: 'Mettre en place un routage automatique', impact: 8, effort: 6, responsable: 'IT CRM', echeance: '15/05/2026', statut: 'A faire' },
-      { action: 'Supprimer le suivi Excel parallele', impact: 6, effort: 2, responsable: 'CRC', echeance: '24/04/2026', statut: 'A faire' },
-    ],
-    targetFlow: [
-      { label: 'Reclamation recue', type: 'Evenement', acteur: 'Client', systeme: 'CRM', painpoint: false },
-      { label: 'Qualification assistee', type: 'Controle', acteur: 'CRC', systeme: 'CRM', painpoint: false },
-      { label: 'Routage automatique', type: 'Tache', acteur: 'Systeme', systeme: 'CRM', painpoint: false },
-      { label: 'Analyse avec SLA', type: 'Tache', acteur: 'Back-office', systeme: 'CRM', painpoint: false },
-      { label: 'Modele de reponse', type: 'Tache', acteur: 'CRC', systeme: 'CRM', painpoint: false },
-      { label: 'Cloture tracee', type: 'Evenement', acteur: 'CRC', systeme: 'CRM', painpoint: false },
-    ],
-    businessRisks: 'Le routage automatique doit conserver une possibilite de requalification manuelle et un controle specifique pour les reclamations sensibles.',
-    roadmap: [
-      { phase: 'Refonte typologie', debut: '13/04/2026', fin: '17/04/2026', responsable: 'Relation Client', livrable: 'Arbre de motifs' },
-      { phase: 'Modeles de reponse', debut: '20/04/2026', fin: '30/04/2026', responsable: 'Conformite', livrable: 'Bibliotheque validee' },
-      { phase: 'Parametrage CRM', debut: '04/05/2026', fin: '15/05/2026', responsable: 'IT CRM', livrable: 'Routage et SLA' },
-      { phase: 'Pilote CRC', debut: '18/05/2026', fin: '29/05/2026', responsable: 'Responsable Reclamations', livrable: 'Bilan pilote' },
-    ],
-    deployPlan: [
-      { action: 'Former les agents CRC a la nouvelle typologie', responsable: 'Superviseurs CRC', echeance: '15/05/2026', statut: 'A faire' },
-      { action: 'Mettre en place une revue quotidienne des tickets en retard', responsable: 'Responsable Reclamations', echeance: '22/05/2026', statut: 'A faire' },
-      { action: 'Communiquer aux agences la nouvelle definition reclamation', responsable: 'Experience Client', echeance: '22/05/2026', statut: 'A faire' },
-    ],
-    change: ['Partager un guide decisionnel simple', 'Nommer un referent reclamations par equipe', 'Afficher les SLA par file', 'Faire une boucle de retour avec les agences'],
-    recette: 'Pilote sur 310 reclamations : 81% traitees sous 7 jours, re-ouvertures reduites de 11% a 5,2%. Reserve : ameliorer le motif litige carte international.',
-    kpis: [
-      { nom: 'Reclamations sous 7 jours', unite: '%', cible: 85, actuel: 81, frequence: 'Hebdomadaire' },
-      { nom: 'Taux de re-ouverture', unite: '%', cible: 4, actuel: 5.2, frequence: 'Mensuel' },
-      { nom: 'Relances client', unite: '%', cible: 10, actuel: 13, frequence: 'Hebdomadaire' },
-    ],
-    rituels: [
-      { nom: 'Point files reclamations', frequence: 'Quotidien', participants: 'CRC, Back-offices', objet: 'Tickets en retard et blocages' },
-      { nom: 'Revue qualite reponses', frequence: 'Mensuel', participants: 'Conformite, Experience Client', objet: 'Echantillon reponses sensibles' },
-    ],
-    controle: [
-      { point: 'Qualification correcte', frequence: 'Hebdomadaire', responsable: 'Superviseur CRC', seuil: '95% sur echantillon' },
-      { point: 'Respect SLA reglementaire', frequence: 'Quotidien', responsable: 'Responsable Reclamations', seuil: '0 depassement non justifie' },
-    ],
-    rex: 'La typologie guidee reduit fortement les erreurs de routage. Les back-offices demandent maintenant un tableau partage des pieces attendues par motif pour eviter les demandes incompletes.',
-  },
-];
-
-const EXTRA_PROJECT_SCENARIOS = [
-  {
-    id: 'preset-procure-to-pay-industrie',
-    name: 'Optimisation Procure-to-Pay fournisseurs industriels',
-    domain: 'industrie',
-    sponsor: 'Directeur Financier Industriel',
-    owner: 'Comptabilite Fournisseurs',
-    pilot: 'Responsable P2P',
-    budget: '68 000 EUR',
-    gains: 210000,
-    couts: 68000,
-    dates: ['06/04/2026', '17/04/2026', '20/04/2026', '30/04/2026', '04/05/2026', '22/05/2026', '25/05/2026', '05/06/2026', '08/06/2026', '17/07/2026', '31/07/2026'],
-    process: 'Traiter une facture fournisseur industrielle',
-    note: "Les factures fournisseurs indirectes et de maintenance generent de nombreux blocages entre achats, reception usine et comptabilite. Le projet couvre la creation commande, la reception, le rapprochement 3-way match et la mise en paiement.",
-    probleme: '31% des factures sont bloquees, delai moyen de bon a payer de 19 jours et 420 relances fournisseurs par mois.',
-    objectifs: 'Ramener les factures bloquees sous 12%, reduire le delai bon a payer a 8 jours et augmenter le taux de rapprochement automatique a 75%.',
-    perimetreIn: 'Factures fournisseurs indirects, maintenance, pieces de rechange, prestations site France.',
-    perimetreOut: 'Achats matieres premieres strategiques, litiges juridiques fournisseurs, import douane.',
-    contraintes: 'ERP existant, dependance aux receptions atelier, qualite variable des commandes ouvertes.',
-    risques: 'Retard paiement fournisseur critique, contournement du processus achats, mauvaise reception pouvant creer un ecart comptable.',
-  },
-  {
-    id: 'preset-changement-serie-industrie',
-    name: 'Reduction du temps de changement de serie ligne assemblage',
-    domain: 'industrie',
-    sponsor: 'Directeur Usine',
-    owner: 'Methodes Industrielles',
-    pilot: 'Responsable Production Ligne A',
-    budget: '38 000 EUR',
-    gains: 156000,
-    couts: 38000,
-    dates: ['11/05/2026', '22/05/2026', '25/05/2026', '05/06/2026', '08/06/2026', '19/06/2026', '22/06/2026', '03/07/2026', '06/07/2026', '14/08/2026', '28/08/2026'],
-    process: "Changer une serie de production sur ligne d'assemblage",
-    note: "La ligne A perd en moyenne 96 minutes a chaque changement de reference, avec des variations importantes selon les equipes. Le projet s'appuie sur l'approche SMED pour separer operations internes/externes, preparer les outillages et stabiliser le redemarrage qualite.",
-    probleme: 'Temps moyen de changement de serie de 96 minutes, 14% de redemarrages avec retouche qualite et 7 heures de capacite perdues par semaine.',
-    objectifs: 'Reduire le changement de serie a 55 minutes, atteindre 95% de kits outillages prets avant arret et reduire les retouches de redemarrage sous 5%.',
-    perimetreIn: 'Ligne assemblage A, references familles X12/X14/X18, changement outillages et reglages premier bon.',
-    perimetreOut: 'Maintenance lourde, changement de gamme produit, approvisionnement composants amont.',
-    contraintes: 'Fenetre de test limitee, exigences securite machine, disponibilite techniciens methodes.',
-    risques: 'Gain de temps au detriment de la qualite premier bon, non-respect des consignes securite pendant preparation externe.',
-  },
-  {
-    id: 'preset-incidents-paiement-entreprises',
-    name: 'Amelioration de la gestion des incidents de paiement entreprises',
-    domain: 'banque',
-    sponsor: 'Directeur Banque Entreprises',
-    owner: 'Operations Cash Management',
-    pilot: 'Responsable Incidents Paiement',
-    budget: '61 000 EUR',
-    gains: 172000,
-    couts: 61000,
-    dates: ['01/06/2026', '12/06/2026', '15/06/2026', '26/06/2026', '29/06/2026', '10/07/2026', '13/07/2026', '24/07/2026', '27/07/2026', '04/09/2026', '18/09/2026'],
-    process: 'Resoudre un incident de paiement entreprise',
-    note: "Les incidents de virements SEPA et internationaux pour clients entreprises mobilisent agences, middle-office, cash management et IT paiement. Les clients a forte valeur attendent une resolution rapide et une communication proactive.",
-    probleme: 'Delai moyen de resolution de 3,8 jours, 27% de relances clients grands comptes et 16% de tickets ouverts sans cause qualifiee.',
-    objectifs: 'Resoudre 80% des incidents sous 24h, reduire les relances sous 8%, creer une classification cause racine partagee.',
-    perimetreIn: 'Virements SEPA, virements internationaux, rejets, suspens et demandes de tracking clients entreprises.',
-    perimetreOut: 'Fraude averee, sanctions internationales complexes, contentieux contractuels.',
-    contraintes: 'Dependance aux correspondants bancaires, cut-off paiement, exigences de tracabilite et securite.',
-    risques: 'Communication prematuree au client, mauvaise priorisation des clients sensibles, erreur dans la reprise manuelle.',
-  },
-  {
-    id: 'preset-maintenance-preventive',
-    name: 'Fiabilisation du processus de maintenance preventive usine',
-    domain: 'industrie',
-    sponsor: 'Directeur Technique',
-    owner: 'Maintenance Industrielle',
-    pilot: 'Responsable Maintenance',
-    budget: '46 000 EUR',
-    gains: 134000,
-    couts: 46000,
-    dates: ['07/09/2026', '18/09/2026', '21/09/2026', '02/10/2026', '05/10/2026', '16/10/2026', '19/10/2026', '30/10/2026', '02/11/2026', '11/12/2026', '18/12/2026'],
-    process: 'Planifier et realiser la maintenance preventive',
-    note: "Le taux de realisation de la maintenance preventive est insuffisant et genere des interventions curatives couteuses. Le projet couvre la planification, la preparation des pieces, l'intervention, le compte rendu et la mise a jour GMAO.",
-    probleme: 'Taux de preventive realisee de 62%, 18 arrets non planifies par trimestre et 24% de bons d intervention clotures sans cause ni piece consommee.',
-    objectifs: 'Atteindre 90% de preventive realisee, reduire les arrets non planifies de 30% et fiabiliser les donnees GMAO.',
-    perimetreIn: 'Equipements critiques lignes B et C, plans preventifs mecaniques et electriques, magasin pieces detachees.',
-    perimetreOut: 'Travaux neufs, contrats de maintenance externes long terme, gros arrets annuels.',
-    contraintes: 'Disponibilite machines, stock pieces critiques, arbitrage production / maintenance.',
-    risques: 'Planning preventive non respecte par pression production, pieces indisponibles au moment de l intervention, donnees GMAO incompletes.',
-  },
-];
-
-function genericScenarioProject(s) {
-  const isIndustry = s.domain === 'industrie';
-  const supplier = isIndustry ? 'Atelier / Fournisseur' : 'Client entreprise / Agence';
-  const system = isIndustry ? 'ERP / GMAO' : 'Core Banking / Workflow';
-  return scenarioProject({
-    ...s,
-    gainsText: `Gain annuel estime a ${s.gains.toLocaleString('fr-FR')} EUR grace a la reduction des attentes, reprises et pertes operationnelles.`,
-    parties: [
-      { nom: s.sponsor, role: 'Sponsor', service: isIndustry ? 'Direction industrielle' : 'Direction metier', interet: 'Favorable', influence: 'Fort' },
-      { nom: s.pilot, role: 'Pilote processus', service: s.owner, interet: 'Favorable', influence: 'Fort' },
-      { nom: isIndustry ? 'Equipe production' : 'Conseillers / Charges entreprises', role: 'Utilisateurs', service: isIndustry ? 'Production' : 'Front-office', interet: 'Neutre', influence: 'Moyen' },
-      { nom: isIndustry ? 'Qualite / HSE' : 'Conformite / Risques', role: 'Controle', service: isIndustry ? 'Qualite' : 'Conformite', interet: 'Neutre', influence: 'Fort' },
-      { nom: isIndustry ? 'IT ERP' : 'IT Operations', role: 'Support systeme', service: 'IT', interet: 'Neutre', influence: 'Moyen' },
-    ],
-    sipoc: [
-      { supplier, input: 'Demande, donnees initiales et justificatifs', process: s.process, output: 'Dossier traite et statut mis a jour', customer: isIndustry ? 'Production / Finance' : 'Client / Front-office' },
-      { supplier: s.owner, input: 'Regles metier et priorites', process: s.process, output: 'Decision ou intervention validee', customer: s.pilot },
-      { supplier: 'Systeme information', input: 'Workflow, donnees et historiques', process: s.process, output: 'Trace de traitement', customer: 'Pilotage operationnel' },
-    ],
-    roles: isIndustry ? ['Production', 'Methodes', 'Qualite', 'IT'] : ['Front-office', 'Operations', 'Conformite', 'IT'],
-    raci: [
-      { nom: 'Qualifier la demande', assign: isIndustry ? { Production: 'R', Methodes: 'C', Qualite: 'I' } : { 'Front-office': 'R', Operations: 'C', Conformite: 'I' } },
-      { nom: 'Analyser et traiter', assign: isIndustry ? { Production: 'C', Methodes: 'R', Qualite: 'C' } : { 'Front-office': 'C', Operations: 'R', Conformite: 'C' } },
-      { nom: 'Valider le resultat', assign: isIndustry ? { Methodes: 'R', Qualite: 'A', IT: 'I' } : { Operations: 'R', Conformite: 'A', IT: 'I' } },
-      { nom: 'Mettre a jour le systeme', assign: isIndustry ? { Production: 'I', Methodes: 'R', IT: 'C' } : { 'Front-office': 'I', Operations: 'R', IT: 'C' } },
-    ],
-    questions: [
-      'Quels sont les motifs de blocage les plus frequents ?',
-      'Quelles informations manquent au demarrage du traitement ?',
-      'Quelles etapes sont realisees hors systeme ?',
-      'Comment les priorites sont-elles definies ?',
-      'Quels controles sont indispensables avant cloture ?',
-    ],
-    journal: [
-      { date: s.dates[2], lieu: isIndustry ? 'Atelier principal' : 'Middle-office', observateur: 'Equipe Lean', type: 'Irritant', constat: 'Les priorites sont gerees oralement et ne sont pas visibles dans le systeme.' },
-      { date: s.dates[3], lieu: s.owner, observateur: 'Equipe Lean', type: 'Gaspillage', constat: 'Une partie importante du temps est consacree a rechercher des informations deja disponibles dans un autre outil.' },
-      { date: s.dates[4], lieu: isIndustry ? 'Salle de pilotage production' : 'Back-office', observateur: 'Equipe Lean', type: 'Risque', constat: 'Les dossiers urgents ne sont pas toujours distingues des dossiers standards.' },
-    ],
-    referentiel: [
-      { processus: s.process, macro: isIndustry ? 'Operations industrielles' : 'Operations bancaires', niveau: 'N1', proprietaire: s.pilot, systeme },
-      { processus: 'Qualification initiale', macro: isIndustry ? 'Preparation operationnelle' : 'Traitement operationnel', niveau: 'N2', proprietaire: s.owner, systeme },
-      { processus: 'Controle et cloture', macro: 'Pilotage qualite', niveau: 'N2', proprietaire: isIndustry ? 'Qualite' : 'Conformite', systeme },
-    ],
-    flow: [
-      { label: 'Demande recue', type: 'Evenement', acteur: supplier, systeme, painpoint: false },
-      { label: 'Qualification initiale', type: 'Tache', acteur: s.owner, systeme, painpoint: true },
-      { label: 'Controle informations', type: 'Controle', acteur: s.pilot, systeme, painpoint: true },
-      { label: 'Traitement metier', type: 'Tache', acteur: s.owner, systeme, painpoint: false },
-      { label: 'Validation resultat', type: 'Decision', acteur: s.pilot, systeme, painpoint: false },
-      { label: 'Cloture et reporting', type: 'Tache', acteur: s.owner, systeme, painpoint: true },
-    ],
-    vsm: [
-      { etape: 'Qualification initiale', tempsTraitement: 18, tempsAttente: 480 },
-      { etape: 'Recherche informations', tempsTraitement: 35, tempsAttente: 960 },
-      { etape: 'Traitement metier', tempsTraitement: 70, tempsAttente: 1440 },
-      { etape: 'Validation', tempsTraitement: 20, tempsAttente: 720 },
-      { etape: 'Cloture systeme', tempsTraitement: 12, tempsAttente: 240 },
-    ],
-    pareto: [
-      { cause: 'Informations initiales incompletes', occurrences: 44 },
-      { cause: 'Attente validation metier', occurrences: 33 },
-      { cause: 'Recherche multi-outils', occurrences: 26 },
-      { cause: 'Priorisation non standardisee', occurrences: 19 },
-      { cause: 'Erreur de saisie', occurrences: 12 },
-    ],
-    ishikawa: {
-      "Main d'oeuvre": ['Niveau de formation heterogene', 'Dependance a quelques experts'],
-      Methode: ['Regles de priorisation non formalisees', 'Check-list non obligatoire'],
-      Materiel: ['Outils non synchronises', 'Tableaux Excel paralleles'],
-      Milieu: ['Pics d activite non anticipes', 'Interruptions frequentes'],
-      Matiere: ['Donnees incompletes', 'Historique difficile a exploiter'],
-    },
-    fivewhy: {
-      probleme: s.probleme,
-      why1: 'Parce que de nombreux dossiers restent en attente de clarification.',
-      why2: 'Parce que les informations necessaires ne sont pas controlees au depart.',
-      why3: "Parce que la check-list d'entree n'est pas bloquante.",
-      why4: "Parce que les equipes ont adapte localement le mode operatoire.",
-      why5: "Parce que le processus n'a pas ete standardise autour d'un flux unique.",
-      causeRacine: "Absence de standard d'entree et de priorisation partage dans le systeme.",
-      action: "Creer une check-list d'entree obligatoire et une file de traitement priorisee.",
-    },
-    amdec: [
-      { mode: 'Dossier incomplet accepte', effet: 'Reprise et delai allonge', cause: 'Controle entree non bloquant', F: 7, G: 6, D: 5, actions: 'Check-list obligatoire' },
-      { mode: 'Priorite mal affectee', effet: 'Retard dossier critique', cause: 'Regles de priorisation floues', F: 5, G: 8, D: 5, actions: 'Matrice priorite impact / urgence' },
-      { mode: 'Cloture systeme incomplete', effet: 'Reporting faux', cause: 'Saisie manuelle', F: 4, G: 6, D: 6, actions: 'Champs obligatoires et controles automatiques' },
-    ],
-    actions: [
-      { action: 'Standardiser la check-list d entree', impact: 9, effort: 3, responsable: s.pilot, echeance: s.dates[7], statut: 'En cours' },
-      { action: 'Mettre en place une file priorisee', impact: 8, effort: 4, responsable: s.owner, echeance: s.dates[8], statut: 'A faire' },
-      { action: 'Supprimer le suivi parallele Excel', impact: 6, effort: 3, responsable: 'IT', echeance: s.dates[9], statut: 'A faire' },
-      { action: 'Automatiser les controles de cloture', impact: 7, effort: 6, responsable: 'IT', echeance: s.dates[10], statut: 'A faire' },
-    ],
-    targetFlow: [
-      { label: 'Demande recue', type: 'Evenement', acteur: supplier, systeme, painpoint: false },
-      { label: 'Check-list obligatoire', type: 'Controle', acteur: s.owner, systeme, painpoint: false },
-      { label: 'Priorisation auto', type: 'Decision', acteur: 'Systeme', systeme, painpoint: false },
-      { label: 'Traitement standard', type: 'Tache', acteur: s.owner, systeme, painpoint: false },
-      { label: 'Controle cloture', type: 'Controle', acteur: s.pilot, systeme, painpoint: false },
-      { label: 'Reporting automatique', type: 'Tache', acteur: 'Systeme', systeme, painpoint: false },
-    ],
-    businessRisks: s.risques,
-    roadmap: [
-      { phase: 'Standard entree', debut: s.dates[6], fin: s.dates[7], responsable: s.pilot, livrable: 'Check-list validee' },
-      { phase: 'Parametrage workflow', debut: s.dates[8], fin: s.dates[9], responsable: 'IT', livrable: 'File priorisee' },
-      { phase: 'Pilote operationnel', debut: s.dates[9], fin: s.dates[10], responsable: s.owner, livrable: 'Bilan pilote' },
-    ],
-    deployPlan: [
-      { action: 'Former les utilisateurs au standard cible', responsable: s.pilot, echeance: s.dates[8], statut: 'A faire' },
-      { action: 'Suivre quotidiennement les blocages du pilote', responsable: s.owner, echeance: s.dates[9], statut: 'A faire' },
-      { action: 'Mettre a jour les modes operatoires', responsable: s.pilot, echeance: s.dates[10], statut: 'A faire' },
-    ],
-    change: ['Identifier des referents terrain', 'Afficher les indicateurs dans le rituel quotidien', 'Organiser des retours utilisateurs chaque semaine', 'Documenter les cas d exception'],
-    recette: 'Pilote realise sur un perimetre representatif : baisse des attentes, meilleure qualite des donnees et adoption correcte du standard. Reserve : finaliser la suppression des suivis paralleles.',
-    kpis: [
-      { nom: 'Delai moyen traitement', unite: 'jours', cible: 8, actuel: 10, frequence: 'Hebdomadaire' },
-      { nom: 'Dossiers complets entree', unite: '%', cible: 90, actuel: 83, frequence: 'Hebdomadaire' },
-      { nom: 'Reprises dossier', unite: '%', cible: 10, actuel: 16, frequence: 'Mensuel' },
-    ],
-    rituels: [
-      { nom: 'Point flux operationnel', frequence: 'Hebdomadaire', participants: `${s.owner}, IT, Sponsor`, objet: 'Suivi delais et blocages' },
-      { nom: 'Revue qualite donnees', frequence: 'Mensuel', participants: `${s.pilot}, Controle, IT`, objet: 'Echantillon dossiers clotures' },
-    ],
-    controle: [
-      { point: 'Check-list entree', frequence: 'Systematique', responsable: s.owner, seuil: '95% dossiers conformes' },
-      { point: 'Dossiers en retard', frequence: 'Hebdomadaire', responsable: s.pilot, seuil: 'Alerte si > 10%' },
-    ],
-    rex: 'Le projet montre que la standardisation de l entree et la visualisation des priorites reduisent rapidement les attentes. Les prochains gains dependront de l automatisation des controles et de la qualite des donnees source.',
-  });
-}
-
-function createPresetProjects() {
-  return [...PROJECT_SCENARIOS.map(scenarioProject), ...EXTRA_PROJECT_SCENARIOS.slice(0, 3).map(genericScenarioProject)];
 }
 
 function roiText(bc) {
@@ -2781,197 +2207,6 @@ const CSS = `
   font-size:11.5px;
 }
 
-/* OptiFlow 360 home redesign */
-.theme-light.home-mode{
-  background:#FFFFFF;
-}
-.theme-light .project-home{
-  width:min(1240px,calc(100vw - 48px));
-  padding:30px 0 52px;
-}
-.theme-light .home-hero{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:end;
-  gap:28px;
-  padding:28px 30px 24px;
-  border:1px solid #D8DEE8;
-  border-top:4px solid #11233F;
-  background:#FFFFFF;
-}
-.theme-light .home-kicker{
-  color:#2E6F64;
-  font-size:11px;
-}
-.theme-light .home-hero h1{
-  max-width:820px;
-  font-size:clamp(34px,4.6vw,58px);
-  line-height:1;
-  margin:10px 0 10px;
-}
-.theme-light .home-hero p{
-  max-width:860px;
-  color:#40516A;
-  font-size:14px;
-  line-height:1.55;
-}
-.theme-light .home-tags{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:16px;
-}
-.theme-light .home-tags span,
-.theme-light .sector-badge{
-  display:inline-flex;
-  align-items:center;
-  min-height:24px;
-  border:1px solid #CBD4E1;
-  background:#F6F8FB;
-  color:#40516A;
-  font-family:var(--font-mono);
-  font-size:10px;
-  font-weight:800;
-  text-transform:uppercase;
-  padding:3px 8px;
-}
-.theme-light .home-primary{
-  min-height:40px;
-  background:#11233F;
-  color:#FFFFFF;
-  padding:9px 14px;
-  white-space:nowrap;
-}
-.theme-light .home-primary:hover{
-  background:#173A63;
-}
-.theme-light .home-widgets{
-  grid-template-columns:repeat(4,minmax(150px,1fr)) minmax(260px,1.35fr);
-  gap:10px;
-  margin:14px 0 22px;
-}
-.theme-light .home-widget,
-.theme-light .home-search{
-  min-height:92px;
-  border:1px solid #D8DEE8;
-  border-top:2px solid #73829A;
-  background:#FFFFFF;
-  padding:14px;
-}
-.theme-light .home-widget.warning{
-  border-top-color:#B36B1E;
-}
-.theme-light .home-widget.success{
-  border-top-color:#2E6F64;
-}
-.theme-light .home-widget span{
-  color:#53647B;
-  font-family:var(--font-mono);
-  font-size:10px;
-  font-weight:850;
-  text-transform:uppercase;
-}
-.theme-light .home-widget strong{
-  margin-top:8px;
-  color:#11233F;
-  font-size:28px;
-}
-.theme-light .home-widget.warning strong{
-  color:#B36B1E;
-}
-.theme-light .home-widget.success strong{
-  color:#2E6F64;
-}
-.theme-light .home-widget small{
-  color:#66758A;
-  font-size:11px;
-}
-.theme-light .home-search{
-  align-self:stretch;
-  border-left:1px solid #D8DEE8;
-  border-top-color:#11233F;
-}
-.theme-light .home-search input{
-  min-height:34px;
-}
-.theme-light .home-section-head{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:18px;
-  margin:20px 0 10px;
-  padding-bottom:10px;
-  border-bottom:2px solid #11233F;
-}
-.theme-light .home-section-head span{
-  display:block;
-  color:#53647B;
-  font-family:var(--font-mono);
-  font-size:10px;
-  font-weight:850;
-  text-transform:uppercase;
-}
-.theme-light .home-section-head h2{
-  margin:5px 0 0;
-  color:#11233F;
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:24px;
-  font-weight:500;
-}
-.theme-light .home-section-head p{
-  margin:0;
-  color:#53647B;
-  font-size:12px;
-}
-.theme-light .project-grid{
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:12px;
-}
-.theme-light .project-card{
-  min-height:236px;
-  display:flex;
-  flex-direction:column;
-  border:1px solid #D8DEE8;
-  border-top:3px solid #11233F;
-  background:#FFFFFF;
-}
-.theme-light .project-card-top{
-  align-items:flex-start;
-}
-.theme-light .project-badges{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  gap:6px;
-}
-.theme-light .project-card h2{
-  margin-top:14px;
-  font-size:21px;
-}
-.theme-light .project-card p{
-  flex:1;
-  display:-webkit-box;
-  -webkit-line-clamp:4;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-.theme-light .open-project{
-  width:100%;
-  margin-top:14px;
-  min-height:34px;
-  background:#11233F;
-  color:#FFFFFF;
-}
-.theme-light .open-project:hover{
-  background:#173A63;
-}
-
-@media (max-width: 980px){
-  .theme-light .home-hero{ grid-template-columns:1fr; }
-  .theme-light .home-widgets{ grid-template-columns:repeat(2,1fr); }
-  .theme-light .home-search{ grid-column:1/-1; }
-}
-
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -2980,7 +2215,7 @@ const CSS = `
   .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; background:#fff!important; color:#10233F; }
   .sidebar, .main{ display:none; }
   .print-only{ display:block; font-family:var(--font-body); color:var(--ink); }
-  .print-only::before{ content:"OptiFlow 360"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
+  .print-only::before{ content:"Tour de contrôle Lean Finance"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
   .print-only h1{ font-family:var(--font-display); font-size:28px; line-height:1.12; margin:0 0 5px; color:#10233F; }
   .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:18px; border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#fff; }
@@ -3053,8 +2288,8 @@ function PrintSummary({ data }) {
 
   return (
     <div className="print-only">
-      <h1>{data.projectName || "Projet d'amelioration"}</h1>
-      <p className="print-subtitle">OptiFlow 360 — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
+      <h1>{data.projectName || 'Projet Lean'}</h1>
+      <p className="print-subtitle">Tour de contrôle Lean — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
 
       <section className="print-step">
         <h2>Étape 00 — Préparer</h2>
@@ -3140,14 +2375,42 @@ function PrintSummary({ data }) {
 }
 
 export default function App() {
-  const [projects, setProjects] = useState(() => createPresetProjects());
+  const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
-  const portfolioProjects = projects;
-  const data = portfolioProjects.find(p => p._projectId === activeProjectId) || portfolioProjects[0] || createProject();
+  const [loaded, setLoaded] = useState(false);
+  const [savedAt, setSavedAt] = useState(null);
+  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const savedProjects = window.localStorage.getItem('lean-projects-data');
+        if (savedProjects) {
+          const parsed = JSON.parse(savedProjects);
+          setProjects(Array.isArray(parsed) && parsed.length ? parsed : [createProject()]);
+        } else {
+          const legacy = window.localStorage.getItem('lean-projet-data');
+          setProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
+        }
+      } catch (e) { /* pas de projet sauvegardé */ }
+      setLoaded(true);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(async () => {
+      try {
+        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
+        setSavedAt(new Date());
+      } catch (e) { console.error('Erreur de sauvegarde', e); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [projects, loaded]);
 
   const updateField = useCallback((path, value) => {
     setProjects(prev => prev.map(project => {
@@ -3202,23 +2465,15 @@ export default function App() {
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet d'amelioration ${portfolioProjects.length + 1}`,
+      projectName: `Nouveau projet Lean ${projects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
-  const filteredProjects = portfolioProjects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
-  const incompleteProjects = portfolioProjects.filter(project => projectProgress(project) < STEPS.length).length;
-  const completedProjects = portfolioProjects.filter(project => projectProgress(project) === STEPS.length).length;
-  const averageProgress = portfolioProjects.length ? Math.round(portfolioProjects.reduce((sum, project) => sum + projectProgress(project), 0) / (portfolioProjects.length * STEPS.length) * 100) : 0;
+  const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
+  const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
   const appClass = 'lean-app theme-light';
-  const projectSector = (project) => {
-    const text = `${project.projectName || ''} ${project.step1?.charte?.perimetreIn || ''} ${project.step0?.note || ''}`.toLowerCase();
-    if (text.includes('industrie') || text.includes('usine') || text.includes('production') || text.includes('assemblage') || text.includes('maintenance')) return 'Industrie';
-    if (text.includes('credit') || text.includes('banc') || text.includes('paiement') || text.includes('reclamation')) return 'Banque & services';
-    return 'Operations';
-  };
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -3439,70 +2694,42 @@ export default function App() {
         <main className="project-home">
           <header className="home-hero">
             <div>
-              <div className="home-kicker"><Sparkles size={16} /> OptiFlow 360</div>
-              <h1>Plateforme d'amelioration des processus</h1>
-              <p>Structurez, pilotez et documentez vos chantiers d'amelioration continue dans tous les secteurs : industrie, banque, services, operations, supply chain et fonctions support.</p>
-              <div className="home-tags">
-                <span>Lean</span>
-                <span>Process mining</span>
-                <span>Excellence operationnelle</span>
-                <span>Multi-secteurs</span>
-              </div>
+              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets Lean</div>
+              <h1>Pilotage des projets Lean Finance</h1>
+              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche Lean de bout en bout.</p>
             </div>
             <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
           </header>
 
           <section className="home-widgets">
             <div className="home-widget">
-              <span>Portefeuille</span>
-              <strong>{portfolioProjects.length}</strong>
-              <small>Projets d'amelioration</small>
+              <span>Projets sauvegardés</span>
+              <strong>{projects.length}</strong>
+              <small>Portefeuille total</small>
             </div>
             <div className="home-widget warning">
-              <span>A finaliser</span>
+              <span>Non terminés</span>
               <strong>{incompleteProjects}</strong>
-              <small>Dossiers non valides a 100%</small>
-            </div>
-            <div className="home-widget success">
-              <span>Termines</span>
-              <strong>{completedProjects}</strong>
-              <small>Dossiers complets</small>
-            </div>
-            <div className="home-widget">
-              <span>Avancement moyen</span>
-              <strong>{averageProgress}%</strong>
-              <small>Sur les 9 etapes</small>
+              <small>Validation incomplète</small>
             </div>
             <label className="home-search">
               <Search size={18} />
-              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet, un secteur ou un processus..." />
+              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
             </label>
-          </section>
-
-          <section className="home-section-head">
-            <div>
-              <span>Bibliotheque projets</span>
-              <h2>5 projets multi-secteurs preintegres</h2>
-            </div>
-            <p>{filteredProjects.length} projet{filteredProjects.length > 1 ? 's' : ''} affiche{filteredProjects.length > 1 ? 's' : ''}</p>
           </section>
 
           <section className="project-grid">
             {filteredProjects.map(project => {
               const done = projectProgress(project);
               const pct = Math.round((done / STEPS.length) * 100);
-              const sector = projectSector(project);
               return (
                 <article className="project-card" key={project._projectId}>
                   <div className="project-card-top">
                     <div className="project-icon"><FolderKanban size={20} /></div>
-                    <div className="project-badges">
-                      <span className="sector-badge">{sector}</span>
-                      <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Termine' : 'En cours'}</span>
-                    </div>
+                    <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Terminé' : 'En cours'}</span>
                   </div>
-                  <h2>{project.projectName || "Projet d'amelioration"}</h2>
-                  <p>{project.step1?.charte?.probleme || project.step0?.note || "Projet d'amelioration de processus a completer."}</p>
+                  <h2>{project.projectName || 'Projet Lean'}</h2>
+                  <p>{project.step1?.charte?.probleme || project.step0?.note || 'Projet Lean Finance à compléter.'}</p>
                   <div className="project-progress">
                     <div><span style={{ width: `${pct}%` }} /></div>
                     <strong>{done}/{STEPS.length} étapes validées</strong>
@@ -3515,7 +2742,7 @@ export default function App() {
               <div className="empty-projects">
                 <BriefcaseBusiness size={28} />
                 <h2>Aucun projet trouvé</h2>
-                <p>Modifiez votre recherche ou creez un nouveau projet d'amelioration.</p>
+                <p>Modifiez votre recherche ou créez un nouveau projet Lean.</p>
               </div>
             )}
           </section>
@@ -3536,8 +2763,8 @@ export default function App() {
             </button>
           </div>
           <div className="sidebar-expanded-only">
-            <div className="sidebar-eyebrow">OptiFlow 360</div>
-            <h1>Process Studio</h1>
+            <div className="sidebar-eyebrow">Tour de contrôle</div>
+            <h1>Lean Finance</h1>
             <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
             <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
             <div className="progress-text">{validatedCount}/9 étapes validées</div>
@@ -3556,7 +2783,7 @@ export default function App() {
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
-          <div className="save-indicator">Mode demonstration - 5 projets integres</div>
+          <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
       </aside>
       <main className="main">
