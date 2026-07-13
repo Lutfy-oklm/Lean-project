@@ -13,6 +13,7 @@ const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
+const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId: uid(), _templateKey: 'industrial-aircraft-turnaround-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
@@ -493,13 +494,213 @@ function bankComplaintData() {
   };
 }
 
+function industrialAircraftData() {
+  return {
+    projectName: 'Réduction du temps d’immobilisation avion en maintenance',
+    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
+    step0: {
+      note: "Le processus de maintenance en ligne des avions moyen-courriers génère des temps d'immobilisation supérieurs à la cible opérationnelle, notamment lors des contrôles de fin de rotation et des interventions correctives courtes. Le projet couvre le flux entre l'arrivée avion au parking, le diagnostic technique, la disponibilité des pièces et la remise en service.",
+      planning: [
+        { _id: uid(), phase: 'Cadrage opérationnel', debut: '03/02/2027', fin: '14/02/2027', responsable: 'Responsable amélioration continue' },
+        { _id: uid(), phase: 'Observation terrain piste et hangar', debut: '17/02/2027', fin: '28/02/2027', responsable: 'Équipe maintenance ligne' },
+        { _id: uid(), phase: 'Cartographie et diagnostic', debut: '03/03/2027', fin: '21/03/2027', responsable: 'Process owner maintenance' },
+        { _id: uid(), phase: 'Conception du standard cible', debut: '24/03/2027', fin: '11/04/2027', responsable: 'Maintenance + Logistique + Planning' },
+        { _id: uid(), phase: 'Pilote sur escale principale', debut: '14/04/2027', fin: '09/05/2027', responsable: 'Chef d’escale technique' },
+        { _id: uid(), phase: 'Déploiement multi-escales', debut: '12/05/2027', fin: 'Continu', responsable: 'Direction maintenance ligne' },
+      ],
+      parties: [
+        { _id: uid(), nom: 'Directeur Maintenance Ligne', role: 'Sponsor', service: 'Maintenance aéronautique', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Chef d’escale technique', role: 'Pilote métier', service: 'Opérations piste', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Techniciens maintenance ligne', role: 'Utilisateurs clés', service: 'Maintenance', interet: 'Favorable', influence: 'Moyen' },
+        { _id: uid(), nom: 'Responsable logistique pièces', role: 'Contributeur', service: 'Supply chain MRO', interet: 'Neutre', influence: 'Fort' },
+        { _id: uid(), nom: 'Centre de contrôle opérations', role: 'Client interne', service: 'Operations Control Center', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Qualité / navigabilité', role: 'Contrôle', service: 'Qualité aéronautique', interet: 'Neutre', influence: 'Fort' },
+      ],
+    },
+    step1: {
+      charte: {
+        titre: 'Réduction du temps d’immobilisation avion en maintenance',
+        sponsor: 'Directeur Maintenance Ligne',
+        probleme: 'Le temps moyen d’immobilisation technique après arrivée avion est de 96 minutes sur les rotations avec intervention, contre une cible opérationnelle de 65 minutes. Les principales causes sont l’attente diagnostic, la recherche de pièces et la coordination tardive avec les opérations.',
+        objectifs: 'Ramener le temps moyen d’immobilisation à 70 minutes en 12 semaines, réduire de 35% les attentes pièces, fiabiliser le pré-brief maintenance avant arrivée avion et sécuriser la remise en service sans dégrader la conformité.',
+        perimetreIn: 'Avions moyen-courriers, maintenance en ligne, interventions correctives courtes, escale principale et deux escales pilotes.',
+        perimetreOut: 'Grandes visites hangar, modifications lourdes, opérations sous-traitées hors contrat local, incidents de sécurité majeurs.',
+        contraintes: 'Exigences de navigabilité, disponibilité techniciens habilités, créneaux piste, dépendance aux stocks pièces et aux informations du carnet technique.',
+        risques: 'Risque de raccourcir le délai au détriment du contrôle qualité, résistance au nouveau standard de pré-brief, disponibilité limitée des pièces critiques.',
+        budget: '78 000 €',
+        dateDebut: '03/02/2027',
+        dateFin: '30/05/2027',
+        gains: 'Réduction des retards imputables maintenance, meilleure utilisation flotte, baisse des coûts de repositionnement et amélioration de la ponctualité départ.',
+      },
+      sipoc: [
+        { _id: uid(), supplier: 'Équipage / carnet technique', input: 'Signalement défaut et contexte vol', process: 'Remettre l’avion en service après intervention ligne', output: 'Avion libéré conforme', customer: 'Operations Control Center' },
+        { _id: uid(), supplier: 'Maintenance ligne', input: 'Diagnostic, intervention, validation technique', process: 'Remettre l’avion en service après intervention ligne', output: 'Travaux réalisés et tracés', customer: 'Exploitation' },
+        { _id: uid(), supplier: 'Logistique pièces MRO', input: 'Pièces, outillage, consommables', process: 'Remettre l’avion en service après intervention ligne', output: 'Matériel disponible au bon poste', customer: 'Techniciens maintenance' },
+      ],
+      raci: {
+        roles: ['Maintenance ligne', 'Logistique MRO', 'Planning vols', 'Qualité', 'OCC'],
+        activites: [
+          { _id: uid(), nom: 'Préparer le dossier avant arrivée avion', assign: { 'Maintenance ligne': 'R', OCC: 'C', 'Planning vols': 'I' } },
+          { _id: uid(), nom: 'Diagnostiquer le défaut', assign: { 'Maintenance ligne': 'R', Qualité: 'C' } },
+          { _id: uid(), nom: 'Mettre à disposition pièces et outillage', assign: { 'Logistique MRO': 'R', 'Maintenance ligne': 'C' } },
+          { _id: uid(), nom: 'Réaliser intervention et contrôles', assign: { 'Maintenance ligne': 'R', Qualité: 'A' } },
+          { _id: uid(), nom: 'Arbitrer impact rotation suivante', assign: { OCC: 'A', 'Planning vols': 'R', 'Maintenance ligne': 'C' } },
+        ],
+      },
+    },
+    step2: {
+      questions: [
+        { _id: uid(), question: 'Quelles informations techniques sont disponibles avant l’arrivée avion ?' },
+        { _id: uid(), question: 'À quel moment les pièces et outillages nécessaires sont-ils identifiés ?' },
+        { _id: uid(), question: 'Quelles attentes sont les plus fréquentes pendant une intervention courte ?' },
+        { _id: uid(), question: 'Comment les arbitrages entre maintenance et exploitation sont-ils décidés ?' },
+        { _id: uid(), question: 'Quels contrôles qualité sont obligatoires avant remise en service ?' },
+      ],
+      journal: [
+        { _id: uid(), date: '18/02/2027', lieu: 'Parking avion A32', observateur: 'Équipe amélioration', type: 'Gaspillage', constat: 'Les techniciens attendent en moyenne 14 minutes l’accès aux informations complètes du carnet technique.' },
+        { _id: uid(), date: '20/02/2027', lieu: 'Magasin pièces piste', observateur: 'Process owner', type: 'Irritant', constat: 'Les pièces fréquentes ne sont pas toujours pré-positionnées malgré des défauts récurrents connus.' },
+        { _id: uid(), date: '24/02/2027', lieu: 'Salle OCC', observateur: 'Équipe amélioration', type: 'Risque', constat: 'Les décisions de report ou substitution avion sont parfois prises sans visibilité temps réel sur l’avancement technique.' },
+        { _id: uid(), date: '27/02/2027', lieu: 'Escale pilote', observateur: 'Chef d’escale technique', type: 'Bonne pratique', constat: 'Un briefing oral avant arrivée avion réduit fortement les recherches d’information pour les cas connus.' },
+      ],
+    },
+    step3: {
+      referentiel: [
+        { _id: uid(), processus: 'Remise en service après intervention ligne', macro: 'Maintenance aéronautique', niveau: 'N1', proprietaire: 'Directeur Maintenance Ligne', systeme: 'MRO / Carnet technique' },
+        { _id: uid(), processus: 'Préparation pièces et outillage', macro: 'Supply chain MRO', niveau: 'N2', proprietaire: 'Responsable logistique pièces', systeme: 'Stock MRO' },
+        { _id: uid(), processus: 'Arbitrage opérationnel rotation', macro: 'Exploitation flotte', niveau: 'N2', proprietaire: 'OCC', systeme: 'Planning vols' },
+      ],
+      flow: [
+        { _id: uid(), label: 'Avion annoncé en arrivée', type: 'Événement', acteur: 'OCC', systeme: 'Planning vols', painpoint: false },
+        { _id: uid(), label: 'Pré-lecture défauts connus', type: 'Tâche', acteur: 'Maintenance ligne', systeme: 'MRO', painpoint: true },
+        { _id: uid(), label: 'Pièces disponibles ?', type: 'Décision', acteur: 'Logistique MRO', systeme: 'Stock MRO', painpoint: true },
+        { _id: uid(), label: 'Pré-positionner kit intervention', type: 'Tâche', acteur: 'Logistique MRO', systeme: 'Stock MRO', painpoint: false },
+        { _id: uid(), label: 'Diagnostic au parking', type: 'Tâche', acteur: 'Technicien', systeme: 'MRO mobile', painpoint: false },
+        { _id: uid(), label: 'Intervention réalisable avant départ ?', type: 'Décision', acteur: 'Chef équipe', systeme: '', painpoint: true },
+        { _id: uid(), label: 'Contrôle qualité et libération', type: 'Contrôle', acteur: 'Qualité / Technicien habilité', systeme: 'MRO', painpoint: false },
+        { _id: uid(), label: 'Avion remis en service', type: 'Événement', acteur: 'Maintenance', systeme: 'MRO', painpoint: false },
+      ],
+      vsm: [
+        { _id: uid(), etape: 'Préparation informations', tempsTraitement: 8, tempsAttente: 18 },
+        { _id: uid(), etape: 'Recherche pièces/outillage', tempsTraitement: 12, tempsAttente: 24 },
+        { _id: uid(), etape: 'Diagnostic parking', tempsTraitement: 18, tempsAttente: 8 },
+        { _id: uid(), etape: 'Intervention technique', tempsTraitement: 32, tempsAttente: 6 },
+        { _id: uid(), etape: 'Contrôle et libération', tempsTraitement: 14, tempsAttente: 10 },
+      ],
+    },
+    step4: {
+      pareto: [
+        { _id: uid(), cause: 'Pièces non pré-positionnées', occurrences: 39 },
+        { _id: uid(), cause: 'Information défaut incomplète avant arrivée', occurrences: 31 },
+        { _id: uid(), cause: 'Attente décision OCC', occurrences: 18 },
+        { _id: uid(), cause: 'Outillage partagé indisponible', occurrences: 15 },
+        { _id: uid(), cause: 'Double saisie MRO / rapport local', occurrences: 9 },
+      ],
+      ishikawa: {
+        "Main d'œuvre": ['Habilitations techniciens non toujours alignées avec défauts prévus', 'Transmission orale variable selon équipes'],
+        Méthode: ['Absence de pré-brief systématique', 'Pas de standard de kit pièces par défaut récurrent'],
+        Matériel: ['Outillage critique partagé entre plusieurs parkings', 'Terminaux mobiles MRO disponibles en nombre limité'],
+        Milieu: ['Pression départ à l’heure', 'Contraintes accès piste et météo'],
+        Matière: ['Historique défaut incomplet', 'Stocks locaux non synchronisés en temps réel'],
+      },
+      fivewhy: {
+        probleme: 'Le temps moyen d’immobilisation technique dépasse la cible de rotation.',
+        why1: 'Parce que les techniciens attendent des informations, pièces ou décisions pendant l’intervention.',
+        why2: 'Parce que la préparation avant arrivée avion n’est pas systématique.',
+        why3: 'Parce que les défauts récurrents ne déclenchent pas automatiquement un kit et un briefing.',
+        why4: 'Parce que les règles de pré-positionnement sont informelles et dépendantes de l’expérience locale.',
+        why5: 'Parce que le processus n’a pas de standard commun entre maintenance, logistique et OCC.',
+        causeRacine: 'Absence de standard de préparation anticipée intégrant défaut, pièces, habilitations et arbitrage opérationnel.',
+        action: 'Créer un pré-brief maintenance standardisé avec kit pièces pré-positionné pour les défauts récurrents.',
+      },
+      amdec: [
+        { _id: uid(), mode: 'Pièce critique indisponible au parking', effet: 'Retard départ ou substitution avion', cause: 'Absence de pré-positionnement', F: 7, G: 8, D: 5, actions: 'Créer kits défauts récurrents et alerte stock locale' },
+        { _id: uid(), mode: 'Libération sans information complète', effet: 'Risque qualité ou reprise intervention', cause: 'Dossier incomplet dans MRO mobile', F: 3, G: 9, D: 4, actions: 'Contrôle bloquant de complétude avant clôture intervention' },
+        { _id: uid(), mode: 'Décision opérationnelle tardive', effet: 'Retard en cascade sur rotation suivante', cause: 'Manque de visibilité temps réel OCC', F: 5, G: 7, D: 6, actions: 'Partager statut intervention et ETA technique à OCC' },
+      ],
+    },
+    step5: {
+      actions: [
+        { _id: uid(), action: 'Mettre en place un pré-brief maintenance 30 minutes avant arrivée avion', impact: 9, effort: 3, responsable: 'Chef d’escale technique', echeance: '21/03/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Créer des kits pièces pour les 12 défauts récurrents', impact: 9, effort: 5, responsable: 'Logistique MRO', echeance: '04/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Afficher un statut temps réel intervention pour OCC', impact: 8, effort: 6, responsable: 'Maintenance + IT MRO', echeance: '18/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Standardiser la check-list de libération technique', impact: 7, effort: 2, responsable: 'Qualité', echeance: '28/03/2027', statut: 'En cours' },
+        { _id: uid(), action: 'Réserver outillage critique par vague de rotations', impact: 6, effort: 4, responsable: 'Magasin piste', echeance: '11/04/2027', statut: 'À faire' },
+      ],
+    },
+    step6: {
+      flow: [
+        { _id: uid(), label: 'Avion annoncé avec défaut', type: 'Événement', acteur: 'OCC', systeme: 'Planning vols', painpoint: false },
+        { _id: uid(), label: 'Pré-brief standard 30 min avant arrivée', type: 'Tâche', acteur: 'Maintenance ligne', systeme: 'MRO', painpoint: false },
+        { _id: uid(), label: 'Défaut récurrent ?', type: 'Décision', acteur: 'MRO', systeme: 'MRO', painpoint: false },
+        { _id: uid(), label: 'Kit pièces pré-positionné', type: 'Tâche', acteur: 'Logistique MRO', systeme: 'Stock MRO', painpoint: false },
+        { _id: uid(), label: 'Diagnostic guidé au parking', type: 'Tâche', acteur: 'Technicien', systeme: 'MRO mobile', painpoint: false },
+        { _id: uid(), label: 'ETA technique partagé', type: 'Tâche', acteur: 'Chef équipe', systeme: 'Tableau OCC', painpoint: false },
+        { _id: uid(), label: 'Contrôle qualité bloquant', type: 'Contrôle', acteur: 'Qualité', systeme: 'MRO', painpoint: false },
+        { _id: uid(), label: 'Avion libéré', type: 'Événement', acteur: 'Maintenance', systeme: 'MRO', painpoint: false },
+      ],
+      businessCase: {
+        gains: 310000,
+        couts: 78000,
+        risques: 'Le gain dépend de la discipline du pré-brief, de la fiabilité stock locale et de l’adoption du tableau de statut par OCC.',
+      },
+      roadmap: [
+        { _id: uid(), phase: 'Définition des défauts récurrents', debut: '24/03/2027', fin: '28/03/2027', responsable: 'Maintenance ligne', livrable: 'Top 12 défauts et standards de traitement' },
+        { _id: uid(), phase: 'Constitution kits pièces', debut: '31/03/2027', fin: '11/04/2027', responsable: 'Logistique MRO', livrable: 'Kits disponibles au magasin piste' },
+        { _id: uid(), phase: 'Pilote escale principale', debut: '14/04/2027', fin: '09/05/2027', responsable: 'Chef d’escale technique', livrable: 'Bilan pilote et ajustements' },
+        { _id: uid(), phase: 'Déploiement deux escales', debut: '12/05/2027', fin: '30/05/2027', responsable: 'Direction maintenance ligne', livrable: 'Standard multi-escales' },
+      ],
+    },
+    step7: {
+      plan: [
+        { _id: uid(), action: 'Former chefs d’équipe au rituel de pré-brief', responsable: 'Responsable amélioration continue', echeance: '07/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Mettre en place le tableau de statut intervention', responsable: 'IT MRO', echeance: '14/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Lancer le pilote sur trois vagues de rotations', responsable: 'Chef d’escale technique', echeance: '18/04/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Réaliser audit qualité hebdomadaire', responsable: 'Qualité', echeance: '09/05/2027', statut: 'À faire' },
+      ],
+      changement: [
+        { _id: uid(), item: 'Communiquer le standard de pré-brief aux équipes piste', done: false },
+        { _id: uid(), item: 'Former magasin piste au fonctionnement des kits défauts', done: false },
+        { _id: uid(), item: 'Mettre en place un retour quotidien maintenance / OCC', done: false },
+        { _id: uid(), item: 'Documenter les exceptions et cas non couverts', done: false },
+      ],
+      recette: 'Pilote réalisé sur 64 rotations avec intervention : temps moyen d’immobilisation réduit de 96 à 73 minutes, 82% des kits disponibles avant arrivée avion, aucun écart qualité constaté sur les contrôles de libération.',
+    },
+    step8: {
+      kpis: [
+        { _id: uid(), nom: 'Temps moyen immobilisation technique', unite: 'minutes', cible: 70, actuel: 73, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Kits pièces disponibles avant arrivée', unite: '%', cible: 90, actuel: 82, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Retards imputables maintenance ligne', unite: 'nombre', cible: 8, actuel: 12, frequence: 'Mensuel' },
+        { _id: uid(), nom: 'Pré-briefs réalisés à l’heure', unite: '%', cible: 95, actuel: 88, frequence: 'Hebdomadaire' },
+      ],
+      rituels: [
+        { _id: uid(), nom: 'Point quotidien maintenance / OCC', frequence: 'Quotidien', participants: 'Maintenance ligne, OCC, Planning vols', objet: 'Rotations à risque et arbitrages' },
+        { _id: uid(), nom: 'Revue hebdomadaire performance escale', frequence: 'Hebdomadaire', participants: 'Maintenance, Logistique MRO, Qualité', objet: 'KPI, incidents, actions correctives' },
+      ],
+      controle: [
+        { _id: uid(), point: 'Check-list libération technique', frequence: 'Systématique', responsable: 'Technicien habilité', seuil: '100% interventions clôturées conformes' },
+        { _id: uid(), point: 'Disponibilité kits défauts récurrents', frequence: 'Quotidien', responsable: 'Logistique MRO', seuil: 'Alerte si stock < seuil mini' },
+        { _id: uid(), point: 'Écart temps cible par rotation', frequence: 'Hebdomadaire', responsable: 'Chef d’escale technique', seuil: 'Analyse si > 15 min de dépassement' },
+      ],
+      rex: 'Le standard de pré-brief et les kits défauts récurrents réduisent fortement les attentes non productives. Le prochain palier de performance dépendra de la synchronisation temps réel entre MRO mobile, stock local et tableau OCC.',
+    },
+  };
+}
+
 function ensureExampleProjects(projects) {
   const list = Array.isArray(projects) ? projects.filter(project => project && typeof project === 'object') : [];
   const hasBankExample = list.some(project =>
     project._templateKey === 'bank-complaints-example' ||
     project.projectName === 'Optimisation du traitement des réclamations clients'
   );
-  return hasBankExample ? list : [...list, createBankExample()];
+  const hasIndustrialExample = list.some(project =>
+    project._templateKey === 'industrial-aircraft-turnaround-example' ||
+    project.projectName === 'Réduction du temps d’immobilisation avion en maintenance'
+  );
+  return [
+    ...list,
+    ...(!hasBankExample ? [createBankExample()] : []),
+    ...(!hasIndustrialExample ? [createIndustrialExample()] : []),
+  ];
 }
 
 function roiText(bc) {
