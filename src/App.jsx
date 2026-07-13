@@ -1626,16 +1626,16 @@ const CSS = `
   --ink:#11233F;
   --ink-soft:#4B5C73;
   --ink-muted:#748196;
-  --paper:#F0ECE3;
-  --paper-2:#F8F5EE;
-  --paper-3:#EFE8DA;
-  --line:#D5CCBC;
+  --paper:#FFFFFF;
+  --paper-2:#FFFFFF;
+  --paper-3:#F6F8FB;
+  --line:#D8DEE8;
   --line-strong:#11233F;
   --teal:#2E6F64;
   --blue:#173A63;
   --amber:#B36B1E;
   --red:#A33A31;
-  background:#E9E3D8;
+  background:#FFFFFF;
   color:var(--ink);
 }
 .theme-light.lean-app{
@@ -1645,7 +1645,7 @@ const CSS = `
   border:0;
   border-radius:0;
   box-shadow:none;
-  background:#E9E3D8;
+  background:#FFFFFF;
 }
 .theme-light *{
   letter-spacing:0!important;
@@ -1664,7 +1664,7 @@ const CSS = `
 .theme-light .home-search,
 .theme-light .project-card,
 .theme-light .empty-projects{
-  background:#F8F5EE;
+  background:#FFFFFF;
   border:1px solid var(--line);
   border-radius:0;
   box-shadow:none;
@@ -1734,8 +1734,8 @@ const CSS = `
   border-top:2px solid var(--line-strong);
 }
 .theme-light .project-card:hover{
-  background:#F3EEE5;
-  border-color:#BEB4A3;
+  background:#F6F8FB;
+  border-color:#B9C3D2;
 }
 .theme-light .project-icon{
   width:32px;
@@ -1845,8 +1845,8 @@ const CSS = `
   background:#172C4D;
 }
 .theme-light .step-item.is-active{
-  background:#F0ECE3;
-  border-color:#F0ECE3;
+  background:#FFFFFF;
+  border-color:#FFFFFF;
   border-left-color:var(--teal);
   color:var(--ink);
 }
@@ -1898,12 +1898,12 @@ const CSS = `
   min-width:68px;
 }
 .theme-light .main{
-  background:#F0ECE3;
+  background:#FFFFFF;
   padding:24px 30px 42px;
 }
 .theme-light .dossier-card{
   max-width:1220px;
-  background:#F8F5EE;
+  background:#FFFFFF;
   border:1px solid var(--line);
   border-top:3px solid var(--line-strong);
   border-radius:0;
@@ -2001,7 +2001,7 @@ const CSS = `
 .theme-light input:focus,
 .theme-light select:focus,
 .theme-light textarea:focus{
-  background:#FFFDF8;
+  background:#FFFFFF;
   border-bottom-color:var(--teal);
   box-shadow:none;
   outline:1.5px solid var(--teal);
@@ -2040,7 +2040,7 @@ const CSS = `
   vertical-align:middle;
 }
 .theme-light .ledger-table tr:hover td{
-  background:#EEE8DD;
+  background:#F6F8FB;
 }
 .theme-light .ledger-table input,
 .theme-light .ledger-table select,
@@ -2105,7 +2105,7 @@ const CSS = `
 .theme-light .fivewhy,
 .theme-light .vsm-summary div,
 .theme-light .kpi-card{
-  background:#FBF8F0;
+  background:#FFFFFF;
   border:1px solid var(--line);
   border-radius:0;
   box-shadow:none;
@@ -2180,12 +2180,12 @@ const CSS = `
   padding:8px 12px;
 }
 .theme-light .nav-btn{
-  background:#FBF8F0;
-  border:1px solid #BFB5A6;
+  background:#FFFFFF;
+  border:1px solid #B9C3D2;
   color:var(--ink);
 }
 .theme-light .nav-btn:not(:disabled):hover{
-  background:#EEE8DD;
+  background:#F6F8FB;
   border-color:var(--ink);
   color:var(--ink);
 }
