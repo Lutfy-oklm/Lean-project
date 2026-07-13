@@ -4,9 +4,14 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell
 } from 'recharts';
-import { ChevronRight, ChevronLeft, Download, RotateCcw } from 'lucide-react';
+import {
+  ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
+  FolderKanban, Plus, RotateCcw, Search, Sparkles
+} from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
+const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
+const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
   { id: 0, title: 'Préparer', objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
@@ -848,6 +853,76 @@ const CSS = `
 .validate-btn{ min-height:40px; background:#167A66; box-shadow:none; }
 .validate-btn.is-validated{ background:#172033; }
 
+/* Premium dark SaaS workspace */
+.lean-app{
+  --ink:#F8FAFC; --ink-soft:#A1A1AA; --paper:#09090B; --paper-2:#18181B; --line:rgba(255,255,255,.10);
+  --teal:#00C2FF; --blue:#4F7CFF; --violet:#7C4DFF; --amber:#F59E0B; --red:#EF4444;
+  width:100vw; min-height:100vh; margin:0; max-height:none; border:0; border-radius:0;
+  background:
+    radial-gradient(circle at 14% -10%, rgba(79,124,255,.26), transparent 32rem),
+    radial-gradient(circle at 86% 2%, rgba(124,77,255,.18), transparent 30rem),
+    linear-gradient(135deg,#09090B 0%,#111827 52%,#09090B 100%);
+  color:#F8FAFC; box-shadow:none;
+}
+.lean-app::before{ content:""; position:fixed; inset:0; pointer-events:none; background:linear-gradient(rgba(255,255,255,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.024) 1px,transparent 1px); background-size:48px 48px; mask-image:linear-gradient(to bottom,rgba(0,0,0,.72),transparent 75%); }
+.project-home{ position:relative; z-index:1; width:min(1280px,calc(100vw - 48px)); margin:0 auto; padding:44px 0 70px; }
+.home-hero{ display:flex; align-items:flex-end; justify-content:space-between; gap:28px; padding:30px; border:1px solid rgba(255,255,255,.11); border-radius:28px; background:linear-gradient(135deg,rgba(24,24,27,.82),rgba(17,24,39,.68)); box-shadow:0 30px 80px rgba(0,0,0,.34); backdrop-filter:blur(22px); }
+.home-kicker{ display:inline-flex; align-items:center; gap:8px; color:#00C2FF; font-size:13px; font-weight:850; text-transform:uppercase; }
+.home-hero h1{ margin:16px 0 10px; color:#fff; font-size:clamp(38px,6vw,72px); line-height:.94; letter-spacing:0; }
+.home-hero p{ max-width:760px; margin:0; color:#A1A1AA; font-size:16px; line-height:1.65; }
+.home-primary,.open-project{ display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; color:#fff; background:linear-gradient(135deg,#4F7CFF,#7C4DFF); box-shadow:0 18px 40px rgba(79,124,255,.28); }
+.home-primary{ min-height:48px; padding:0 18px; white-space:nowrap; }
+.home-widgets{ display:grid; grid-template-columns:220px 220px minmax(260px,1fr); gap:14px; margin:18px 0; }
+.home-widget,.home-search,.project-card,.empty-projects{ border:1px solid rgba(255,255,255,.1); border-radius:24px; background:rgba(24,24,27,.72); box-shadow:0 24px 60px rgba(0,0,0,.22); backdrop-filter:blur(18px); }
+.home-widget{ min-height:126px; padding:18px; }
+.home-widget span{ display:block; color:#A1A1AA; font-size:12px; font-weight:850; text-transform:uppercase; }
+.home-widget strong{ display:block; margin:12px 0 4px; color:#fff; font-size:38px; line-height:1; }
+.home-widget small{ color:#71717A; }
+.home-widget.warning strong{ color:#F59E0B; }
+.home-search{ min-height:64px; display:flex; align-items:center; align-self:end; gap:12px; padding:0 18px; color:#A1A1AA; }
+.home-search input{ flex:1; min-width:0; border:0!important; background:transparent!important; box-shadow:none!important; color:#fff; padding:0; }
+.project-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.project-card{ padding:20px; min-height:280px; display:flex; flex-direction:column; }
+.project-card-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.project-icon{ width:44px; height:44px; display:grid; place-items:center; border-radius:16px; color:#fff; background:linear-gradient(135deg,#4F7CFF,#00C2FF); box-shadow:0 16px 32px rgba(0,194,255,.16); }
+.status-badge{ display:inline-flex; align-items:center; min-height:28px; padding:0 10px; border-radius:999px; color:#FDE68A; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.24); font-size:12px; font-weight:850; }
+.status-badge.done{ color:#86EFAC; background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.25); }
+.project-card h2{ margin:0 0 10px; color:#fff; font-size:21px; line-height:1.18; }
+.project-card p{ flex:1; margin:0; color:#A1A1AA; font-size:13.5px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.project-progress{ margin:18px 0; }
+.project-progress div{ height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; margin-bottom:8px; }
+.project-progress span{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#4F7CFF,#7C4DFF,#00C2FF); }
+.project-progress strong{ color:#D4D4D8; font-size:12px; }
+.open-project{ min-height:42px; border-radius:14px; }
+.empty-projects{ grid-column:1/-1; min-height:260px; display:grid; place-items:center; text-align:center; padding:34px; color:#A1A1AA; }
+.empty-projects h2{ margin:10px 0 4px; color:#fff; }
+.sidebar{ background:rgba(9,9,11,.78); border-right:1px solid rgba(255,255,255,.09); backdrop-filter:blur(20px); box-shadow:18px 0 48px rgba(0,0,0,.32); }
+.back-home{ display:inline-flex; align-items:center; gap:7px; min-height:34px; margin-bottom:16px; padding:0 10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#F8FAFC; border-radius:12px; }
+.back-home:hover{ border-color:rgba(79,124,255,.55); background:rgba(79,124,255,.14); }
+.sidebar-head h1{ color:#fff; }
+.project-name{ background:rgba(255,255,255,.06)!important; border-color:rgba(255,255,255,.12)!important; color:#fff!important; }
+.progress-line{ background:rgba(255,255,255,.08); }
+.progress-fill{ background:linear-gradient(90deg,#4F7CFF,#7C4DFF,#00C2FF); }
+.step-item:hover{ background:rgba(255,255,255,.06); }
+.step-item.is-active{ background:linear-gradient(135deg,rgba(79,124,255,.2),rgba(124,77,255,.12)); color:#fff; border:1px solid rgba(255,255,255,.12); box-shadow:0 18px 42px rgba(0,0,0,.28); }
+.step-num,.step-item.is-active .step-num{ color:#00C2FF; }
+.main{ background:transparent; }
+.dossier-card{ max-width:1120px; background:rgba(24,24,27,.78); border-color:rgba(255,255,255,.1); color:#F8FAFC; box-shadow:0 24px 60px rgba(0,0,0,.26); backdrop-filter:blur(18px); border-radius:24px; }
+.eyebrow,.field label,.progress-text,.pdf-hint,.save-indicator{ color:#A1A1AA; }
+.dossier-card h2,.sub-title{ color:#fff; }
+.objectif,.livrable{ color:#D4D4D8; }
+.objectif em,.livrable em{ color:#00C2FF; }
+.lean-app input,.lean-app select,.lean-app textarea{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.11); color:#FAFAFA; }
+.lean-app select option{ background:#111827; color:#FAFAFA; }
+.ledger-table-wrap,.flow-node,.pain-callout,.fivewhy,.vsm-summary div,.kpi-card{ background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.1); box-shadow:none; }
+.ledger-table th{ background:rgba(255,255,255,.06); color:#A1A1AA; border-bottom-color:rgba(255,255,255,.1); }
+.ledger-table td{ color:#F4F4F5; border-bottom-color:rgba(255,255,255,.08); }
+.ledger-table tr:hover td{ background:rgba(79,124,255,.08); }
+.btn-add,.nav-btn,.ghost-btn{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.13); color:#FAFAFA; }
+.btn-add:hover,.nav-btn:not(:disabled):hover,.ghost-btn:hover{ background:rgba(79,124,255,.14); border-color:rgba(79,124,255,.45); color:#fff; }
+.validate-btn{ background:linear-gradient(135deg,#4F7CFF,#7C4DFF); box-shadow:0 16px 34px rgba(79,124,255,.22); }
+.validate-btn.is-validated{ background:#22C55E; color:#06130A; }
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -873,6 +948,12 @@ const CSS = `
 
 @media (max-width: 820px){
   .lean-app{ flex-direction:column; width:100vw; min-height:100vh; margin:0; max-height:none; border-radius:0; border:0; }
+  .project-home{ width:calc(100vw - 28px); padding:18px 0 40px; }
+  .home-hero{ flex-direction:column; align-items:flex-start; padding:22px; border-radius:22px; }
+  .home-hero h1{ font-size:38px; }
+  .home-primary{ width:100%; }
+  .home-widgets{ grid-template-columns:1fr; }
+  .project-grid{ grid-template-columns:1fr; }
   .sidebar{ width:100%; min-width:0; }
   .steps-nav{ display:flex; overflow-x:auto; }
   .step-item{ flex-direction:column; width:auto; min-width:96px; margin:4px; border-left:none; border-bottom:3px solid transparent; }
@@ -1010,16 +1091,26 @@ function PrintSummary({ data }) {
 }
 
 export default function App() {
-  const [data, setData] = useState(defaultData());
+  const [projects, setProjects] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState(null);
+  const [view, setView] = useState('home');
+  const [projectQuery, setProjectQuery] = useState('');
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
+  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
 
   useEffect(() => {
     (async () => {
       try {
-        const saved = window.localStorage.getItem('lean-projet-data');
-        if (saved) setData(JSON.parse(saved));
+        const savedProjects = window.localStorage.getItem('lean-projects-data');
+        if (savedProjects) {
+          const parsed = JSON.parse(savedProjects);
+          setProjects(Array.isArray(parsed) && parsed.length ? parsed : [createProject()]);
+        } else {
+          const legacy = window.localStorage.getItem('lean-projet-data');
+          setProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
+        }
       } catch (e) { /* pas de projet sauvegardé */ }
       setLoaded(true);
     })();
@@ -1029,28 +1120,52 @@ export default function App() {
     if (!loaded) return;
     const t = setTimeout(async () => {
       try {
-        window.localStorage.setItem('lean-projet-data', JSON.stringify(data));
+        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
         setSavedAt(new Date());
       } catch (e) { console.error('Erreur de sauvegarde', e); }
     }, 600);
     return () => clearTimeout(t);
-  }, [data, loaded]);
+  }, [projects, loaded]);
 
   const updateField = useCallback((path, value) => {
-    setData(prev => { const next = _.cloneDeep(prev); _.set(next, path, value); return next; });
-  }, []);
+    setProjects(prev => prev.map(project => {
+      if (project._projectId !== activeProjectId) return project;
+      const next = _.cloneDeep(project);
+      _.set(next, path, value);
+      next.updatedAt = new Date().toISOString();
+      return next;
+    }));
+  }, [activeProjectId]);
   const addRow = useCallback((path, template) => {
-    setData(prev => { const next = _.cloneDeep(prev); const arr = _.get(next, path) || []; arr.push({ ...template, _id: uid() }); _.set(next, path, arr); return next; });
-  }, []);
+    setProjects(prev => prev.map(project => {
+      if (project._projectId !== activeProjectId) return project;
+      const next = _.cloneDeep(project);
+      const arr = _.get(next, path) || [];
+      arr.push({ ...template, _id: uid() });
+      _.set(next, path, arr);
+      next.updatedAt = new Date().toISOString();
+      return next;
+    }));
+  }, [activeProjectId]);
   const removeRow = useCallback((path, index) => {
-    setData(prev => { const next = _.cloneDeep(prev); const arr = _.get(next, path) || []; arr.splice(index, 1); _.set(next, path, arr); return next; });
-  }, []);
+    setProjects(prev => prev.map(project => {
+      if (project._projectId !== activeProjectId) return project;
+      const next = _.cloneDeep(project);
+      const arr = _.get(next, path) || [];
+      arr.splice(index, 1);
+      _.set(next, path, arr);
+      next.updatedAt = new Date().toISOString();
+      return next;
+    }));
+  }, [activeProjectId]);
   const toggleValidated = (id) => updateField(`validated.${id}`, !data.validated[id]);
   const validatedCount = Object.values(data.validated || {}).filter(Boolean).length;
   const progressPct = Math.round((validatedCount / STEPS.length) * 100);
 
   const resetAll = () => {
-    if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) setData(defaultData());
+    if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) {
+      setProjects(prev => prev.map(project => project._projectId === activeProjectId ? createProject({ _projectId: activeProjectId }) : project));
+    }
   };
   const exportPdf = () => {
     const previousTitle = document.title;
@@ -1058,6 +1173,21 @@ export default function App() {
     window.print();
     setTimeout(() => { document.title = previousTitle; }, 1000);
   };
+  const openProject = (id) => {
+    setActiveProjectId(id);
+    setActive(0);
+    setView('project');
+  };
+  const createNewProject = () => {
+    const project = createProject({
+      projectName: `Nouveau projet Lean ${projects.length + 1}`,
+      validated: {},
+    });
+    setProjects(prev => [project, ...prev]);
+    openProject(project._projectId);
+  };
+  const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
+  const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -1271,11 +1401,76 @@ export default function App() {
     }
   }
 
+  if (view === 'home') {
+    return (
+      <div className="lean-app home-mode">
+        <style>{CSS}</style>
+        <main className="project-home">
+          <header className="home-hero">
+            <div>
+              <div className="home-kicker"><Sparkles size={16} /> Lean Command Center</div>
+              <h1>Vos projets Lean Finance</h1>
+              <p>Retrouvez vos projets sauvegardés, suivez leur avancement et ouvrez le parcours complet en 9 étapes pour piloter l'amélioration de bout en bout.</p>
+            </div>
+            <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
+          </header>
+
+          <section className="home-widgets">
+            <div className="home-widget">
+              <span>Projets sauvegardés</span>
+              <strong>{projects.length}</strong>
+              <small>Portefeuille total</small>
+            </div>
+            <div className="home-widget warning">
+              <span>Non terminés</span>
+              <strong>{incompleteProjects}</strong>
+              <small>Validation incomplète</small>
+            </div>
+            <label className="home-search">
+              <Search size={18} />
+              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
+            </label>
+          </section>
+
+          <section className="project-grid">
+            {filteredProjects.map(project => {
+              const done = projectProgress(project);
+              const pct = Math.round((done / STEPS.length) * 100);
+              return (
+                <article className="project-card" key={project._projectId}>
+                  <div className="project-card-top">
+                    <div className="project-icon"><FolderKanban size={20} /></div>
+                    <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Terminé' : 'En cours'}</span>
+                  </div>
+                  <h2>{project.projectName || 'Projet Lean'}</h2>
+                  <p>{project.step1?.charte?.probleme || project.step0?.note || 'Projet Lean Finance à compléter.'}</p>
+                  <div className="project-progress">
+                    <div><span style={{ width: `${pct}%` }} /></div>
+                    <strong>{done}/{STEPS.length} étapes validées</strong>
+                  </div>
+                  <button className="open-project" onClick={() => openProject(project._projectId)}>Ouvrir le projet <ChevronRight size={16} /></button>
+                </article>
+              );
+            })}
+            {filteredProjects.length === 0 && (
+              <div className="empty-projects">
+                <BriefcaseBusiness size={28} />
+                <h2>Aucun projet trouvé</h2>
+                <p>Modifiez votre recherche ou créez un nouveau projet Lean.</p>
+              </div>
+            )}
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="lean-app">
       <style>{CSS}</style>
       <aside className="sidebar">
         <div className="sidebar-head">
+          <button className="back-home" onClick={() => setView('home')}><ArrowLeft size={15} /> Projets</button>
           <div className="sidebar-eyebrow">Tour de contrôle</div>
           <h1>Lean Finance</h1>
           <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
@@ -1299,16 +1494,6 @@ export default function App() {
         </div>
       </aside>
       <main className="main">
-        <div className="app-topbar">
-          <div>
-            <div className="topbar-kicker">Workspace Lean Finance</div>
-            <div className="topbar-title">{data.projectName || 'Projet Lean'}</div>
-          </div>
-          <div className="topbar-status">
-            <span>{progressPct}% complété</span>
-            <strong>{STEPS[active].title}</strong>
-          </div>
-        </div>
         <div className="dossier-card">
           <div className="eyebrow">Étape {String(active).padStart(2, '0')} — {STEPS[active].title}</div>
           <h2>{STEPS[active].title}</h2>
