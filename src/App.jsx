@@ -968,6 +968,73 @@ const CSS = `
 .theme-light .validate-btn{ background:linear-gradient(135deg,#4F7CFF,#7C4DFF); color:#fff; }
 .theme-light .validate-btn.is-validated{ background:#22C55E; color:#052E16; }
 
+/* Serious enterprise direction */
+.lean-app{
+  --blue:#1D4ED8; --violet:#334155; --teal:#0F766E; --amber:#B45309; --red:#B42318;
+  background:#0B1220;
+}
+.lean-app::before{ display:none; }
+.project-home{ width:min(1220px,calc(100vw - 56px)); padding-top:34px; }
+.home-hero,.home-widget,.home-search,.project-card,.empty-projects,.dossier-card{
+  border-radius:12px; backdrop-filter:none;
+}
+.home-hero{
+  align-items:center; padding:28px 30px; background:#111827; border-color:#263244;
+  box-shadow:0 18px 48px rgba(0,0,0,.24);
+}
+.home-kicker{ color:#93C5FD; font-size:12px; letter-spacing:0; }
+.home-hero h1{ font-size:clamp(32px,4vw,52px); line-height:1.04; letter-spacing:0; margin:12px 0 8px; }
+.home-hero p{ color:#CBD5E1; font-size:15px; line-height:1.6; }
+.home-primary,.open-project,.validate-btn{ background:#1D4ED8; box-shadow:none; }
+.home-primary:hover,.open-project:hover,.validate-btn:hover{ background:#1E40AF; }
+.home-widget,.home-search,.project-card,.empty-projects{
+  background:#111827; border-color:#263244; box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+.home-widget{ min-height:112px; }
+.home-widget strong{ font-size:32px; }
+.project-icon{ border-radius:10px; background:#1D4ED8; box-shadow:none; }
+.status-badge{ border-radius:6px; }
+.project-card{ min-height:260px; }
+.project-card h2{ font-size:19px; }
+.project-progress div{ height:7px; }
+.project-progress span,.progress-fill{ background:#1D4ED8; }
+.theme-toggle{ border-radius:8px; }
+.sidebar{ background:#0B1220; border-right-color:#1F2937; box-shadow:none; }
+.step-item{ border-radius:8px; }
+.step-item.is-active{ background:#172033; border-color:#334155; box-shadow:none; }
+.step-num,.step-item.is-active .step-num{ color:#93C5FD; }
+.back-home,.ghost-btn,.btn-add,.nav-btn{ border-radius:8px; }
+.dossier-card{ background:#111827; border-color:#263244; box-shadow:0 12px 34px rgba(0,0,0,.18); }
+.objectif,.livrable{ border-left:3px solid #1D4ED8; padding-left:12px; }
+.objectif em,.livrable em{ color:#93C5FD; }
+.ledger-table-wrap,.flow-node,.pain-callout,.fivewhy,.vsm-summary div,.kpi-card{ border-radius:10px; }
+.lean-app input,.lean-app select,.lean-app textarea{ border-radius:8px; }
+
+.theme-light{
+  --blue:#1D4ED8; --violet:#334155; --teal:#0F766E; --amber:#B45309; --red:#B42318;
+  background:#F3F6FA;
+}
+.theme-light .project-home{ width:min(1220px,calc(100vw - 56px)); }
+.theme-light .home-hero,.theme-light .home-widget,.theme-light .home-search,.theme-light .project-card,.theme-light .empty-projects,.theme-light .dossier-card{
+  background:#FFFFFF; border-color:#D9E0EA; box-shadow:0 12px 30px rgba(15,23,42,.08); backdrop-filter:none;
+}
+.theme-light .home-hero{ background:#FFFFFF; }
+.theme-light .home-kicker{ color:#1D4ED8; }
+.theme-light .home-hero h1{ color:#111827; }
+.theme-light .home-hero p,.theme-light .project-card p{ color:#475467; }
+.theme-light .home-primary,.theme-light .open-project,.theme-light .validate-btn{ background:#1D4ED8; color:#fff; box-shadow:none; }
+.theme-light .home-primary:hover,.theme-light .open-project:hover,.theme-light .validate-btn:hover{ background:#1E40AF; }
+.theme-light .project-icon{ background:#1D4ED8; box-shadow:none; }
+.theme-light .project-progress span,.theme-light .progress-fill{ background:#1D4ED8; }
+.theme-light .theme-toggle{ box-shadow:none; }
+.theme-light .sidebar{ background:#FFFFFF; border-right-color:#D9E0EA; box-shadow:none; }
+.theme-light .step-item.is-active{ background:#EAF1FF; border-color:#BFD3FF; }
+.theme-light .step-num,.theme-light .step-item.is-active .step-num{ color:#1D4ED8; }
+.theme-light .objectif,.theme-light .livrable{ border-left:3px solid #1D4ED8; padding-left:12px; }
+.theme-light .objectif em,.theme-light .livrable em{ color:#1D4ED8; }
+.theme-light .status-badge{ background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
+.theme-light .status-badge.done{ background:#ECFDF3; border-color:#BBF7D0; color:#166534; }
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -1464,9 +1531,9 @@ export default function App() {
           </button>
           <header className="home-hero">
             <div>
-              <div className="home-kicker"><Sparkles size={16} /> Lean Command Center</div>
-              <h1>Vos projets Lean Finance</h1>
-              <p>Retrouvez vos projets sauvegardés, suivez leur avancement et ouvrez le parcours complet en 9 étapes pour piloter l'amélioration de bout en bout.</p>
+              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets Lean</div>
+              <h1>Pilotage des projets Lean Finance</h1>
+              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche Lean de bout en bout.</p>
             </div>
             <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
           </header>
