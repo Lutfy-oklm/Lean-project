@@ -2788,6 +2788,197 @@ const CSS = `
   font-size:11.5px;
 }
 
+/* OptiFlow 360 home redesign */
+.theme-light.home-mode{
+  background:#FFFFFF;
+}
+.theme-light .project-home{
+  width:min(1240px,calc(100vw - 48px));
+  padding:30px 0 52px;
+}
+.theme-light .home-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:28px;
+  padding:28px 30px 24px;
+  border:1px solid #D8DEE8;
+  border-top:4px solid #11233F;
+  background:#FFFFFF;
+}
+.theme-light .home-kicker{
+  color:#2E6F64;
+  font-size:11px;
+}
+.theme-light .home-hero h1{
+  max-width:820px;
+  font-size:clamp(34px,4.6vw,58px);
+  line-height:1;
+  margin:10px 0 10px;
+}
+.theme-light .home-hero p{
+  max-width:860px;
+  color:#40516A;
+  font-size:14px;
+  line-height:1.55;
+}
+.theme-light .home-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.theme-light .home-tags span,
+.theme-light .sector-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  border:1px solid #CBD4E1;
+  background:#F6F8FB;
+  color:#40516A;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  padding:3px 8px;
+}
+.theme-light .home-primary{
+  min-height:40px;
+  background:#11233F;
+  color:#FFFFFF;
+  padding:9px 14px;
+  white-space:nowrap;
+}
+.theme-light .home-primary:hover{
+  background:#173A63;
+}
+.theme-light .home-widgets{
+  grid-template-columns:repeat(4,minmax(150px,1fr)) minmax(260px,1.35fr);
+  gap:10px;
+  margin:14px 0 22px;
+}
+.theme-light .home-widget,
+.theme-light .home-search{
+  min-height:92px;
+  border:1px solid #D8DEE8;
+  border-top:2px solid #73829A;
+  background:#FFFFFF;
+  padding:14px;
+}
+.theme-light .home-widget.warning{
+  border-top-color:#B36B1E;
+}
+.theme-light .home-widget.success{
+  border-top-color:#2E6F64;
+}
+.theme-light .home-widget span{
+  color:#53647B;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .home-widget strong{
+  margin-top:8px;
+  color:#11233F;
+  font-size:28px;
+}
+.theme-light .home-widget.warning strong{
+  color:#B36B1E;
+}
+.theme-light .home-widget.success strong{
+  color:#2E6F64;
+}
+.theme-light .home-widget small{
+  color:#66758A;
+  font-size:11px;
+}
+.theme-light .home-search{
+  align-self:stretch;
+  border-left:1px solid #D8DEE8;
+  border-top-color:#11233F;
+}
+.theme-light .home-search input{
+  min-height:34px;
+}
+.theme-light .home-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin:20px 0 10px;
+  padding-bottom:10px;
+  border-bottom:2px solid #11233F;
+}
+.theme-light .home-section-head span{
+  display:block;
+  color:#53647B;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .home-section-head h2{
+  margin:5px 0 0;
+  color:#11233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+}
+.theme-light .home-section-head p{
+  margin:0;
+  color:#53647B;
+  font-size:12px;
+}
+.theme-light .project-grid{
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:12px;
+}
+.theme-light .project-card{
+  min-height:236px;
+  display:flex;
+  flex-direction:column;
+  border:1px solid #D8DEE8;
+  border-top:3px solid #11233F;
+  background:#FFFFFF;
+}
+.theme-light .project-card-top{
+  align-items:flex-start;
+}
+.theme-light .project-badges{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+}
+.theme-light .project-card h2{
+  margin-top:14px;
+  font-size:21px;
+}
+.theme-light .project-card p{
+  flex:1;
+  display:-webkit-box;
+  -webkit-line-clamp:4;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.theme-light .open-project{
+  width:100%;
+  margin-top:14px;
+  min-height:34px;
+  background:#11233F;
+  color:#FFFFFF;
+}
+.theme-light .open-project:hover{
+  background:#173A63;
+}
+
+@media (max-width: 980px){
+  .theme-light .home-hero{ grid-template-columns:1fr; }
+  .theme-light .home-widgets{ grid-template-columns:repeat(2,1fr); }
+  .theme-light .home-search{ grid-column:1/-1; }
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -2796,7 +2987,7 @@ const CSS = `
   .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; background:#fff!important; color:#10233F; }
   .sidebar, .main{ display:none; }
   .print-only{ display:block; font-family:var(--font-body); color:var(--ink); }
-  .print-only::before{ content:"Tour de contrôle Lean Finance"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
+  .print-only::before{ content:"OptiFlow 360"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
   .print-only h1{ font-family:var(--font-display); font-size:28px; line-height:1.12; margin:0 0 5px; color:#10233F; }
   .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:18px; border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#fff; }
@@ -2869,8 +3060,8 @@ function PrintSummary({ data }) {
 
   return (
     <div className="print-only">
-      <h1>{data.projectName || 'Projet Lean'}</h1>
-      <p className="print-subtitle">Tour de contrôle Lean — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
+      <h1>{data.projectName || "Projet d'amelioration"}</h1>
+      <p className="print-subtitle">OptiFlow 360 — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
 
       <section className="print-step">
         <h2>Étape 00 — Préparer</h2>
@@ -3046,7 +3237,7 @@ export default function App() {
   };
   const createNewProject = () => {
     const project = createProject({
-      projectName: `Nouveau projet Lean ${projects.length + 1}`,
+      projectName: `Nouveau projet d'amelioration ${projects.length + 1}`,
       validated: {},
     });
     setProjects(prev => [project, ...prev]);
@@ -3054,7 +3245,15 @@ export default function App() {
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
+  const completedProjects = projects.filter(project => projectProgress(project) === STEPS.length).length;
+  const averageProgress = projects.length ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100) : 0;
   const appClass = 'lean-app theme-light';
+  const projectSector = (project) => {
+    const text = `${project.projectName || ''} ${project.step1?.charte?.perimetreIn || ''} ${project.step0?.note || ''}`.toLowerCase();
+    if (text.includes('industrie') || text.includes('usine') || text.includes('production') || text.includes('assemblage') || text.includes('maintenance')) return 'Industrie';
+    if (text.includes('credit') || text.includes('banc') || text.includes('paiement') || text.includes('reclamation')) return 'Banque & services';
+    return 'Operations';
+  };
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -3275,42 +3474,70 @@ export default function App() {
         <main className="project-home">
           <header className="home-hero">
             <div>
-              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets Lean</div>
-              <h1>Pilotage des projets Lean Finance</h1>
-              <p>Centralisez vos projets sauvegardés, contrôlez leur niveau de validation et accédez au parcours complet en 9 étapes pour conduire une démarche Lean de bout en bout.</p>
+              <div className="home-kicker"><Sparkles size={16} /> OptiFlow 360</div>
+              <h1>Plateforme d'amelioration des processus</h1>
+              <p>Structurez, pilotez et documentez vos chantiers d'amelioration continue dans tous les secteurs : industrie, banque, services, operations, supply chain et fonctions support.</p>
+              <div className="home-tags">
+                <span>Lean</span>
+                <span>Process mining</span>
+                <span>Excellence operationnelle</span>
+                <span>Multi-secteurs</span>
+              </div>
             </div>
             <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
           </header>
 
           <section className="home-widgets">
             <div className="home-widget">
-              <span>Projets sauvegardés</span>
+              <span>Portefeuille</span>
               <strong>{projects.length}</strong>
-              <small>Portefeuille total</small>
+              <small>Projets d'amelioration</small>
             </div>
             <div className="home-widget warning">
-              <span>Non terminés</span>
+              <span>A finaliser</span>
               <strong>{incompleteProjects}</strong>
-              <small>Validation incomplète</small>
+              <small>Dossiers non valides a 100%</small>
+            </div>
+            <div className="home-widget success">
+              <span>Termines</span>
+              <strong>{completedProjects}</strong>
+              <small>Dossiers complets</small>
+            </div>
+            <div className="home-widget">
+              <span>Avancement moyen</span>
+              <strong>{averageProgress}%</strong>
+              <small>Sur les 9 etapes</small>
             </div>
             <label className="home-search">
               <Search size={18} />
-              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
+              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet, un secteur ou un processus..." />
             </label>
+          </section>
+
+          <section className="home-section-head">
+            <div>
+              <span>Bibliotheque projets</span>
+              <h2>Choisir un chantier et entrer dans les 9 etapes</h2>
+            </div>
+            <p>{filteredProjects.length} projet{filteredProjects.length > 1 ? 's' : ''} affiche{filteredProjects.length > 1 ? 's' : ''}</p>
           </section>
 
           <section className="project-grid">
             {filteredProjects.map(project => {
               const done = projectProgress(project);
               const pct = Math.round((done / STEPS.length) * 100);
+              const sector = projectSector(project);
               return (
                 <article className="project-card" key={project._projectId}>
                   <div className="project-card-top">
                     <div className="project-icon"><FolderKanban size={20} /></div>
-                    <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Terminé' : 'En cours'}</span>
+                    <div className="project-badges">
+                      <span className="sector-badge">{sector}</span>
+                      <span className={pct === 100 ? 'status-badge done' : 'status-badge'}>{pct === 100 ? 'Termine' : 'En cours'}</span>
+                    </div>
                   </div>
-                  <h2>{project.projectName || 'Projet Lean'}</h2>
-                  <p>{project.step1?.charte?.probleme || project.step0?.note || 'Projet Lean Finance à compléter.'}</p>
+                  <h2>{project.projectName || "Projet d'amelioration"}</h2>
+                  <p>{project.step1?.charte?.probleme || project.step0?.note || "Projet d'amelioration de processus a completer."}</p>
                   <div className="project-progress">
                     <div><span style={{ width: `${pct}%` }} /></div>
                     <strong>{done}/{STEPS.length} étapes validées</strong>
@@ -3323,7 +3550,7 @@ export default function App() {
               <div className="empty-projects">
                 <BriefcaseBusiness size={28} />
                 <h2>Aucun projet trouvé</h2>
-                <p>Modifiez votre recherche ou créez un nouveau projet Lean.</p>
+                <p>Modifiez votre recherche ou creez un nouveau projet d'amelioration.</p>
               </div>
             )}
           </section>
@@ -3344,8 +3571,8 @@ export default function App() {
             </button>
           </div>
           <div className="sidebar-expanded-only">
-            <div className="sidebar-eyebrow">Tour de contrôle</div>
-            <h1>Lean Finance</h1>
+            <div className="sidebar-eyebrow">OptiFlow 360</div>
+            <h1>Process Studio</h1>
             <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
             <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
             <div className="progress-text">{validatedCount}/9 étapes validées</div>
