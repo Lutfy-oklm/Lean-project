@@ -27,14 +27,6 @@ const STEPS = [
 
 const PROCESS_PROJECT_TEMPLATES = [
   {
-    id: 'preset-credit-immobilier',
-    sector: 'Banque',
-    title: "Reduction du delai d'octroi de credit immobilier",
-    problem: 'Dossiers incomplets, allers-retours agence / analyste et delais de decision superieurs a 20 jours.',
-    objective: 'Ramener la decision a 10 jours ouvres et fiabiliser la completude des dossiers.',
-    deliverable: 'Checklist de recevabilite, SIPOC, VSM, backlog actions.'
-  },
-  {
     id: 'preset-reclamations-clients',
     sector: 'Banque',
     title: 'Traitement des reclamations clients',
@@ -43,28 +35,12 @@ const PROCESS_PROJECT_TEMPLATES = [
     deliverable: 'Typologie cible, RACI, modeles de reponse, KPI de suivi.'
   },
   {
-    id: 'preset-procure-to-pay',
-    sector: 'Industrie',
-    title: 'Optimisation Procure-to-Pay fournisseurs',
-    problem: 'Factures bloquees, ecarts de reception et relances fournisseurs importantes.',
-    objective: 'Reduire les factures bloquees sous 12% et accelerer le bon a payer.',
-    deliverable: 'Cartographie P2P, causes racines, AMDEC, plan de controle.'
-  },
-  {
     id: 'preset-changement-serie',
     sector: 'Industrie',
     title: 'Reduction du temps de changement de serie',
     problem: 'Temps de changement trop long, preparation outillage tardive et redemarrages instables.',
     objective: 'Passer de 96 a 55 minutes par changement de serie avec une logique SMED.',
     deliverable: 'Observation terrain, VSM, matrice impact / effort, standard cible.'
-  },
-  {
-    id: 'preset-incidents-paiement',
-    sector: 'Services / Operations',
-    title: 'Gestion des incidents de paiement entreprises',
-    problem: 'Tickets ouverts sans cause qualifiee, relances clients sensibles et manque de priorisation.',
-    objective: 'Resoudre 80% des incidents sous 24h et fiabiliser la communication client.',
-    deliverable: 'Flux cible, rituels de pilotage, KPI, REX.'
   },
 ];
 
@@ -463,7 +439,9 @@ function presetProjects() {
 }
 
 function mergePresetProjects(projects) {
-  const base = Array.isArray(projects) && projects.length ? projects : [createProject()];
+  const removedPresetIds = new Set(['preset-credit-immobilier', 'preset-procure-to-pay', 'preset-incidents-paiement']);
+  const baseProjects = Array.isArray(projects) ? projects.filter(project => !removedPresetIds.has(project._projectId)) : [];
+  const base = baseProjects.length ? baseProjects : [createProject()];
   const existingIds = new Set(base.map(project => project._projectId));
   const missing = presetProjects().filter(project => !existingIds.has(project._projectId));
   return [...base, ...missing];
