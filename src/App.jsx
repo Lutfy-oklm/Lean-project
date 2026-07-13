@@ -492,7 +492,7 @@ function ParetoChart({ rows }) {
   });
   if (chartData.length === 0) return <div className="empty-hint">Ajoutez des causes et leurs occurrences pour générer le diagramme de Pareto.</div>;
   return (
-    <div style={{ width: '100%', height: 320 }}>
+    <div className="chart-wrap" style={{ width: '100%', height: 320 }}>
       <ResponsiveContainer>
         <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 70 }}>
           <CartesianGrid stroke="#D8D2C4" strokeDasharray="3 3" />
@@ -514,7 +514,7 @@ function ImpactEffortChart({ rows }) {
   if (data.length === 0) return <div className="empty-hint">Ajoutez des actions avec un impact et un effort pour visualiser la matrice.</div>;
   const quadColor = (d) => (d.impact >= 5 && d.effort < 5) ? '#2F6F63' : (d.impact >= 5 && d.effort >= 5) ? '#10233F' : (d.impact < 5 && d.effort < 5) ? '#9C9576' : '#C97D2E';
   return (
-    <div style={{ width: '100%', height: 340, position: 'relative' }}>
+    <div className="scatter-wrap" style={{ width: '100%', height: 340, position: 'relative' }}>
       <ResponsiveContainer>
         <ScatterChart margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
           <CartesianGrid stroke="#D8D2C4" />
@@ -777,6 +777,79 @@ const CSS = `
 .validate-btn:hover,.nav-btn:not(:disabled):hover{ transform:translateY(-1px); }
 .save-indicator{ text-align:center; }
 
+/* Design refresh v2 */
+body{ background:#E9EEE8; }
+.lean-app{
+  --ink:#13233A; --ink-soft:#526174; --paper:#F4F6F1; --paper-2:#FFFFFF; --line:#D6DDD5;
+  --teal:#237765; --teal-2:#DCEFE8; --amber:#D9993B; --coral:#C95C4A; --blue:#3D6C8F;
+  width:100vw; min-height:100vh; margin:0; border:0; border-radius:0;
+  background:linear-gradient(135deg,#EEF3EE 0%,#F8F7F0 52%,#EAF0F3 100%);
+  box-shadow:none;
+}
+.lean-app::before{ content:""; position:fixed; inset:0; pointer-events:none; background:linear-gradient(90deg,rgba(19,35,58,.05),transparent 22%,transparent 78%,rgba(35,119,101,.06)); }
+.sidebar{
+  position:relative; width:316px; min-width:316px;
+  background:linear-gradient(180deg,#12243C 0%,#183653 54%,#20473F 100%);
+  box-shadow:14px 0 44px rgba(19,35,58,.18); z-index:1;
+}
+.sidebar-head{ padding:30px 24px 22px; border-bottom:1px solid rgba(255,255,255,.1); }
+.sidebar-head h1{ font-family:var(--font-body); font-size:27px; font-weight:850; letter-spacing:0; }
+.sidebar-eyebrow{ color:#A7BCD0; font-weight:800; }
+.project-name{ min-height:46px; border-radius:8px; background:rgba(255,255,255,.09)!important; border-color:rgba(255,255,255,.18)!important; box-shadow:0 10px 24px rgba(0,0,0,.12); }
+.progress-text{ color:#B7C7D6; font-weight:750; }
+.steps-nav{ padding:12px 10px; }
+.step-item{ min-height:48px; gap:12px; margin:4px 0; width:100%; border-radius:8px; }
+.step-item:hover{ background:rgba(255,255,255,.08); }
+.step-item.is-active{ background:#F8F7F0; color:#13233A; box-shadow:0 14px 28px rgba(0,0,0,.18); }
+.step-item.is-active .step-num{ color:#237765; }
+.step-num{ font-weight:850; }
+.step-title{ font-size:13px; }
+.step-stamp{ display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:rgba(217,153,59,.15); color:#F2BB63; }
+.sidebar-foot{ background:rgba(9,22,39,.22); }
+.ghost-btn{ border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); }
+.ghost-btn:hover{ border-color:#D9993B; }
+.pdf-hint{ color:#B7C7D6; }
+.main{ position:relative; z-index:1; padding:28px clamp(22px,4vw,58px) 58px; }
+.workbench-top{ max-width:1180px; margin:0 auto 22px; display:grid; grid-template-columns:minmax(0,1.45fr) minmax(320px,.85fr); gap:18px; align-items:stretch; }
+.workbench-title,.metric-card,.dossier-card{
+  border:1px solid rgba(19,35,58,.1); background:rgba(255,255,255,.82);
+  box-shadow:0 18px 42px rgba(19,35,58,.09); backdrop-filter:blur(12px);
+}
+.workbench-title{ border-radius:8px; padding:22px 24px; }
+.phase-pill{ display:inline-flex; align-items:center; min-height:28px; border-radius:999px; padding:0 12px; background:#DCEFE8; color:#1D6657; font-size:12px; font-weight:850; }
+.workbench-title h2{ margin:12px 0 8px; color:#13233A; font-size:clamp(24px,3vw,38px); line-height:1.05; letter-spacing:0; }
+.workbench-title p{ max-width:780px; margin:0; color:#526174; font-size:14.5px; line-height:1.55; }
+.workbench-metrics{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.metric-card{ border-radius:8px; padding:18px 16px; display:flex; flex-direction:column; justify-content:space-between; min-height:112px; }
+.metric-card span{ color:#526174; font-size:12px; font-weight:800; text-transform:uppercase; }
+.metric-card strong{ color:#13233A; font-size:clamp(24px,3vw,34px); line-height:1; }
+.dossier-card{ max-width:1180px; border-radius:8px; padding:28px clamp(18px,3vw,34px) 32px; }
+.dossier-card h2{ font-family:var(--font-body); font-weight:900; font-size:clamp(28px,3.3vw,42px); }
+.eyebrow{ border-bottom-color:#D6DDD5; color:#526174; font-weight:850; }
+.objectif,.livrable{ background:#F6F8F4; border:1px solid #E1E7DF; border-radius:8px; padding:12px 14px; }
+.objectif em,.livrable em{ color:#237765; }
+.sub-title{ border-top:0; margin:26px 0 10px; padding-top:0; display:flex; align-items:center; gap:10px; }
+.sub-title::before{ content:""; width:8px; height:22px; border-radius:8px; background:#237765; }
+.field label{ color:#526174; }
+.lean-app input,.lean-app select,.lean-app textarea{ border-bottom:1px solid #CBD6D0; background:rgba(255,255,255,.58); border-radius:6px 6px 0 0; padding:8px 8px; }
+.lean-app textarea{ border:1px solid #D6DDD5; border-radius:8px; }
+.ledger-table-wrap{ border-color:#D6DDD5; border-radius:8px; overflow:hidden; background:#fff; }
+.ledger-table th{ background:#EAF1EC; color:#34465B; font-size:10.5px; }
+.ledger-table td{ background:#fff; }
+.ledger-table tr:hover td{ background:#F3F8F5; }
+.btn-add{ border-color:#237765; background:#F7FBF8; border-style:solid; }
+.btn-add:hover{ color:#174F44; background:#DCEFE8; }
+.flow-node,.pain-callout,.fivewhy,.vsm-summary div,.kpi-card{ border-color:#D6DDD5; background:#fff; }
+.flow-node{ min-height:72px; display:flex; align-items:center; justify-content:center; }
+.is-pain{ border-color:#D9993B!important; background:#FFF8EC; }
+.chart-wrap,.scatter-wrap{ border:1px solid #D6DDD5; border-radius:8px; background:#fff; padding:10px; }
+.kpi-card{ border-radius:8px; }
+.step-actions{ position:sticky; bottom:0; background:linear-gradient(180deg,rgba(255,255,255,.82),#fff 44%); margin-left:-34px; margin-right:-34px; padding:18px 34px 0; }
+.nav-btn{ background:#fff; border-color:#CCD6D0; }
+.nav-btn:not(:disabled):hover{ border-color:#237765; color:#174F44; box-shadow:0 10px 24px rgba(19,35,58,.08); }
+.validate-btn{ background:#237765; box-shadow:0 14px 28px rgba(35,119,101,.22); }
+.validate-btn.is-validated{ background:#13233A; }
+
 @media print {
   @page{ margin:14mm; }
   body *{ visibility:hidden; }
@@ -799,13 +872,27 @@ const CSS = `
 @media (max-width: 820px){
   .lean-app{ flex-direction:column; width:100vw; min-height:100vh; margin:0; max-height:none; border-radius:0; border:0; }
   .sidebar{ width:100%; min-width:0; }
+  .sidebar-head{ padding:22px 18px 16px; }
   .steps-nav{ display:flex; overflow-x:auto; }
   .step-item{ flex-direction:column; width:auto; min-width:96px; margin:4px; border-left:none; border-bottom:3px solid transparent; }
   .step-item.is-active{ border-bottom-color:var(--teal); }
+  .workbench-top{ grid-template-columns:1fr; }
+  .workbench-metrics{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .metric-card{ min-height:86px; padding:12px; }
+  .metric-card strong{ font-size:22px; }
   .charte-grid{ grid-template-columns:1fr; }
   .ishikawa-grid{ grid-template-columns:repeat(2,1fr); }
   .kpi-grid{ grid-template-columns:1fr; }
   .main{ padding:20px; }
+  .dossier-card{ padding:22px 16px 26px; }
+  .step-actions{ position:static; margin-left:0; margin-right:0; padding:18px 0 0; }
+}
+
+@media (max-width: 560px){
+  .workbench-metrics{ grid-template-columns:1fr; }
+  .objectif em,.livrable em{ display:block; margin-bottom:4px; }
+  .step-actions{ flex-direction:column; align-items:stretch; }
+  .nav-btn,.validate-btn{ justify-content:center; width:100%; }
 }
 `;
 
@@ -970,6 +1057,9 @@ export default function App() {
   }, []);
   const toggleValidated = (id) => updateField(`validated.${id}`, !data.validated[id]);
   const validatedCount = Object.values(data.validated || {}).filter(Boolean).length;
+  const progressPct = Math.round((validatedCount / STEPS.length) * 100);
+  const currentStep = STEPS[active];
+  const currentStatus = data.validated[active] ? 'Validée' : 'En cours';
 
   const resetAll = () => {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) setData(defaultData());
@@ -1223,6 +1313,27 @@ export default function App() {
         </div>
       </aside>
       <main className="main">
+        <div className="workbench-top">
+          <div className="workbench-title">
+            <span className="phase-pill">Étape {String(active).padStart(2, '0')}</span>
+            <h2>{data.projectName || 'Projet Lean Finance'}</h2>
+            <p>{currentStep.objectif}</p>
+          </div>
+          <div className="workbench-metrics" aria-label="Synthèse du projet">
+            <div className="metric-card">
+              <span>Progression</span>
+              <strong>{progressPct}%</strong>
+            </div>
+            <div className="metric-card">
+              <span>Étapes validées</span>
+              <strong>{validatedCount}/{STEPS.length}</strong>
+            </div>
+            <div className="metric-card">
+              <span>Statut</span>
+              <strong>{currentStatus}</strong>
+            </div>
+          </div>
+        </div>
         <div className="dossier-card">
           <div className="eyebrow">Étape {String(active).padStart(2, '0')} — {STEPS[active].title}</div>
           <h2>{STEPS[active].title}</h2>
