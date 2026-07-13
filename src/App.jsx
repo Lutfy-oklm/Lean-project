@@ -12,6 +12,7 @@ import {
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
+const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
@@ -308,6 +309,197 @@ function blankData() {
       rex: '',
     },
   };
+}
+
+function bankComplaintData() {
+  return {
+    projectName: 'Optimisation du traitement des réclamations clients',
+    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
+    step0: {
+      note: "Le processus de traitement des réclamations clients présente des délais élevés, des relances fréquentes et une visibilité limitée pour les agences comme pour les clients. Le projet couvre les réclamations banque de détail reçues par agence, centre de relation client et canal digital, depuis l'enregistrement jusqu'à la réponse finale.",
+      planning: [
+        { _id: uid(), phase: 'Cadrage', debut: '05/01/2027', fin: '16/01/2027', responsable: 'Chef de projet amélioration' },
+        { _id: uid(), phase: 'Observation terrain', debut: '19/01/2027', fin: '30/01/2027', responsable: 'Équipe processus' },
+        { _id: uid(), phase: 'Diagnostic et cartographie', debut: '02/02/2027', fin: '20/02/2027', responsable: 'Process owner' },
+        { _id: uid(), phase: 'Conception cible', debut: '23/02/2027', fin: '13/03/2027', responsable: 'Métier + IT' },
+        { _id: uid(), phase: 'Pilote opérationnel', debut: '16/03/2027', fin: '10/04/2027', responsable: 'Responsable relation client' },
+        { _id: uid(), phase: 'Déploiement et contrôle', debut: '13/04/2027', fin: 'Continu', responsable: 'Direction expérience client' },
+      ],
+      parties: [
+        { _id: uid(), nom: 'Directeur Expérience Client', role: 'Sponsor', service: 'Relation Client', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Responsable Réclamations', role: 'Pilote métier', service: 'Service Réclamations', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Responsable Réseau Agences', role: 'Contributeur', service: 'Réseau', interet: 'Favorable', influence: 'Moyen' },
+        { _id: uid(), nom: 'Conformité', role: 'Appui contrôle', service: 'Conformité', interet: 'Neutre', influence: 'Fort' },
+        { _id: uid(), nom: 'IT CRM', role: 'Contributeur', service: 'Systèmes Client', interet: 'Neutre', influence: 'Moyen' },
+      ],
+    },
+    step1: {
+      charte: {
+        titre: 'Optimisation du traitement des réclamations clients',
+        sponsor: 'Directeur Expérience Client',
+        probleme: 'Le délai moyen de réponse aux réclamations est de 18 jours ouvrés, avec 32% de dossiers relancés au moins une fois et une forte hétérogénéité de qualification entre les canaux.',
+        objectifs: 'Réduire le délai moyen à 8 jours ouvrés, atteindre 90% de dossiers qualifiés complets dès l’entrée, réduire les relances de 50% et fiabiliser les réponses réglementaires.',
+        perimetreIn: 'Réclamations banque de détail : frais, cartes, virements, accès digital, qualité de service.',
+        perimetreOut: 'Contentieux juridiques, médiation externe, fraude avérée, réclamations entreprises.',
+        contraintes: 'Respect des délais réglementaires, disponibilité des experts métiers, dépendance au paramétrage CRM.',
+        risques: 'Sous-qualification des demandes, réponses non homogènes, surcharge temporaire du service réclamations pendant le pilote.',
+        budget: '62 000 €',
+        dateDebut: '05/01/2027',
+        dateFin: '30/04/2027',
+        gains: 'Baisse des relances, réduction du coût de traitement, amélioration du NPS post-réclamation et meilleure maîtrise du risque de non-réponse.',
+      },
+      sipoc: [
+        { _id: uid(), supplier: 'Client', input: 'Réclamation agence, téléphone ou digital', process: 'Traiter une réclamation client', output: 'Réponse argumentée et tracée', customer: 'Client' },
+        { _id: uid(), supplier: 'Agence / CRC', input: 'Qualification initiale et pièces', process: 'Traiter une réclamation client', output: 'Dossier complet', customer: 'Service Réclamations' },
+        { _id: uid(), supplier: 'Experts métiers', input: 'Analyse opérationnelle', process: 'Traiter une réclamation client', output: 'Avis métier', customer: 'Responsable Réclamations' },
+      ],
+      raci: {
+        roles: ['Agence / CRC', 'Réclamations', 'Expert métier', 'Conformité', 'IT CRM'],
+        activites: [
+          { _id: uid(), nom: 'Enregistrer la réclamation', assign: { 'Agence / CRC': 'R', Réclamations: 'I' } },
+          { _id: uid(), nom: 'Qualifier le motif et la priorité', assign: { 'Agence / CRC': 'R', Réclamations: 'A', Conformité: 'C' } },
+          { _id: uid(), nom: 'Analyser le dossier', assign: { Réclamations: 'R', 'Expert métier': 'C' } },
+          { _id: uid(), nom: 'Valider la réponse sensible', assign: { Réclamations: 'R', Conformité: 'A' } },
+          { _id: uid(), nom: 'Mettre à jour le CRM', assign: { Réclamations: 'R', 'IT CRM': 'C' } },
+        ],
+      },
+    },
+    step2: {
+      questions: [
+        { _id: uid(), question: 'Comment une réclamation est-elle enregistrée selon le canal d’entrée ?' },
+        { _id: uid(), question: 'Quels motifs sont les plus difficiles à qualifier ?' },
+        { _id: uid(), question: 'À quel moment les pièces manquantes sont-elles détectées ?' },
+        { _id: uid(), question: 'Quels dossiers nécessitent un avis conformité ou expert métier ?' },
+        { _id: uid(), question: 'Comment le client est-il informé de l’avancement ?' },
+      ],
+      journal: [
+        { _id: uid(), date: '20/01/2027', lieu: 'Centre relation client', observateur: 'Équipe processus', type: 'Irritant', constat: 'Les motifs CRM sont trop nombreux et interprétés différemment selon les conseillers.' },
+        { _id: uid(), date: '22/01/2027', lieu: 'Service Réclamations', observateur: 'Équipe processus', type: 'Gaspillage', constat: '28% des dossiers observés nécessitent une relance interne pour pièce ou information manquante.' },
+        { _id: uid(), date: '24/01/2027', lieu: 'Agence pilote', observateur: 'Process owner', type: 'Risque', constat: 'Les réponses sensibles ne sont pas toujours relues par la conformité avant envoi.' },
+      ],
+    },
+    step3: {
+      referentiel: [
+        { _id: uid(), processus: 'Traitement des réclamations clients', macro: 'Expérience client', niveau: 'N1', proprietaire: 'Responsable Réclamations', systeme: 'CRM' },
+        { _id: uid(), processus: 'Qualification initiale', macro: 'Expérience client', niveau: 'N2', proprietaire: 'Réseau / CRC', systeme: 'CRM' },
+        { _id: uid(), processus: 'Validation réponse sensible', macro: 'Conformité', niveau: 'N2', proprietaire: 'Conformité', systeme: 'GED / CRM' },
+      ],
+      flow: [
+        { _id: uid(), label: 'Réclamation reçue', type: 'Événement', acteur: 'Client', systeme: '', painpoint: false },
+        { _id: uid(), label: 'Saisie dans le CRM', type: 'Tâche', acteur: 'Agence / CRC', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Dossier complet ?', type: 'Décision', acteur: 'Réclamations', systeme: 'CRM', painpoint: true },
+        { _id: uid(), label: 'Demande de compléments', type: 'Tâche', acteur: 'Réclamations', systeme: 'Email / CRM', painpoint: true },
+        { _id: uid(), label: 'Analyse du motif', type: 'Tâche', acteur: 'Réclamations', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Avis expert requis ?', type: 'Décision', acteur: 'Réclamations', systeme: '', painpoint: true },
+        { _id: uid(), label: 'Validation conformité', type: 'Contrôle', acteur: 'Conformité', systeme: 'GED', painpoint: false },
+        { _id: uid(), label: 'Réponse envoyée', type: 'Tâche', acteur: 'Réclamations', systeme: 'CRM', painpoint: false },
+      ],
+      vsm: [
+        { _id: uid(), etape: 'Saisie initiale', tempsTraitement: 12, tempsAttente: 0 },
+        { _id: uid(), etape: 'Contrôle complétude', tempsTraitement: 18, tempsAttente: 1440 },
+        { _id: uid(), etape: 'Analyse réclamation', tempsTraitement: 45, tempsAttente: 4320 },
+        { _id: uid(), etape: 'Avis expert', tempsTraitement: 30, tempsAttente: 2880 },
+        { _id: uid(), etape: 'Validation réponse', tempsTraitement: 20, tempsAttente: 1440 },
+      ],
+    },
+    step4: {
+      pareto: [
+        { _id: uid(), cause: 'Dossier incomplet à l’entrée', occurrences: 48 },
+        { _id: uid(), cause: 'Mauvaise qualification du motif', occurrences: 36 },
+        { _id: uid(), cause: 'Attente avis expert métier', occurrences: 24 },
+        { _id: uid(), cause: 'Validation conformité tardive', occurrences: 14 },
+      ],
+      ishikawa: {
+        "Main d'œuvre": ['Niveaux de formation hétérogènes', 'Turnover au centre de relation client'],
+        Méthode: ['Absence de check-list par motif', 'Priorisation non standardisée'],
+        Matériel: ['CRM peu guidant', 'Pièces jointes dispersées'],
+        Milieu: ['Pics de réclamations après incidents digitaux'],
+        Matière: ['Demandes clients imprécises', 'Historique dossier incomplet'],
+      },
+      fivewhy: {
+        probleme: 'Le délai moyen de traitement dépasse 18 jours ouvrés.',
+        why1: 'Parce que de nombreux dossiers restent en attente de compléments ou d’avis métier.',
+        why2: 'Parce que la qualification initiale ne détecte pas toujours les informations nécessaires.',
+        why3: 'Parce que les conseillers ne disposent pas d’une check-list simple par motif.',
+        why4: 'Parce que le CRM ne guide pas suffisamment la saisie selon le type de réclamation.',
+        why5: 'Parce que les règles de complétude et de routage n’ont pas été standardisées.',
+        causeRacine: 'Absence de qualification guidée et de routage automatique dès l’entrée de la réclamation.',
+        action: 'Créer une qualification guidée par motif avec contrôle de complétude et orientation automatique.',
+      },
+      amdec: [
+        { _id: uid(), mode: 'Réponse envoyée sans validation conformité', effet: 'Risque réglementaire et insatisfaction client', cause: 'Critères de sensibilité non visibles', F: 3, G: 9, D: 5, actions: 'Ajouter un tag de sensibilité et une validation bloquante' },
+        { _id: uid(), mode: 'Mauvais motif CRM', effet: 'Mauvais routage et délai allongé', cause: 'Liste motifs trop large', F: 7, G: 5, D: 6, actions: 'Simplifier la nomenclature et guider la saisie' },
+      ],
+    },
+    step5: {
+      actions: [
+        { _id: uid(), action: 'Créer une check-list de complétude par motif', impact: 9, effort: 3, responsable: 'Responsable Réclamations', echeance: '17/02/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Réduire et clarifier la nomenclature des motifs CRM', impact: 8, effort: 4, responsable: 'IT CRM', echeance: '03/03/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Mettre en place un routage automatique vers les experts', impact: 8, effort: 6, responsable: 'IT CRM / Métier', echeance: '20/03/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Créer un tableau de suivi des réclamations proches échéance', impact: 7, effort: 2, responsable: 'Service Réclamations', echeance: '24/02/2027', statut: 'En cours' },
+      ],
+    },
+    step6: {
+      flow: [
+        { _id: uid(), label: 'Réclamation reçue', type: 'Événement', acteur: 'Client', systeme: '', painpoint: false },
+        { _id: uid(), label: 'Saisie guidée par motif', type: 'Tâche', acteur: 'Agence / CRC', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Complétude OK ?', type: 'Décision', acteur: 'CRM', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Routage automatique', type: 'Tâche', acteur: 'CRM', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Analyse priorisée', type: 'Tâche', acteur: 'Réclamations', systeme: 'CRM', painpoint: false },
+        { _id: uid(), label: 'Contrôle conformité si sensible', type: 'Contrôle', acteur: 'Conformité', systeme: 'GED', painpoint: false },
+        { _id: uid(), label: 'Réponse tracée', type: 'Tâche', acteur: 'Réclamations', systeme: 'CRM', painpoint: false },
+      ],
+      businessCase: {
+        gains: 124000,
+        couts: 62000,
+        risques: 'Charge de paramétrage CRM, adoption par les agences et nécessité de valider la nouvelle nomenclature avec conformité.',
+      },
+      roadmap: [
+        { _id: uid(), phase: 'Nomenclature cible', debut: '23/02/2027', fin: '28/02/2027', responsable: 'Réclamations / Conformité', livrable: 'Catalogue motifs' },
+        { _id: uid(), phase: 'Paramétrage CRM', debut: '01/03/2027', fin: '20/03/2027', responsable: 'IT CRM', livrable: 'Parcours guidé' },
+        { _id: uid(), phase: 'Pilote sur 3 régions', debut: '23/03/2027', fin: '10/04/2027', responsable: 'Réseau / Réclamations', livrable: 'Bilan pilote' },
+      ],
+    },
+    step7: {
+      plan: [
+        { _id: uid(), action: 'Former les conseillers à la qualification guidée', responsable: 'Formation Réseau', echeance: '20/03/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Déployer le tableau de suivi des échéances', responsable: 'Service Réclamations', echeance: '24/03/2027', statut: 'À faire' },
+        { _id: uid(), action: 'Animer un point quotidien pendant le pilote', responsable: 'Process owner', echeance: '10/04/2027', statut: 'À faire' },
+      ],
+      changement: [
+        { _id: uid(), item: 'Communiquer le nouveau standard de qualification', done: false },
+        { _id: uid(), item: 'Former les référents agences et CRC', done: false },
+        { _id: uid(), item: 'Mesurer les dossiers incomplets chaque semaine', done: false },
+      ],
+      recette: 'Pilote réalisé sur 420 réclamations : délai moyen ramené à 9,2 jours ouvrés, taux de dossiers complets à l’entrée porté à 86%, baisse visible des relances internes.',
+    },
+    step8: {
+      kpis: [
+        { _id: uid(), nom: 'Délai moyen de réponse', unite: 'jours ouvrés', cible: 8, actuel: 9.2, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Dossiers complets à l’entrée', unite: '%', cible: 90, actuel: 86, frequence: 'Hebdomadaire' },
+        { _id: uid(), nom: 'Taux de relance interne', unite: '%', cible: 15, actuel: 21, frequence: 'Mensuel' },
+        { _id: uid(), nom: 'Réponses dans le délai réglementaire', unite: '%', cible: 98, actuel: 96, frequence: 'Mensuel' },
+      ],
+      rituels: [
+        { _id: uid(), nom: 'Revue hebdomadaire réclamations', frequence: 'Hebdomadaire', participants: 'Réclamations, Réseau, CRC', objet: 'Suivi délais, volumes et blocages' },
+        { _id: uid(), nom: 'Comité expérience client', frequence: 'Mensuel', participants: 'Sponsor, Conformité, IT CRM', objet: 'Arbitrages et gains' },
+      ],
+      controle: [
+        { _id: uid(), point: 'Contrôle complétude entrée', frequence: 'Hebdomadaire', responsable: 'Responsable Réclamations', seuil: 'Alerte si < 85%' },
+        { _id: uid(), point: 'Dossiers proches échéance', frequence: 'Quotidien', responsable: 'Manager Réclamations', seuil: 'Aucun dossier sans action à J-2' },
+      ],
+      rex: 'Le gain principal vient de la qualification guidée et du routage automatique. La prochaine étape consiste à enrichir les modèles de réponse et à automatiser les notifications client sur l’avancement.',
+    },
+  };
+}
+
+function ensureExampleProjects(projects) {
+  const list = Array.isArray(projects) ? projects.filter(project => project && typeof project === 'object') : [];
+  const hasBankExample = list.some(project =>
+    project._templateKey === 'bank-complaints-example' ||
+    project.projectName === 'Optimisation du traitement des réclamations clients'
+  );
+  return hasBankExample ? list : [...list, createBankExample()];
 }
 
 function roiText(bc) {
@@ -2636,10 +2828,10 @@ export default function App() {
         const savedProjects = window.localStorage.getItem('lean-projects-data');
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
-          setProjects(Array.isArray(parsed) ? parsed : [createProject()]);
+          setProjects(ensureExampleProjects(Array.isArray(parsed) ? parsed : [createProject()]));
         } else {
           const legacy = window.localStorage.getItem('lean-projet-data');
-          setProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
+          setProjects(ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]));
         }
       } catch (e) { /* pas de projet sauvegardé */ }
       setLoaded(true);
