@@ -777,6 +777,77 @@ const CSS = `
 .validate-btn:hover,.nav-btn:not(:disabled):hover{ transform:translateY(-1px); }
 .save-indicator{ text-align:center; }
 
+/* SaaS product UI */
+.lean-app{
+  --ink:#172033; --ink-soft:#667085; --paper:#F5F7FA; --paper-2:#FFFFFF; --line:#E4E7EC;
+  --teal:#167A66; --amber:#D68A20; --red:#C24132; --blue:#2563EB;
+  width:100vw; min-height:100vh; margin:0; max-height:none; border:0; border-radius:0;
+  background:var(--paper); box-shadow:none;
+}
+.lean-app button{ border-radius:8px; font-weight:700; }
+.lean-app input,.lean-app select,.lean-app textarea{
+  background:#fff; border:1px solid #D0D5DD; border-radius:8px; padding:9px 10px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
+}
+.lean-app textarea{ border-radius:8px; }
+.lean-app input:focus,.lean-app select:focus,.lean-app textarea:focus{ border-color:#167A66; box-shadow:0 0 0 3px rgba(22,122,102,.12); }
+.sidebar{ width:292px; min-width:292px; background:#101828; color:#EAECF0; border-right:1px solid #1D2939; }
+.sidebar-head{ padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,.08); }
+.sidebar-eyebrow{ color:#98A2B3; font-weight:800; letter-spacing:0; }
+.sidebar-head h1{ font-family:var(--font-body); font-size:24px; font-weight:850; letter-spacing:0; margin:8px 0 14px; }
+.project-name{ min-height:42px; background:#182230!important; border-color:#344054!important; color:#fff!important; border-radius:8px; }
+.progress-line{ height:8px; border-radius:999px; background:#344054; }
+.progress-fill{ background:#20B486; border-radius:999px; }
+.progress-text{ color:#98A2B3; font-weight:700; letter-spacing:0; }
+.steps-nav{ padding:10px; }
+.step-item{ width:100%; margin:2px 0; padding:11px 12px; border-left:0; border-radius:8px; color:#D0D5DD; gap:10px; }
+.step-item:hover{ background:#182230; }
+.step-item.is-active{ background:#FFFFFF; color:#172033; box-shadow:0 8px 20px rgba(0,0,0,.18); }
+.step-num{ color:#98A2B3; font-weight:800; min-width:28px; }
+.step-item.is-active .step-num{ color:#167A66; }
+.step-title{ font-size:13px; font-weight:750; letter-spacing:0; }
+.step-stamp{ margin-left:auto; color:#20B486; transform:none; }
+.sidebar-foot{ padding:16px; gap:10px; border-top:1px solid rgba(255,255,255,.08); background:#0C111D; }
+.ghost-btn{ min-height:40px; justify-content:center; background:#182230; border:1px solid #344054; color:#F2F4F7; }
+.ghost-btn:hover{ background:#1D2939; border-color:#20B486; transform:none; }
+.ghost-btn.danger:hover{ border-color:#F97066; color:#fff; }
+.pdf-hint{ color:#98A2B3; }
+.save-indicator{ color:#98A2B3; letter-spacing:0; }
+.main{ flex:1; padding:24px clamp(18px,3vw,40px) 48px; background:#F5F7FA; }
+.app-topbar{
+  max-width:1180px; margin:0 auto 18px; min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  background:#fff; border:1px solid #E4E7EC; border-radius:8px; padding:14px 18px; box-shadow:0 1px 3px rgba(16,24,40,.08);
+}
+.topbar-kicker{ color:#667085; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0; }
+.topbar-title{ color:#172033; font-size:18px; font-weight:850; margin-top:3px; }
+.topbar-status{ display:flex; align-items:center; gap:10px; color:#667085; font-size:12px; white-space:nowrap; }
+.topbar-status strong{ display:inline-flex; align-items:center; min-height:30px; padding:0 10px; background:#ECFDF3; color:#067647; border:1px solid #ABEFC6; border-radius:999px; }
+.dossier-card{ max-width:1180px; background:#fff; border:1px solid #E4E7EC; border-radius:8px; padding:24px; box-shadow:0 1px 3px rgba(16,24,40,.08); }
+.eyebrow{ color:#667085; border-bottom:1px solid #E4E7EC; font-weight:800; letter-spacing:0; }
+.dossier-card h2{ font-family:var(--font-body); font-size:clamp(26px,3vw,38px); font-weight:850; letter-spacing:0; color:#172033; }
+.objectif,.livrable{ color:#475467; font-size:14px; }
+.objectif em,.livrable em{ color:#167A66; font-weight:850; letter-spacing:0; }
+.sub-title{ font-family:var(--font-body); font-size:14px; font-weight:850; color:#172033; text-transform:none; border-top:1px solid #E4E7EC; padding-top:18px; margin-top:22px; }
+.field label{ color:#667085; font-weight:800; letter-spacing:0; }
+.ledger-table-wrap{ border:1px solid #E4E7EC; border-radius:8px; background:#fff; box-shadow:none; }
+.ledger-table{ font-size:12.5px; }
+.ledger-table th{ background:#F9FAFB; color:#475467; padding:10px 12px; border-bottom:1px solid #E4E7EC; letter-spacing:0; }
+.ledger-table td{ border-bottom:1px solid #EAECF0; padding:8px 12px; }
+.ledger-table tr:hover td{ background:#F9FAFB; }
+.btn-add{ border:1px solid #167A66; color:#167A66; background:#fff; font-weight:800; }
+.btn-add:hover{ background:#ECFDF3; }
+.btn-add-mini{ color:#167A66; font-weight:800; }
+.flow-node,.pain-callout,.fivewhy,.vsm-summary div,.kpi-card{ background:#fff; border:1px solid #E4E7EC; box-shadow:none; border-radius:8px; }
+.flow-node{ border-color:#D0D5DD; }
+.is-pain{ border-color:#D68A20!important; box-shadow:0 0 0 3px rgba(214,138,32,.12); }
+.crit-badge{ border-radius:999px; }
+.kpi-gauge{ background:#EAECF0; }
+.step-actions{ border-top:1px solid #E4E7EC; gap:12px; }
+.nav-btn{ border:1px solid #D0D5DD; background:#fff; color:#344054; min-height:40px; }
+.nav-btn:not(:disabled):hover{ border-color:#98A2B3; background:#F9FAFB; transform:none; }
+.validate-btn{ min-height:40px; background:#167A66; box-shadow:none; }
+.validate-btn.is-validated{ background:#172033; }
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -806,6 +877,8 @@ const CSS = `
   .steps-nav{ display:flex; overflow-x:auto; }
   .step-item{ flex-direction:column; width:auto; min-width:96px; margin:4px; border-left:none; border-bottom:3px solid transparent; }
   .step-item.is-active{ border-bottom-color:var(--teal); }
+  .app-topbar{ flex-direction:column; align-items:flex-start; }
+  .topbar-status{ width:100%; justify-content:space-between; }
   .charte-grid{ grid-template-columns:1fr; }
   .ishikawa-grid{ grid-template-columns:repeat(2,1fr); }
   .kpi-grid{ grid-template-columns:1fr; }
@@ -974,6 +1047,7 @@ export default function App() {
   }, []);
   const toggleValidated = (id) => updateField(`validated.${id}`, !data.validated[id]);
   const validatedCount = Object.values(data.validated || {}).filter(Boolean).length;
+  const progressPct = Math.round((validatedCount / STEPS.length) * 100);
 
   const resetAll = () => {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) setData(defaultData());
@@ -1225,6 +1299,16 @@ export default function App() {
         </div>
       </aside>
       <main className="main">
+        <div className="app-topbar">
+          <div>
+            <div className="topbar-kicker">Workspace Lean Finance</div>
+            <div className="topbar-title">{data.projectName || 'Projet Lean'}</div>
+          </div>
+          <div className="topbar-status">
+            <span>{progressPct}% complété</span>
+            <strong>{STEPS[active].title}</strong>
+          </div>
+        </div>
         <div className="dossier-card">
           <div className="eyebrow">Étape {String(active).padStart(2, '0')} — {STEPS[active].title}</div>
           <h2>{STEPS[active].title}</h2>
