@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Sparkles, Trash2
+  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -1790,6 +1790,18 @@ const CSS = `
   border-top:4px solid var(--line-strong);
   border-bottom-color:#B9C3D2;
 }
+.theme-light .brand-lockup{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:8px;
+}
+.theme-light .brand-logo{
+  width:58px;
+  height:58px;
+  flex:0 0 auto;
+  border:1px solid var(--line-strong);
+}
 .theme-light .home-kicker{
   color:var(--ink-soft);
   font-family:var(--font-mono);
@@ -2017,6 +2029,20 @@ const CSS = `
   font-size:23px;
   font-weight:500;
   margin:4px 0 10px;
+}
+.theme-light .sidebar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:4px 0 10px;
+}
+.theme-light .sidebar-logo{
+  width:34px;
+  height:34px;
+  border:1px solid #3B5274;
+}
+.theme-light .sidebar-brand h1{
+  margin:0;
 }
 .theme-light .project-name{
   min-height:34px;
@@ -2927,8 +2953,13 @@ export default function App() {
         <main className="project-home">
           <header className="home-hero">
             <div>
-              <div className="home-kicker"><Sparkles size={16} /> Portefeuille projets d'amélioration</div>
-              <h1>ProcessPilot</h1>
+              <div className="brand-lockup">
+                <img src="/processpilot-logo.svg" alt="" className="brand-logo" />
+                <div>
+                  <div className="home-kicker">Portefeuille projets d'amélioration</div>
+                  <h1>ProcessPilot</h1>
+                </div>
+              </div>
               <p>Un espace de pilotage clair pour cadrer, analyser, prioriser et suivre vos démarches d'amélioration de processus, quel que soit le secteur.</p>
             </div>
             <div className="home-hero-actions">
@@ -3020,7 +3051,10 @@ export default function App() {
           </div>
           <div className="sidebar-expanded-only">
             <div className="sidebar-eyebrow">Tour de contrôle</div>
-            <h1>ProcessPilot</h1>
+            <div className="sidebar-brand">
+              <img src="/processpilot-logo.svg" alt="" className="sidebar-logo" />
+              <h1>ProcessPilot</h1>
+            </div>
             <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
             <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
             <div className="progress-text">{validatedCount}/9 étapes validées</div>
