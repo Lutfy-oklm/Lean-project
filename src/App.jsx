@@ -798,7 +798,8 @@ function createPresetProjects() {
 }
 
 function mergePresetProjects(existingProjects) {
-  const base = Array.isArray(existingProjects) && existingProjects.length ? existingProjects : [createProject()];
+  const base = Array.isArray(existingProjects) ? existingProjects.filter(project => project && project._projectId) : [];
+  if (base.length === 0) return createPresetProjects();
   const ids = new Set(base.map(project => project._projectId));
   const missing = createPresetProjects().filter(project => !ids.has(project._projectId));
   return [...base, ...missing];
@@ -3147,7 +3148,7 @@ function PrintSummary({ data }) {
 }
 
 export default function App() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState(() => createPresetProjects());
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [view, setView] = useState('home');
   const [projectQuery, setProjectQuery] = useState('');
@@ -3244,12 +3245,6 @@ export default function App() {
     });
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
-  };
-  const restorePresetProjects = () => {
-    const restored = mergePresetProjects(projects);
-    setProjects(restored);
-    setProjectQuery('');
-    if (restored[0]) setActiveProjectId(restored[0]._projectId);
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
   const incompleteProjects = projects.filter(project => projectProgress(project) < STEPS.length).length;
@@ -3525,7 +3520,7 @@ export default function App() {
           <section className="home-section-head">
             <div>
               <span>Bibliotheque projets</span>
-              <h2>Choisir un chantier et entrer dans les 9 etapes</h2>
+              <h2>5 projets multi-secteurs preintegres</h2>
             </div>
             <p>{filteredProjects.length} projet{filteredProjects.length > 1 ? 's' : ''} affiche{filteredProjects.length > 1 ? 's' : ''}</p>
           </section>
@@ -3559,7 +3554,6 @@ export default function App() {
                 <BriefcaseBusiness size={28} />
                 <h2>Aucun projet trouvé</h2>
                 <p>Modifiez votre recherche ou creez un nouveau projet d'amelioration.</p>
-                <button className="home-primary" onClick={restorePresetProjects}><Plus size={16} /> Restaurer les projets modeles</button>
               </div>
             )}
           </section>
