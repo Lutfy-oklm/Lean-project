@@ -3959,7 +3959,6 @@ export default function App() {
             </button>
           </div>
           <div className="sidebar-expanded-only">
-            <div className="sidebar-eyebrow">Tour de contrôle</div>
             <div className="sidebar-brand">
               <img src="/processpilot-logo.svg" alt="" className="sidebar-logo" />
               <h1>ProcessPilot</h1>
