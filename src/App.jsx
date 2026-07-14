@@ -110,6 +110,7 @@ function defaultData() {
     projectName: 'Optimisation du processus de clôture de compte bancaire',
     validated: { 0: true, 1: true },
     bpmnXml: '',
+    bpmnViewbox: null,
     step0: {
       note: "Le processus de clôture de compte bancaire fait l'objet de nombreuses réclamations clients, liées aux délais de traitement (souvent supérieurs à 15 jours ouvrés) et à un manque de visibilité pour le client sur l'avancement de sa demande. Le périmètre pressenti couvre la clôture des comptes courants particuliers, de la demande initiale jusqu'à la restitution du solde et la fermeture définitive dans le système d'information. Sont exclus de ce périmètre les comptes professionnels, les comptes en situation de succession et les clôtures à l'initiative de la banque.",
       planning: [
@@ -309,6 +310,7 @@ function blankData() {
     projectName: '',
     validated: {},
     bpmnXml: '',
+    bpmnViewbox: null,
     step0: {
       note: '',
       planning: [],
@@ -1150,11 +1152,14 @@ function FlowBuilder({ path, data, updateField, addRow, removeRow }) {
   );
 }
 
-function BpmnAdvancedEditor({ value, onChange, projectName }) {
+function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, projectName, layoutKey }) {
   const canvasRef = useRef(null);
   const modelerRef = useRef(null);
   const fileRef = useRef(null);
   const onChangeRef = useRef(onChange);
+  const onViewboxChangeRef = useRef(onViewboxChange);
+  const lastViewboxRef = useRef(viewbox || null);
+  const resizingRef = useRef(false);
   const [status, setStatus] = useState('Chargement de l’éditeur BPMN…');
   const [selectedElements, setSelectedElements] = useState([]);
   const diagramXml = value || defaultBpmnXml(projectName);
@@ -1162,13 +1167,29 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
     const modeler = modelerRef.current;
     if (!modeler) return;
     const canvas = modeler.get('canvas');
+    const previousViewbox = lastViewboxRef.current || canvas.viewbox();
+    resizingRef.current = true;
     canvas.resized();
-    if (fit) canvas.zoom('fit-viewport', 'auto');
+    if (fit) {
+      canvas.zoom('fit-viewport', 'auto');
+      lastViewboxRef.current = canvas.viewbox();
+      onViewboxChangeRef.current?.(lastViewboxRef.current);
+    } else {
+      canvas.viewbox(previousViewbox);
+    }
+    requestAnimationFrame(() => {
+      resizingRef.current = false;
+    });
   }, []);
 
   useEffect(() => {
     onChangeRef.current = onChange;
-  }, [onChange]);
+    onViewboxChangeRef.current = onViewboxChange;
+  }, [onChange, onViewboxChange]);
+
+  useEffect(() => {
+    if (viewbox) lastViewboxRef.current = viewbox;
+  }, [viewbox]);
 
   useEffect(() => {
     let disposed = false;
@@ -1180,11 +1201,17 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
         modelerRef.current = modeler;
 
         await modeler.importXML(diagramXml);
-        requestAnimationFrame(() => setTimeout(() => resizeEditor(true), 80));
+        requestAnimationFrame(() => setTimeout(() => resizeEditor(!lastViewboxRef.current), 80));
         setStatus('Éditeur BPMN prêt');
 
         modeler.get('eventBus').on('selection.changed', (event) => {
           setSelectedElements(event.newSelection || []);
+        });
+
+        modeler.get('eventBus').on('canvas.viewbox.changed', (event) => {
+          if (resizingRef.current) return;
+          lastViewboxRef.current = event.viewbox;
+          onViewboxChangeRef.current?.(event.viewbox);
         });
 
         modeler.on('commandStack.changed', async () => {
@@ -1215,8 +1242,15 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
     return () => observer.disconnect();
   }, [resizeEditor]);
 
+  useEffect(() => {
+    const timers = [40, 180, 340].map(delay => setTimeout(() => resizeEditor(false), delay));
+    return () => timers.forEach(clearTimeout);
+  }, [layoutKey, resizeEditor]);
+
   const resetDiagram = async () => {
     const xml = defaultBpmnXml(projectName);
+    lastViewboxRef.current = null;
+    onViewboxChangeRef.current?.(null);
     onChange(xml);
     if (modelerRef.current) {
       await modelerRef.current.importXML(xml);
@@ -1247,6 +1281,8 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
       try {
         if (modelerRef.current) {
           await modelerRef.current.importXML(xml);
+          lastViewboxRef.current = null;
+          onViewboxChangeRef.current?.(null);
           requestAnimationFrame(() => setTimeout(() => resizeEditor(true), 40));
         }
         onChange(xml);
@@ -4170,8 +4206,11 @@ export default function App() {
           <BpmnAdvancedEditor
             key={data._projectId}
             value={data.bpmnXml}
+            viewbox={data.bpmnViewbox}
             projectName={data.projectName}
+            layoutKey={sidebarCollapsed ? 'collapsed' : 'expanded'}
             onChange={(xml) => updateField('bpmnXml', xml)}
+            onViewboxChange={(viewbox) => updateField('bpmnViewbox', viewbox)}
           />
         );
       default: return null;
