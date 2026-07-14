@@ -39,6 +39,7 @@ const ADVANCED_BPMN_TAB = {
 
 const BPMN_ASSET_VERSION = '18.21.0';
 const BPMN_MODEL_SCRIPT = `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/bpmn-modeler.production.min.js`;
+const JSPDF_SCRIPT = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
 const BPMN_STYLES = [
   `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/diagram-js.css`,
   `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/bpmn-js.css`,
@@ -103,6 +104,57 @@ function loadBpmnModeler() {
     document.head.appendChild(script);
   });
   return window.__processPilotBpmnLoader;
+}
+
+function loadJsPdf() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Navigateur indisponible'));
+  if (window.jspdf?.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  if (window.__processPilotJsPdfLoader) return window.__processPilotJsPdfLoader;
+
+  window.__processPilotJsPdfLoader = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = JSPDF_SCRIPT;
+    script.async = true;
+    script.onload = () => window.jspdf?.jsPDF ? resolve(window.jspdf.jsPDF) : reject(new Error('jsPDF introuvable'));
+    script.onerror = () => reject(new Error('Impossible de charger jsPDF'));
+    document.head.appendChild(script);
+  });
+  return window.__processPilotJsPdfLoader;
+}
+
+function slugFileName(value, fallback = 'processpilot') {
+  return (value || fallback).toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || fallback;
+}
+
+function svgToPngDataUrl(svg) {
+  return new Promise((resolve, reject) => {
+    const parsed = new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement;
+    const viewBox = (parsed.getAttribute('viewBox') || '').split(/\s+/).map(Number);
+    const svgWidth = Number(parsed.getAttribute('width')) || viewBox[2] || 1200;
+    const svgHeight = Number(parsed.getAttribute('height')) || viewBox[3] || 800;
+    const scale = 2;
+    const normalizedSvg = svg.includes('xmlns=') ? svg : svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+    const blob = new Blob([normalizedSvg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const image = new Image();
+
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(svgWidth * scale));
+      canvas.height = Math.max(1, Math.round(svgHeight * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), width: svgWidth, height: svgHeight });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Conversion SVG impossible'));
+    };
+    image.src = url;
+  });
 }
 
 function defaultData() {
@@ -1275,36 +1327,35 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
   const exportDiagramPdf = async () => {
     const current = modelerRef.current;
     if (!current) return;
-    const { svg } = await current.saveSVG();
-    const title = projectName || 'Diagramme BPMN';
-    const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const win = window.open('', '_blank');
-    if (!win) {
-      setStatus('Autorisez les popups pour exporter le PDF');
-      return;
+    try {
+      setStatus('Préparation du PDF...');
+      const [{ svg }, jsPDF] = await Promise.all([current.saveSVG(), loadJsPdf()]);
+      const image = await svgToPngDataUrl(svg);
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const headerHeight = 16;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2 - headerHeight;
+      const ratio = Math.min(maxWidth / image.width, maxHeight / image.height);
+      const drawWidth = image.width * ratio;
+      const drawHeight = image.height * ratio;
+      const x = margin + (maxWidth - drawWidth) / 2;
+      const y = margin + headerHeight + (maxHeight - drawHeight) / 2;
+
+      pdf.setTextColor(17, 35, 63);
+      pdf.setFontSize(14);
+      pdf.text(projectName || 'Diagramme BPMN', margin, margin + 4);
+      pdf.setDrawColor(17, 35, 63);
+      pdf.line(margin, margin + 8, pageWidth - margin, margin + 8);
+      pdf.addImage(image.dataUrl, 'PNG', x, y, drawWidth, drawHeight);
+      pdf.save(`${slugFileName(projectName, 'diagramme-bpmn')}-bpmn.pdf`);
+      setStatus('PDF téléchargé');
+    } catch (e) {
+      console.error(e);
+      setStatus('Export PDF impossible');
     }
-    win.document.write(`<!doctype html>
-<html>
-<head>
-  <title>${safeTitle} - BPMN</title>
-  <style>
-    @page { size: A4 landscape; margin: 12mm; }
-    body { margin: 0; font-family: Arial, sans-serif; color: #11233F; }
-    header { border-bottom: 2px solid #11233F; padding-bottom: 8px; margin-bottom: 14px; }
-    h1 { margin: 0; font-size: 20px; }
-    p { margin: 4px 0 0; color: #52637A; font-size: 11px; }
-    .diagram { width: 100%; height: calc(100vh - 86px); display: flex; align-items: center; justify-content: center; }
-    svg { width: 100%; height: 100%; }
-  </style>
-</head>
-<body>
-  <header><h1>${safeTitle}</h1><p>Diagramme BPMN exporté depuis ProcessPilot</p></header>
-  <div class="diagram">${svg}</div>
-  <script>window.onload = () => { setTimeout(() => window.print(), 150); };</script>
-</body>
-</html>`);
-    win.document.close();
-    setStatus('Aperçu PDF du diagramme ouvert');
   };
 
   const importDiagram = (event) => {
