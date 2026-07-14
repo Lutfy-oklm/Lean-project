@@ -1158,12 +1158,12 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
   const [status, setStatus] = useState('Chargement de l’éditeur BPMN…');
   const [selectedElements, setSelectedElements] = useState([]);
   const diagramXml = value || defaultBpmnXml(projectName);
-  const resizeEditor = useCallback(() => {
+  const resizeEditor = useCallback((fit = false) => {
     const modeler = modelerRef.current;
     if (!modeler) return;
     const canvas = modeler.get('canvas');
     canvas.resized();
-    canvas.zoom('fit-viewport', 'auto');
+    if (fit) canvas.zoom('fit-viewport', 'auto');
   }, []);
 
   useEffect(() => {
@@ -1180,7 +1180,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
         modelerRef.current = modeler;
 
         await modeler.importXML(diagramXml);
-        requestAnimationFrame(() => setTimeout(resizeEditor, 80));
+        requestAnimationFrame(() => setTimeout(() => resizeEditor(true), 80));
         setStatus('Éditeur BPMN prêt');
 
         modeler.get('eventBus').on('selection.changed', (event) => {
@@ -1210,7 +1210,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
 
   useEffect(() => {
     if (!canvasRef.current || typeof ResizeObserver === 'undefined') return undefined;
-    const observer = new ResizeObserver(() => requestAnimationFrame(resizeEditor));
+    const observer = new ResizeObserver(() => requestAnimationFrame(() => resizeEditor(false)));
     observer.observe(canvasRef.current);
     return () => observer.disconnect();
   }, [resizeEditor]);
@@ -1220,7 +1220,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
     onChange(xml);
     if (modelerRef.current) {
       await modelerRef.current.importXML(xml);
-      requestAnimationFrame(() => setTimeout(resizeEditor, 40));
+      requestAnimationFrame(() => setTimeout(() => resizeEditor(true), 40));
       setStatus('Nouveau diagramme BPMN créé');
     }
   };
@@ -1247,7 +1247,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
       try {
         if (modelerRef.current) {
           await modelerRef.current.importXML(xml);
-          requestAnimationFrame(() => setTimeout(resizeEditor, 40));
+          requestAnimationFrame(() => setTimeout(() => resizeEditor(true), 40));
         }
         onChange(xml);
         setStatus('Fichier BPMN importé');
