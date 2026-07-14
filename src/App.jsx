@@ -2668,7 +2668,6 @@ const CSS = `
   height:38px;
   border:1px solid var(--line-strong);
 }
-.theme-light .landing-nav-btn,
 .theme-light .landing-secondary{
   min-height:36px;
   display:inline-flex;
@@ -2681,7 +2680,6 @@ const CSS = `
   padding:8px 13px;
   font-size:12px;
 }
-.theme-light .landing-nav-btn:hover,
 .theme-light .landing-secondary:hover{
   background:#F6F8FB;
   border-color:#AAB6C6;
@@ -3296,7 +3294,7 @@ const CSS = `
 
 @media (max-width: 560px){
   .landing-nav{ align-items:flex-start; flex-direction:column; }
-  .landing-nav-btn,.landing-actions,.landing-primary,.landing-secondary{ width:100%; }
+  .landing-actions,.landing-primary,.landing-secondary{ width:100%; }
   .landing-panel-metrics{ grid-template-columns:1fr; }
   .home-dashboard{ grid-template-columns:1fr; }
   .portfolio-toolbar h2{ font-size:22px; }
@@ -3763,7 +3761,6 @@ export default function App() {
               <img src="/processpilot-logo.svg" alt="" />
               <span>ProcessPilot</span>
             </div>
-            <button className="landing-nav-btn" onClick={() => setView('dashboard')}>Tableau de bord</button>
           </nav>
 
           <section className="landing-hero">
@@ -3800,16 +3797,16 @@ export default function App() {
 
           <section className="landing-sectors" aria-label="Secteurs couverts">
             <div>
-              <span>Banque</span>
-              <p>Réclamations, opérations, conformité, parcours client.</p>
+              <span>Services</span>
+              <p>Parcours client, réclamations, délais de traitement, qualité de service.</p>
             </div>
             <div>
-              <span>Industrie</span>
-              <p>Maintenance, flux, qualité, délais et performance terrain.</p>
+              <span>Industrie & opérations</span>
+              <p>Maintenance, flux terrain, production, logistique, qualité et performance.</p>
             </div>
             <div>
-              <span>Assurance</span>
-              <p>Sinistres, indemnisation, expertise et expérience assuré.</p>
+              <span>Fonctions transverses</span>
+              <p>Back-office, support, conformité, IT, pilotage interne et amélioration continue.</p>
             </div>
           </section>
         </main>
