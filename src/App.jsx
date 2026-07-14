@@ -4515,7 +4515,6 @@ export default function App() {
             </button>
           ))}
           <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => setActive(ADVANCED_BPMN_TAB.id)}>
-            <span className="step-num">{ADVANCED_BPMN_TAB.num}</span>
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
         </nav>
