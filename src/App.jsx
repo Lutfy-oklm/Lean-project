@@ -1272,6 +1272,41 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
     setStatus('Fichier BPMN exporté');
   };
 
+  const exportDiagramPdf = async () => {
+    const current = modelerRef.current;
+    if (!current) return;
+    const { svg } = await current.saveSVG();
+    const title = projectName || 'Diagramme BPMN';
+    const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const win = window.open('', '_blank');
+    if (!win) {
+      setStatus('Autorisez les popups pour exporter le PDF');
+      return;
+    }
+    win.document.write(`<!doctype html>
+<html>
+<head>
+  <title>${safeTitle} - BPMN</title>
+  <style>
+    @page { size: A4 landscape; margin: 12mm; }
+    body { margin: 0; font-family: Arial, sans-serif; color: #11233F; }
+    header { border-bottom: 2px solid #11233F; padding-bottom: 8px; margin-bottom: 14px; }
+    h1 { margin: 0; font-size: 20px; }
+    p { margin: 4px 0 0; color: #52637A; font-size: 11px; }
+    .diagram { width: 100%; height: calc(100vh - 86px); display: flex; align-items: center; justify-content: center; }
+    svg { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <header><h1>${safeTitle}</h1><p>Diagramme BPMN exporté depuis ProcessPilot</p></header>
+  <div class="diagram">${svg}</div>
+  <script>window.onload = () => { setTimeout(() => window.print(), 150); };</script>
+</body>
+</html>`);
+    win.document.close();
+    setStatus('Aperçu PDF du diagramme ouvert');
+  };
+
   const importDiagram = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1310,7 +1345,7 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
     <div className="bpmn-workbench">
       <div className="bpmn-toolbar">
         <div>
-          <strong>Éditeur BPMN avancé</strong>
+          <strong>Éditeur BPMN</strong>
           <span>{status}{selectedElements.length > 0 ? ` · ${selectedElements.length} élément(s) sélectionné(s)` : ''}</span>
         </div>
         <div className="bpmn-actions">
@@ -1329,6 +1364,7 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
           </div>
           <button className="nav-btn" onClick={() => fileRef.current?.click()}>Importer BPMN</button>
           <button className="nav-btn" onClick={exportDiagram}>Exporter BPMN</button>
+          <button className="nav-btn" onClick={exportDiagramPdf}>Exporter PDF</button>
           <button className="nav-btn" onClick={resetDiagram}>Nouveau diagramme</button>
           <input ref={fileRef} type="file" accept=".bpmn,.xml" onChange={importDiagram} hidden />
         </div>
@@ -3528,12 +3564,20 @@ const CSS = `
   margin-top:8px;
   padding-top:14px;
 }
-.theme-light .tool-tab-note{
-  color:#4B5C73;
+.theme-light .optional-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  margin-left:12px;
+  padding:0 8px;
+  border:1px solid #B9C7D8;
+  background:#F6F8FB;
+  color:#52637A;
   font-family:var(--font-mono);
-  font-size:11px;
-  font-weight:700;
+  font-size:10px;
+  font-weight:800;
   text-transform:uppercase;
+  vertical-align:middle;
   letter-spacing:.04em;
 }
 .theme-light .bpmn-workbench{
@@ -4425,21 +4469,19 @@ export default function App() {
       <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
         <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
           <div className="eyebrow">{active === ADVANCED_BPMN_TAB.id ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
-          <h2>{activeMeta.title}</h2>
+          <h2>{activeMeta.title}{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
           <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
-          <div className="step-actions">
-            <button className="nav-btn" disabled={active === 0} onClick={() => setActive(a => a === ADVANCED_BPMN_TAB.id ? 8 : Math.max(0, a - 1))}><ChevronLeft size={16} /> Précédent</button>
-            {active !== ADVANCED_BPMN_TAB.id ? (
+          {active !== ADVANCED_BPMN_TAB.id && (
+            <div className="step-actions">
+              <button className="nav-btn" disabled={active === 0} onClick={() => setActive(a => Math.max(0, a - 1))}><ChevronLeft size={16} /> Précédent</button>
               <button className={`validate-btn ${data.validated[active] ? 'is-validated' : ''}`} onClick={() => toggleValidated(active)}>
                 {data.validated[active] ? '✔ Étape validée' : 'Marquer cette étape comme validée'}
               </button>
-            ) : (
-              <span className="tool-tab-note">Onglet optionnel, utilisable pendant ou après le projet.</span>
-            )}
-            <button className="nav-btn" disabled={active === ADVANCED_BPMN_TAB.id} onClick={() => setActive(a => a === 8 ? ADVANCED_BPMN_TAB.id : Math.min(8, a + 1))}>Suivant <ChevronRight size={16} /></button>
-          </div>
+              <button className="nav-btn" onClick={() => setActive(a => a === 8 ? ADVANCED_BPMN_TAB.id : Math.min(8, a + 1))}>Suivant <ChevronRight size={16} /></button>
+            </div>
+          )}
         </div>
       </main>
       <PrintSummary data={data} />
