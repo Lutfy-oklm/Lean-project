@@ -3865,7 +3865,7 @@ export default function App() {
               <div className="brand-lockup">
                 <img src="/processpilot-logo.svg" alt="" className="brand-logo" />
                 <div>
-                  <div className="home-kicker">Portefeuille projets d'amélioration</div>
+                  <div className="home-kicker">Tableau de bord</div>
                   <h1>ProcessPilot</h1>
                 </div>
               </div>
