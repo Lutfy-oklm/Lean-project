@@ -2791,7 +2791,7 @@ const CSS = `
   flex-direction:column;
   gap:7px;
 }
-.theme-light .landing-mini-list button{
+.theme-light .landing-mini-list div{
   min-height:44px;
   display:flex;
   align-items:center;
@@ -2802,10 +2802,6 @@ const CSS = `
   color:var(--ink);
   padding:9px 10px;
   text-align:left;
-}
-.theme-light .landing-mini-list button:hover{
-  background:#F6F8FB;
-  border-color:#AAB6C6;
 }
 .theme-light .landing-mini-list span{
   overflow:hidden;
@@ -3776,21 +3772,27 @@ export default function App() {
 
             <div className="landing-panel" aria-label="Aperçu du tableau de bord">
               <div className="landing-panel-head">
-                <span>Portefeuille</span>
-                <strong>{projects.length} projets</strong>
+                <span>Exemple portefeuille</span>
+                <strong>12 projets</strong>
               </div>
               <div className="landing-panel-metrics">
-                <div><span>Étapes</span><strong>{STEPS.length}</strong></div>
-                <div><span>Terminés</span><strong>{completedProjects}</strong></div>
-                <div><span>Avancement</span><strong>{averageProgress}%</strong></div>
+                <div><span>Cadre</span><strong>{STEPS.length}</strong></div>
+                <div><span>Secteurs</span><strong>4</strong></div>
+                <div><span>Avancement</span><strong>78%</strong></div>
               </div>
               <div className="landing-mini-list">
-                {projects.slice(0, 3).map(project => (
-                  <button key={project._projectId} onClick={() => openProject(project._projectId)}>
-                    <span>{project.projectName || "Projet d'amélioration"}</span>
-                    <em>{projectProgress(project)}/{STEPS.length}</em>
-                  </button>
-                ))}
+                <div>
+                  <span>Réduction des délais de traitement</span>
+                  <em>Cadrage</em>
+                </div>
+                <div>
+                  <span>Standardisation d’un flux opérationnel</span>
+                  <em>Analyse</em>
+                </div>
+                <div>
+                  <span>Amélioration de la qualité de service</span>
+                  <em>Pilotage</em>
+                </div>
               </div>
             </div>
           </section>
