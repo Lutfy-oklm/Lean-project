@@ -2753,10 +2753,8 @@ const CSS = `
   text-align:left;
 }
 .theme-light .brand-home-link:hover .brand-logo{
-  border-color:#2E6F64;
-}
-.theme-light .brand-home-link:hover h1{
-  color:#2E6F64;
+  border-color:#11233F;
+  opacity:.88;
 }
 .theme-light .brand-logo{
   width:58px;
