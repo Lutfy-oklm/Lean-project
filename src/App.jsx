@@ -2809,10 +2809,24 @@ const CSS = `
   white-space:nowrap;
 }
 .theme-light .landing-mini-list em{
-  color:var(--teal);
   font-style:normal;
   font-family:var(--font-mono);
-  font-size:11px;
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+  white-space:nowrap;
+  border:1px solid var(--line);
+  padding:4px 7px;
+}
+.theme-light .landing-mini-list em.done{
+  color:#155D35;
+  background:#E5F1E8;
+  border-color:#9DCBA9;
+}
+.theme-light .landing-mini-list em.in-progress{
+  color:#7B430B;
+  background:#FBEDD7;
+  border-color:#E7BD7A;
 }
 .theme-light .landing-sectors{
   display:grid;
@@ -3804,22 +3818,26 @@ export default function App() {
                 <strong>12 projets</strong>
               </div>
               <div className="landing-panel-metrics">
-                <div><span>Cadre</span><strong>{STEPS.length}</strong></div>
-                <div><span>Secteurs</span><strong>4</strong></div>
+                <div><span>Total projets</span><strong>12</strong></div>
+                <div><span>À finaliser</span><strong>5</strong></div>
                 <div><span>Avancement</span><strong>78%</strong></div>
               </div>
               <div className="landing-mini-list">
                 <div>
                   <span>Réduction des délais de traitement</span>
-                  <em>Cadrage</em>
+                  <em className="in-progress">En cours</em>
                 </div>
                 <div>
                   <span>Standardisation d’un flux opérationnel</span>
-                  <em>Analyse</em>
+                  <em className="done">Terminé</em>
                 </div>
                 <div>
                   <span>Amélioration de la qualité de service</span>
-                  <em>Pilotage</em>
+                  <em className="in-progress">En cours</em>
+                </div>
+                <div>
+                  <span>Digitalisation du suivi terrain</span>
+                  <em className="done">Terminé</em>
                 </div>
               </div>
             </div>
