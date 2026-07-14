@@ -2657,15 +2657,15 @@ const CSS = `
 .theme-light .landing-brand{
   display:flex;
   align-items:center;
-  gap:18px;
+  gap:14px;
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:42px;
+  font-size:32px;
   font-weight:500;
 }
 .theme-light .landing-brand img{
-  width:78px;
-  height:78px;
+  width:58px;
+  height:58px;
   border:1px solid var(--line-strong);
 }
 .theme-light .landing-secondary{
