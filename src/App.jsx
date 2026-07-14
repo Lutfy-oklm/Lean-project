@@ -3446,6 +3446,35 @@ const CSS = `
 .theme-light .bpmn-workbench{
   border:1px solid #B9C3D2;
   background:#FFFFFF;
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  min-height:0;
+  width:100%;
+}
+.theme-light .bpmn-main{
+  padding:12px 14px 18px;
+}
+.theme-light .bpmn-card{
+  max-width:none;
+  width:100%;
+  min-height:calc(100vh - 30px);
+  display:flex;
+  flex-direction:column;
+  padding:14px;
+}
+.theme-light .bpmn-card h2{
+  margin-bottom:8px;
+}
+.theme-light .bpmn-card .objectif,
+.theme-light .bpmn-card .livrable{
+  padding:9px 12px;
+  margin:6px 0;
+}
+.theme-light .bpmn-card .step-body{
+  flex:1;
+  display:flex;
+  min-height:0;
 }
 .theme-light .bpmn-toolbar{
   display:flex;
@@ -3476,8 +3505,9 @@ const CSS = `
   justify-content:flex-end;
 }
 .theme-light .bpmn-editor-shell{
-  height:620px;
-  min-height:520px;
+  flex:1;
+  height:calc(100vh - 245px);
+  min-height:680px;
   border-bottom:1px solid #D8DEE8;
   background:#FFFFFF;
   overflow:hidden;
@@ -4247,8 +4277,8 @@ export default function App() {
           <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
       </aside>
-      <main className="main">
-        <div className="dossier-card">
+      <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
+        <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
           <div className="eyebrow">{active === ADVANCED_BPMN_TAB.id ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
           <h2>{activeMeta.title}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
