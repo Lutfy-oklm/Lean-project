@@ -1145,8 +1145,20 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
   const canvasRef = useRef(null);
   const modelerRef = useRef(null);
   const fileRef = useRef(null);
+  const onChangeRef = useRef(onChange);
   const [status, setStatus] = useState('Chargement de l’éditeur BPMN…');
   const diagramXml = value || defaultBpmnXml(projectName);
+  const resizeEditor = useCallback(() => {
+    const modeler = modelerRef.current;
+    if (!modeler) return;
+    const canvas = modeler.get('canvas');
+    canvas.resized();
+    canvas.zoom('fit-viewport', 'auto');
+  }, []);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     let disposed = false;
@@ -1158,13 +1170,13 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
         modelerRef.current = modeler;
 
         await modeler.importXML(diagramXml);
-        modeler.get('canvas').zoom('fit-viewport', 'auto');
+        requestAnimationFrame(() => setTimeout(resizeEditor, 80));
         setStatus('Éditeur BPMN prêt');
 
         modeler.on('commandStack.changed', async () => {
           try {
             const { xml } = await modeler.saveXML({ format: true });
-            onChange(xml);
+            onChangeRef.current(xml);
             setStatus('Diagramme sauvegardé');
           } catch (e) {
             setStatus('Sauvegarde BPMN impossible');
@@ -1180,14 +1192,21 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
         modelerRef.current = null;
       }
     };
-  }, []);
+  }, [resizeEditor]);
+
+  useEffect(() => {
+    if (!canvasRef.current || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => requestAnimationFrame(resizeEditor));
+    observer.observe(canvasRef.current);
+    return () => observer.disconnect();
+  }, [resizeEditor]);
 
   const resetDiagram = async () => {
     const xml = defaultBpmnXml(projectName);
     onChange(xml);
     if (modelerRef.current) {
       await modelerRef.current.importXML(xml);
-      modelerRef.current.get('canvas').zoom('fit-viewport', 'auto');
+      requestAnimationFrame(() => setTimeout(resizeEditor, 40));
       setStatus('Nouveau diagramme BPMN créé');
     }
   };
@@ -1214,7 +1233,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
       try {
         if (modelerRef.current) {
           await modelerRef.current.importXML(xml);
-          modelerRef.current.get('canvas').zoom('fit-viewport', 'auto');
+          requestAnimationFrame(() => setTimeout(resizeEditor, 40));
         }
         onChange(xml);
         setStatus('Fichier BPMN importé');
@@ -3508,11 +3527,23 @@ const CSS = `
   flex:1;
   height:calc(100vh - 245px);
   min-height:680px;
+  position:relative;
   border-bottom:1px solid #D8DEE8;
   background:#FFFFFF;
   overflow:hidden;
 }
 .theme-light .bpmn-canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+.theme-light .bpmn-canvas .djs-container,
+.theme-light .bpmn-canvas .bjs-container{
+  width:100%!important;
+  height:100%!important;
+}
+.theme-light .bpmn-canvas svg{
   width:100%;
   height:100%;
 }
@@ -4063,6 +4094,7 @@ export default function App() {
       case 'bpmn':
         return (
           <BpmnAdvancedEditor
+            key={data._projectId}
             value={data.bpmnXml}
             projectName={data.projectName}
             onChange={(xml) => updateField('bpmnXml', xml)}
