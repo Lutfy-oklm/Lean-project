@@ -2635,6 +2635,214 @@ const CSS = `
 .theme-light .sidebar-brand h1{
   margin:0;
 }
+
+.theme-light.landing-mode{
+  width:100vw;
+  min-height:100vh;
+  background:#FFFFFF;
+}
+.theme-light .landing-page{
+  width:min(1180px,calc(100vw - 40px));
+  margin:0 auto;
+  padding:28px 0 46px;
+}
+.theme-light .landing-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:0 0 22px;
+  border-bottom:1px solid var(--line);
+}
+.theme-light .landing-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:22px;
+  font-weight:500;
+}
+.theme-light .landing-brand img{
+  width:38px;
+  height:38px;
+  border:1px solid var(--line-strong);
+}
+.theme-light .landing-nav-btn,
+.theme-light .landing-secondary{
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid var(--line);
+  background:#FFFFFF;
+  color:var(--ink);
+  padding:8px 13px;
+  font-size:12px;
+}
+.theme-light .landing-nav-btn:hover,
+.theme-light .landing-secondary:hover{
+  background:#F6F8FB;
+  border-color:#AAB6C6;
+}
+.theme-light .landing-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.72fr);
+  gap:28px;
+  align-items:stretch;
+  padding:46px 0 26px;
+}
+.theme-light .landing-copy{
+  border-top:4px solid var(--line-strong);
+  padding-top:22px;
+}
+.theme-light .landing-kicker{
+  color:var(--ink-muted);
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .landing-copy h1{
+  max-width:760px;
+  margin:10px 0 14px;
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(42px,5.2vw,72px);
+  font-weight:500;
+  line-height:1.02;
+}
+.theme-light .landing-copy p{
+  max-width:720px;
+  margin:0;
+  color:var(--ink-soft);
+  font-size:16px;
+  line-height:1.62;
+}
+.theme-light .landing-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:24px;
+}
+.theme-light .landing-primary{
+  min-height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid var(--line-strong);
+  background:var(--ink);
+  color:#FFFFFF;
+  padding:9px 15px;
+  font-size:12px;
+}
+.theme-light .landing-primary:hover{
+  background:var(--blue);
+}
+.theme-light .landing-panel{
+  border:1px solid var(--line);
+  border-top:4px solid var(--teal);
+  background:#FFFFFF;
+  padding:18px;
+}
+.theme-light .landing-panel-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+}
+.theme-light .landing-panel-head span,
+.theme-light .landing-panel-metrics span{
+  color:var(--ink-muted);
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .landing-panel-head strong{
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+}
+.theme-light .landing-panel-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:14px 0;
+}
+.theme-light .landing-panel-metrics div{
+  border:1px solid var(--line);
+  background:#F8FAFC;
+  padding:10px;
+}
+.theme-light .landing-panel-metrics strong{
+  display:block;
+  margin-top:5px;
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:22px;
+  font-weight:500;
+}
+.theme-light .landing-mini-list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.theme-light .landing-mini-list button{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid var(--line);
+  background:#FFFFFF;
+  color:var(--ink);
+  padding:9px 10px;
+  text-align:left;
+}
+.theme-light .landing-mini-list button:hover{
+  background:#F6F8FB;
+  border-color:#AAB6C6;
+}
+.theme-light .landing-mini-list span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.theme-light .landing-mini-list em{
+  color:var(--teal);
+  font-style:normal;
+  font-family:var(--font-mono);
+  font-size:11px;
+}
+.theme-light .landing-sectors{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:10px;
+}
+.theme-light .landing-sectors div{
+  border:1px solid var(--line);
+  border-top:2px solid var(--line-strong);
+  padding:15px;
+  background:#FFFFFF;
+}
+.theme-light .landing-sectors span{
+  color:var(--ink);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:20px;
+}
+.theme-light .landing-sectors p{
+  margin:8px 0 0;
+  color:var(--ink-soft);
+  font-size:12.5px;
+  line-height:1.45;
+}
 .theme-light .project-name{
   min-height:34px;
   background:#172C4D!important;
@@ -3061,6 +3269,11 @@ const CSS = `
 
 @media (max-width: 820px){
   .lean-app{ flex-direction:column; width:100vw; min-height:100vh; margin:0; max-height:none; border-radius:0; border:0; }
+  .landing-page{ width:calc(100vw - 28px); padding:18px 0 40px; }
+  .landing-hero{ grid-template-columns:1fr; padding:30px 0 20px; }
+  .landing-copy h1{ font-size:42px; }
+  .landing-panel{ padding:14px; }
+  .landing-sectors{ grid-template-columns:1fr; }
   .project-home{ width:calc(100vw - 28px); padding:18px 0 40px; }
   .home-hero{ grid-template-columns:1fr; align-items:flex-start; padding:20px; }
   .home-hero h1{ font-size:38px; }
@@ -3082,6 +3295,9 @@ const CSS = `
 }
 
 @media (max-width: 560px){
+  .landing-nav{ align-items:flex-start; flex-direction:column; }
+  .landing-nav-btn,.landing-actions,.landing-primary,.landing-secondary{ width:100%; }
+  .landing-panel-metrics{ grid-template-columns:1fr; }
   .home-dashboard{ grid-template-columns:1fr; }
   .portfolio-toolbar h2{ font-size:22px; }
 }
@@ -3213,7 +3429,7 @@ function PrintSummary({ data }) {
 export default function App() {
   const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('landing');
   const [projectQuery, setProjectQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
@@ -3314,7 +3530,7 @@ export default function App() {
     if (activeProjectId === project._projectId) {
       setActiveProjectId(null);
       setActive(0);
-      setView('home');
+      setView('dashboard');
     }
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
@@ -3537,7 +3753,71 @@ export default function App() {
     }
   }
 
-  if (view === 'home') {
+  if (view === 'landing') {
+    return (
+      <div className={`${appClass} landing-mode`}>
+        <style>{CSS}</style>
+        <main className="landing-page">
+          <nav className="landing-nav">
+            <div className="landing-brand">
+              <img src="/processpilot-logo.svg" alt="" />
+              <span>ProcessPilot</span>
+            </div>
+            <button className="landing-nav-btn" onClick={() => setView('dashboard')}>Tableau de bord</button>
+          </nav>
+
+          <section className="landing-hero">
+            <div className="landing-copy">
+              <div className="landing-kicker">Pilotage des démarches d'amélioration</div>
+              <h1>Structurez vos projets processus de bout en bout.</h1>
+              <p>ProcessPilot aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
+              <div className="landing-actions">
+                <button className="landing-primary" onClick={() => setView('dashboard')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
+                <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
+              </div>
+            </div>
+
+            <div className="landing-panel" aria-label="Aperçu du tableau de bord">
+              <div className="landing-panel-head">
+                <span>Portefeuille</span>
+                <strong>{projects.length} projets</strong>
+              </div>
+              <div className="landing-panel-metrics">
+                <div><span>Étapes</span><strong>{STEPS.length}</strong></div>
+                <div><span>Terminés</span><strong>{completedProjects}</strong></div>
+                <div><span>Avancement</span><strong>{averageProgress}%</strong></div>
+              </div>
+              <div className="landing-mini-list">
+                {projects.slice(0, 3).map(project => (
+                  <button key={project._projectId} onClick={() => openProject(project._projectId)}>
+                    <span>{project.projectName || "Projet d'amélioration"}</span>
+                    <em>{projectProgress(project)}/{STEPS.length}</em>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="landing-sectors" aria-label="Secteurs couverts">
+            <div>
+              <span>Banque</span>
+              <p>Réclamations, opérations, conformité, parcours client.</p>
+            </div>
+            <div>
+              <span>Industrie</span>
+              <p>Maintenance, flux, qualité, délais et performance terrain.</p>
+            </div>
+            <div>
+              <span>Assurance</span>
+              <p>Sinistres, indemnisation, expertise et expérience assuré.</p>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (view === 'dashboard') {
     return (
       <div className={`${appClass} home-mode`}>
         <style>{CSS}</style>
@@ -3635,7 +3915,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-head">
           <div className="sidebar-top-actions">
-            <button className="back-home" onClick={() => setView('home')} title="Retour aux projets"><ArrowLeft size={15} /> <span>Projets</span></button>
+            <button className="back-home" onClick={() => setView('dashboard')} title="Retour au tableau de bord"><ArrowLeft size={15} /> <span>Dashboard</span></button>
             <button className="collapse-btn" onClick={() => setSidebarCollapsed(v => !v)} title={sidebarCollapsed ? 'Afficher la sidebar' : 'Réduire la sidebar'}>
               {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
