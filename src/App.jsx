@@ -45,6 +45,15 @@ const BPMN_STYLES = [
   `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/bpmn-font/css/bpmn.css`,
 ];
 
+const BPMN_COLOR_PRESETS = [
+  { name: 'Bleu', stroke: '#1D4ED8', fill: '#DBEAFE' },
+  { name: 'Vert', stroke: '#047857', fill: '#D1FAE5' },
+  { name: 'Orange', stroke: '#B45309', fill: '#FEF3C7' },
+  { name: 'Rouge', stroke: '#B91C1C', fill: '#FEE2E2' },
+  { name: 'Violet', stroke: '#6D28D9', fill: '#EDE9FE' },
+  { name: 'Gris', stroke: '#475569', fill: '#F1F5F9' },
+];
+
 function defaultBpmnXml(projectName = 'Processus') {
   const name = String(projectName || 'Processus').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -1147,6 +1156,7 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
   const fileRef = useRef(null);
   const onChangeRef = useRef(onChange);
   const [status, setStatus] = useState('Chargement de l’éditeur BPMN…');
+  const [selectedElements, setSelectedElements] = useState([]);
   const diagramXml = value || defaultBpmnXml(projectName);
   const resizeEditor = useCallback(() => {
     const modeler = modelerRef.current;
@@ -1172,6 +1182,10 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
         await modeler.importXML(diagramXml);
         requestAnimationFrame(() => setTimeout(resizeEditor, 80));
         setStatus('Éditeur BPMN prêt');
+
+        modeler.get('eventBus').on('selection.changed', (event) => {
+          setSelectedElements(event.newSelection || []);
+        });
 
         modeler.on('commandStack.changed', async () => {
           try {
@@ -1245,14 +1259,38 @@ function BpmnAdvancedEditor({ value, onChange, projectName }) {
     event.target.value = '';
   };
 
+  const applyColor = (color) => {
+    const modeler = modelerRef.current;
+    if (!modeler) return;
+    if (selectedElements.length === 0) {
+      setStatus('Sélectionnez un élément BPMN avant de choisir une couleur');
+      return;
+    }
+    modeler.get('modeling').setColor(selectedElements, color);
+    setStatus(color ? 'Couleur appliquée' : 'Couleur retirée');
+  };
+
   return (
     <div className="bpmn-workbench">
       <div className="bpmn-toolbar">
         <div>
           <strong>Éditeur BPMN avancé</strong>
-          <span>{status}</span>
+          <span>{status}{selectedElements.length > 0 ? ` · ${selectedElements.length} élément(s) sélectionné(s)` : ''}</span>
         </div>
         <div className="bpmn-actions">
+          <div className="bpmn-color-palette" aria-label="Couleurs BPMN">
+            {BPMN_COLOR_PRESETS.map(color => (
+              <button
+                key={color.name}
+                className="bpmn-color-swatch"
+                style={{ background: color.fill, borderColor: color.stroke }}
+                title={`Appliquer ${color.name}`}
+                aria-label={`Appliquer ${color.name}`}
+                onClick={() => applyColor({ stroke: color.stroke, fill: color.fill })}
+              />
+            ))}
+            <button className="bpmn-color-reset" onClick={() => applyColor(null)}>Sans couleur</button>
+          </div>
           <button className="nav-btn" onClick={() => fileRef.current?.click()}>Importer BPMN</button>
           <button className="nav-btn" onClick={exportDiagram}>Exporter BPMN</button>
           <button className="nav-btn" onClick={resetDiagram}>Nouveau diagramme</button>
@@ -3522,6 +3560,42 @@ const CSS = `
   gap:8px;
   flex-wrap:wrap;
   justify-content:flex-end;
+  align-items:center;
+}
+.theme-light .bpmn-color-palette{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 8px;
+  border:1px solid #D8DEE8;
+  background:#FFFFFF;
+}
+.theme-light .bpmn-color-swatch{
+  width:24px;
+  height:24px;
+  border:2px solid;
+  border-radius:50%;
+  cursor:pointer;
+}
+.theme-light .bpmn-color-swatch:hover{
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(17,35,63,.18);
+}
+.theme-light .bpmn-color-reset{
+  height:28px;
+  border:0;
+  border-left:1px solid #D8DEE8;
+  background:transparent;
+  color:#4B5C73;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:750;
+  padding:0 0 0 8px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.theme-light .bpmn-color-reset:hover{
+  color:#B91C1C;
 }
 .theme-light .bpmn-editor-shell{
   flex:1;
