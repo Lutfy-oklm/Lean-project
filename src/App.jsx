@@ -2617,19 +2617,19 @@ const CSS = `
 .theme-light .sidebar-head h1{
   color:#FFFFFF;
   font-family:Georgia,'Times New Roman',serif;
-  font-size:23px;
+  font-size:28px;
   font-weight:500;
   margin:4px 0 10px;
 }
 .theme-light .sidebar-brand{
   display:flex;
   align-items:center;
-  gap:10px;
-  margin:4px 0 10px;
+  gap:13px;
+  margin:6px 0 14px;
 }
 .theme-light .sidebar-logo{
-  width:34px;
-  height:34px;
+  width:48px;
+  height:48px;
   border:1px solid #3B5274;
 }
 .theme-light .sidebar-brand h1{
