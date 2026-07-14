@@ -2743,6 +2743,21 @@ const CSS = `
   gap:16px;
   margin-bottom:8px;
 }
+.theme-light .brand-home-link{
+  width:auto;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  cursor:pointer;
+  text-align:left;
+}
+.theme-light .brand-home-link:hover .brand-logo{
+  border-color:#2E6F64;
+}
+.theme-light .brand-home-link:hover h1{
+  color:#2E6F64;
+}
 .theme-light .brand-logo{
   width:58px;
   height:58px;
@@ -4391,13 +4406,13 @@ export default function App() {
         <main className="project-home">
           <header className="home-hero">
             <div>
-              <div className="brand-lockup">
+              <button className="brand-lockup brand-home-link" onClick={() => navigate('landing')} title="Retour à l'accueil">
                 <img src="/processpilot-logo.svg" alt="" className="brand-logo" />
                 <div>
                   <div className="home-kicker">Tableau de bord</div>
                   <h1>ProcessPilot</h1>
                 </div>
-              </div>
+              </button>
               <p>Un espace de pilotage clair pour cadrer, analyser, prioriser et suivre vos démarches d'amélioration de processus, quel que soit le secteur.</p>
             </div>
             <div className="home-hero-actions">
