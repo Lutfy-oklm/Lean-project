@@ -2956,14 +2956,23 @@ const CSS = `
 }
 .theme-light .objectif,
 .theme-light .livrable{
-  background:transparent;
-  border:0;
-  border-bottom:1px solid var(--line);
+  display:inline-block;
+  width:calc(50% - 6px);
+  min-height:82px;
+  vertical-align:top;
+  background:#F4F8FC;
+  border:1px solid #CBD7E5;
+  border-left:3px solid var(--blue);
   color:var(--ink);
   font-size:12.5px;
-  line-height:1.45;
-  padding:6px 0 9px;
-  margin:0;
+  line-height:1.5;
+  padding:12px 14px;
+  margin:0 8px 14px 0;
+}
+.theme-light .livrable{
+  background:#F3FAF7;
+  border-color:#C6DDD4;
+  border-left-color:var(--teal);
 }
 .theme-light .objectif em,
 .theme-light .livrable em{
@@ -3290,6 +3299,7 @@ const CSS = `
   .step-item.is-active{ border-bottom-color:var(--teal); }
   .app-topbar{ flex-direction:column; align-items:flex-start; }
   .topbar-status{ width:100%; justify-content:space-between; }
+  .objectif,.livrable{ width:100%!important; margin-right:0!important; }
   .charte-grid{ grid-template-columns:1fr; }
   .ishikawa-grid{ grid-template-columns:repeat(2,1fr); }
   .kpi-grid{ grid-template-columns:1fr; }
