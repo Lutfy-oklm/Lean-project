@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import _ from 'lodash';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -29,10 +29,78 @@ const STEPS = [
   { id: 8, title: 'Contrôler', objectif: 'Mesurer les gains, installer des rituels, ajuster et maintenir.', livrable: 'Dashboard, plan de contrôle, REX.' },
 ];
 
+const ADVANCED_BPMN_TAB = {
+  id: 'bpmn',
+  num: '09',
+  title: 'BPMN avancé',
+  objectif: 'Modéliser un processus complet avec un éditeur BPMN professionnel, plus riche que la cartographie simplifiée des étapes.',
+  livrable: 'Diagramme BPMN complet exportable au format .bpmn.',
+};
+
+const BPMN_ASSET_VERSION = '18.21.0';
+const BPMN_MODEL_SCRIPT = `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/bpmn-modeler.production.min.js`;
+const BPMN_STYLES = [
+  `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/diagram-js.css`,
+  `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/bpmn-js.css`,
+  `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/assets/bpmn-font/css/bpmn.css`,
+];
+
+function defaultBpmnXml(projectName = 'Processus') {
+  const name = String(projectName || 'Processus').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_ProcessPilot" targetNamespace="http://processpilot.local/schema/bpmn">
+  <bpmn:process id="Process_ProcessPilot" name="${name}" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Début"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Activité à modéliser"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1" name="Décision"><bpmn:incoming>Flow_2</bpmn:incoming><bpmn:outgoing>Flow_3</bpmn:outgoing></bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1" name="Fin"><bpmn:incoming>Flow_3</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="EndEvent_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ProcessPilot">
+    <bpmndi:BPMNPlane id="BPMNPlane_ProcessPilot" bpmnElement="Process_ProcessPilot">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="170" y="150" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="260" y="128" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1_di" bpmnElement="Gateway_1" isMarkerVisible="true"><dc:Bounds x="470" y="143" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1"><dc:Bounds x="590" y="150" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="206" y="168" /><di:waypoint x="260" y="168" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="410" y="168" /><di:waypoint x="470" y="168" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="520" y="168" /><di:waypoint x="590" y="168" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+}
+
+function loadBpmnModeler() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Navigateur indisponible'));
+  if (window.BpmnJS) return Promise.resolve(window.BpmnJS);
+  if (window.__processPilotBpmnLoader) return window.__processPilotBpmnLoader;
+
+  BPMN_STYLES.forEach((href) => {
+    if (document.querySelector(`link[href="${href}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  window.__processPilotBpmnLoader = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = BPMN_MODEL_SCRIPT;
+    script.async = true;
+    script.onload = () => window.BpmnJS ? resolve(window.BpmnJS) : reject(new Error('BPMN modeler introuvable'));
+    script.onerror = () => reject(new Error('Impossible de charger bpmn-js'));
+    document.head.appendChild(script);
+  });
+  return window.__processPilotBpmnLoader;
+}
+
 function defaultData() {
   return {
     projectName: 'Optimisation du processus de clôture de compte bancaire',
     validated: { 0: true, 1: true },
+    bpmnXml: '',
     step0: {
       note: "Le processus de clôture de compte bancaire fait l'objet de nombreuses réclamations clients, liées aux délais de traitement (souvent supérieurs à 15 jours ouvrés) et à un manque de visibilité pour le client sur l'avancement de sa demande. Le périmètre pressenti couvre la clôture des comptes courants particuliers, de la demande initiale jusqu'à la restitution du solde et la fermeture définitive dans le système d'information. Sont exclus de ce périmètre les comptes professionnels, les comptes en situation de succession et les clôtures à l'initiative de la banque.",
       planning: [
@@ -231,6 +299,7 @@ function blankData() {
   return {
     projectName: '',
     validated: {},
+    bpmnXml: '',
     step0: {
       note: '',
       planning: [],
@@ -1068,6 +1137,113 @@ function FlowBuilder({ path, data, updateField, addRow, removeRow }) {
           <ul>{steps.filter(s => s.painpoint).map(s => <li key={s._id}>{s.label || 'Étape sans nom'}</li>)}</ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function BpmnAdvancedEditor({ value, onChange, projectName }) {
+  const canvasRef = useRef(null);
+  const modelerRef = useRef(null);
+  const fileRef = useRef(null);
+  const [status, setStatus] = useState('Chargement de l’éditeur BPMN…');
+  const diagramXml = value || defaultBpmnXml(projectName);
+
+  useEffect(() => {
+    let disposed = false;
+
+    loadBpmnModeler()
+      .then(async (BpmnJS) => {
+        if (disposed || !canvasRef.current) return;
+        const modeler = new BpmnJS({ container: canvasRef.current });
+        modelerRef.current = modeler;
+
+        await modeler.importXML(diagramXml);
+        modeler.get('canvas').zoom('fit-viewport', 'auto');
+        setStatus('Éditeur BPMN prêt');
+
+        modeler.on('commandStack.changed', async () => {
+          try {
+            const { xml } = await modeler.saveXML({ format: true });
+            onChange(xml);
+            setStatus('Diagramme sauvegardé');
+          } catch (e) {
+            setStatus('Sauvegarde BPMN impossible');
+          }
+        });
+      })
+      .catch(() => setStatus('Impossible de charger l’éditeur BPMN. Vérifiez la connexion internet.'));
+
+    return () => {
+      disposed = true;
+      if (modelerRef.current) {
+        modelerRef.current.destroy();
+        modelerRef.current = null;
+      }
+    };
+  }, []);
+
+  const resetDiagram = async () => {
+    const xml = defaultBpmnXml(projectName);
+    onChange(xml);
+    if (modelerRef.current) {
+      await modelerRef.current.importXML(xml);
+      modelerRef.current.get('canvas').zoom('fit-viewport', 'auto');
+      setStatus('Nouveau diagramme BPMN créé');
+    }
+  };
+
+  const exportDiagram = async () => {
+    const current = modelerRef.current;
+    const xml = current ? (await current.saveXML({ format: true })).xml : diagramXml;
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(projectName || 'processpilot').toLowerCase().replace(/[^a-z0-9]+/gi, '-')}-bpmn.bpmn`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus('Fichier BPMN exporté');
+  };
+
+  const importDiagram = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const xml = String(reader.result || '');
+      try {
+        if (modelerRef.current) {
+          await modelerRef.current.importXML(xml);
+          modelerRef.current.get('canvas').zoom('fit-viewport', 'auto');
+        }
+        onChange(xml);
+        setStatus('Fichier BPMN importé');
+      } catch (e) {
+        setStatus('Le fichier BPMN importé est invalide');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+  return (
+    <div className="bpmn-workbench">
+      <div className="bpmn-toolbar">
+        <div>
+          <strong>Éditeur BPMN avancé</strong>
+          <span>{status}</span>
+        </div>
+        <div className="bpmn-actions">
+          <button className="nav-btn" onClick={() => fileRef.current?.click()}>Importer BPMN</button>
+          <button className="nav-btn" onClick={exportDiagram}>Exporter BPMN</button>
+          <button className="nav-btn" onClick={resetDiagram}>Nouveau diagramme</button>
+          <input ref={fileRef} type="file" accept=".bpmn,.xml" onChange={importDiagram} hidden />
+        </div>
+      </div>
+      <div className="bpmn-editor-shell">
+        <div ref={canvasRef} className="bpmn-canvas" />
+      </div>
+      <p className="hint-text">Utilisez la palette à gauche du diagramme pour ajouter des événements, tâches, passerelles, sous-processus et connexions BPMN.</p>
     </div>
   );
 }
@@ -3254,6 +3430,71 @@ const CSS = `
   font-size:11.5px;
 }
 
+.theme-light .advanced-step{
+  border-top:1px solid #4F6582;
+  margin-top:8px;
+  padding-top:14px;
+}
+.theme-light .tool-tab-note{
+  color:#4B5C73;
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.theme-light .bpmn-workbench{
+  border:1px solid #B9C3D2;
+  background:#FFFFFF;
+}
+.theme-light .bpmn-toolbar{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  padding:12px 14px;
+  border-bottom:1px solid #D8DEE8;
+  background:#F6F8FB;
+}
+.theme-light .bpmn-toolbar strong{
+  display:block;
+  color:#11233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:20px;
+  font-weight:500;
+}
+.theme-light .bpmn-toolbar span{
+  display:block;
+  margin-top:4px;
+  color:#4B5C73;
+  font-size:12px;
+}
+.theme-light .bpmn-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.theme-light .bpmn-editor-shell{
+  height:620px;
+  min-height:520px;
+  border-bottom:1px solid #D8DEE8;
+  background:#FFFFFF;
+  overflow:hidden;
+}
+.theme-light .bpmn-canvas{
+  width:100%;
+  height:100%;
+}
+.theme-light .bpmn-workbench .djs-palette{
+  background:#FFFFFF;
+  border-color:#B9C3D2;
+  box-shadow:none;
+}
+.theme-light .bpmn-workbench > .hint-text{
+  margin:10px 14px 14px;
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -3579,6 +3820,7 @@ export default function App() {
     ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
     : 0;
   const appClass = 'lean-app theme-light';
+  const activeMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : STEPS[active];
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -3788,6 +4030,14 @@ export default function App() {
           <SubTitle>Retour d'expérience (REX)</SubTitle>
           <textarea rows={5} value={data.step8.rex} onChange={e => updateField('step8.rex', e.target.value)} placeholder="Réussites, difficultés, actions d'amélioration..." />
         </>);
+      case 'bpmn':
+        return (
+          <BpmnAdvancedEditor
+            value={data.bpmnXml}
+            projectName={data.projectName}
+            onChange={(xml) => updateField('bpmnXml', xml)}
+          />
+        );
       default: return null;
     }
   }
@@ -3985,6 +4235,10 @@ export default function App() {
               {data.validated[s.id] && <span className="step-stamp">✔</span>}
             </button>
           ))}
+          <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => setActive(ADVANCED_BPMN_TAB.id)}>
+            <span className="step-num">{ADVANCED_BPMN_TAB.num}</span>
+            <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
+          </button>
         </nav>
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
@@ -3995,17 +4249,21 @@ export default function App() {
       </aside>
       <main className="main">
         <div className="dossier-card">
-          <div className="eyebrow">Étape {String(active).padStart(2, '0')} — {STEPS[active].title}</div>
-          <h2>{STEPS[active].title}</h2>
-          <p className="objectif"><em>Objectif</em>{STEPS[active].objectif}</p>
-          <p className="livrable"><em>Livrables</em>{STEPS[active].livrable}</p>
+          <div className="eyebrow">{active === ADVANCED_BPMN_TAB.id ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
+          <h2>{activeMeta.title}</h2>
+          <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
+          <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
           <div className="step-actions">
-            <button className="nav-btn" disabled={active === 0} onClick={() => setActive(a => Math.max(0, a - 1))}><ChevronLeft size={16} /> Précédent</button>
-            <button className={`validate-btn ${data.validated[active] ? 'is-validated' : ''}`} onClick={() => toggleValidated(active)}>
-              {data.validated[active] ? '✔ Étape validée' : 'Marquer cette étape comme validée'}
-            </button>
-            <button className="nav-btn" disabled={active === 8} onClick={() => setActive(a => Math.min(8, a + 1))}>Suivant <ChevronRight size={16} /></button>
+            <button className="nav-btn" disabled={active === 0} onClick={() => setActive(a => a === ADVANCED_BPMN_TAB.id ? 8 : Math.max(0, a - 1))}><ChevronLeft size={16} /> Précédent</button>
+            {active !== ADVANCED_BPMN_TAB.id ? (
+              <button className={`validate-btn ${data.validated[active] ? 'is-validated' : ''}`} onClick={() => toggleValidated(active)}>
+                {data.validated[active] ? '✔ Étape validée' : 'Marquer cette étape comme validée'}
+              </button>
+            ) : (
+              <span className="tool-tab-note">Onglet optionnel, utilisable pendant ou après le projet.</span>
+            )}
+            <button className="nav-btn" disabled={active === ADVANCED_BPMN_TAB.id} onClick={() => setActive(a => a === 8 ? ADVANCED_BPMN_TAB.id : Math.min(8, a + 1))}>Suivant <ChevronRight size={16} /></button>
           </div>
         </div>
       </main>
