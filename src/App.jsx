@@ -2761,12 +2761,6 @@ const CSS = `
   font-weight:850;
   text-transform:uppercase;
 }
-.theme-light .landing-panel-head strong{
-  color:var(--ink);
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:24px;
-  font-weight:500;
-}
 .theme-light .landing-panel-metrics{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -3815,7 +3809,6 @@ export default function App() {
             <div className="landing-panel" aria-label="Aperçu du tableau de bord">
               <div className="landing-panel-head">
                 <span>Exemple portefeuille</span>
-                <strong>12 projets</strong>
               </div>
               <div className="landing-panel-metrics">
                 <div><span>Total projets</span><strong>12</strong></div>
