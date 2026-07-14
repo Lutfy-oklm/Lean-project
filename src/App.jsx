@@ -2956,18 +2956,17 @@ const CSS = `
 }
 .theme-light .objectif,
 .theme-light .livrable{
-  display:inline-block;
-  width:calc(50% - 6px);
-  min-height:82px;
+  display:block;
+  width:100%;
   vertical-align:top;
   background:#F4F8FC;
   border:1px solid #CBD7E5;
   border-left:3px solid var(--blue);
   color:var(--ink);
   font-size:12.5px;
-  line-height:1.5;
-  padding:12px 14px;
-  margin:0 8px 14px 0;
+  line-height:1.38;
+  padding:8px 11px;
+  margin:0 0 8px;
 }
 .theme-light .livrable{
   background:#F3FAF7;
@@ -2977,12 +2976,12 @@ const CSS = `
 .theme-light .objectif em,
 .theme-light .livrable em{
   color:var(--ink-soft);
-  display:block;
+  display:inline-block;
   font-family:var(--font-mono);
   font-size:10.5px;
   font-style:normal;
   font-weight:800;
-  margin-bottom:3px;
+  margin:0 8px 0 0;
   text-transform:uppercase;
 }
 .theme-light .step-body{
