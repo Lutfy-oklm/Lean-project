@@ -2617,19 +2617,19 @@ const CSS = `
 .theme-light .sidebar-head h1{
   color:#FFFFFF;
   font-family:Georgia,'Times New Roman',serif;
-  font-size:28px;
+  font-size:23px;
   font-weight:500;
   margin:4px 0 10px;
 }
 .theme-light .sidebar-brand{
   display:flex;
   align-items:center;
-  gap:13px;
-  margin:6px 0 14px;
+  gap:10px;
+  margin:4px 0 10px;
 }
 .theme-light .sidebar-logo{
-  width:48px;
-  height:48px;
+  width:34px;
+  height:34px;
   border:1px solid #3B5274;
 }
 .theme-light .sidebar-brand h1{
@@ -2657,15 +2657,15 @@ const CSS = `
 .theme-light .landing-brand{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:18px;
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:22px;
+  font-size:42px;
   font-weight:500;
 }
 .theme-light .landing-brand img{
-  width:38px;
-  height:38px;
+  width:78px;
+  height:78px;
   border:1px solid var(--line-strong);
 }
 .theme-light .landing-secondary{
