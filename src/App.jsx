@@ -2752,10 +2752,6 @@ const CSS = `
   cursor:pointer;
   text-align:left;
 }
-.theme-light .brand-home-link:hover .brand-logo{
-  border-color:#11233F;
-  opacity:.88;
-}
 .theme-light .brand-logo{
   width:58px;
   height:58px;
