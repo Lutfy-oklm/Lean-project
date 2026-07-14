@@ -3421,15 +3421,46 @@ function PrintSummary({ data }) {
 }
 
 export default function App() {
+  const initialHistoryState = typeof window !== 'undefined' ? window.history.state : null;
   const [projects, setProjects] = useState([]);
-  const [activeProjectId, setActiveProjectId] = useState(null);
-  const [view, setView] = useState('landing');
+  const [activeProjectId, setActiveProjectId] = useState(initialHistoryState?.view === 'project' ? initialHistoryState.projectId : null);
+  const [view, setView] = useState(initialHistoryState?.view || 'landing');
   const [projectQuery, setProjectQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+
+  useEffect(() => {
+    const validViews = new Set(['landing', 'dashboard', 'project']);
+    if (!window.history.state?.view) {
+      window.history.replaceState({ view: 'landing', projectId: null }, '', window.location.href);
+    }
+
+    const onPopState = (event) => {
+      const state = event.state || { view: 'landing', projectId: null };
+      const nextView = validViews.has(state.view) ? state.view : 'landing';
+      setView(nextView);
+      setActiveProjectId(nextView === 'project' ? state.projectId : null);
+      if (nextView !== 'project') setActive(0);
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigate = useCallback((nextView, projectId = null, replace = false) => {
+    const state = { view: nextView, projectId: nextView === 'project' ? projectId : null };
+    if (replace) {
+      window.history.replaceState(state, '', window.location.href);
+    } else {
+      window.history.pushState(state, '', window.location.href);
+    }
+    setView(nextView);
+    setActiveProjectId(state.projectId);
+    if (nextView !== 'project') setActive(0);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -3505,9 +3536,8 @@ export default function App() {
     setTimeout(() => { document.title = previousTitle; }, 1000);
   };
   const openProject = (id) => {
-    setActiveProjectId(id);
     setActive(0);
-    setView('project');
+    navigate('project', id);
   };
   const createNewProject = () => {
     const project = createBlankProject({
@@ -3522,9 +3552,7 @@ export default function App() {
     if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
     setProjects(prev => prev.filter(item => item._projectId !== project._projectId));
     if (activeProjectId === project._projectId) {
-      setActiveProjectId(null);
-      setActive(0);
-      setView('dashboard');
+      navigate('dashboard');
     }
   };
   const filteredProjects = projects.filter(project => (project.projectName || '').toLowerCase().includes(projectQuery.toLowerCase()));
@@ -3765,7 +3793,7 @@ export default function App() {
               <h1>Structurez vos projets processus de bout en bout.</h1>
               <p>ProcessPilot aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
               <div className="landing-actions">
-                <button className="landing-primary" onClick={() => setView('dashboard')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
+                <button className="landing-primary" onClick={() => navigate('dashboard')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
                 <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
               </div>
             </div>
@@ -3914,7 +3942,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-head">
           <div className="sidebar-top-actions">
-            <button className="back-home" onClick={() => setView('dashboard')} title="Retour au tableau de bord"><ArrowLeft size={15} /> <span>Dashboard</span></button>
+            <button className="back-home" onClick={() => navigate('dashboard')} title="Retour au tableau de bord"><ArrowLeft size={15} /> <span>Dashboard</span></button>
             <button className="collapse-btn" onClick={() => setSidebarCollapsed(v => !v)} title={sidebarCollapsed ? 'Afficher la sidebar' : 'Réduire la sidebar'}>
               {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
