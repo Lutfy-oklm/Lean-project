@@ -58,8 +58,8 @@ const BPMN_COLOR_PRESETS = [
 function defaultBpmnXml(projectName = 'Processus') {
   const name = String(projectName || 'Processus').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_ProcessPilot" targetNamespace="http://processpilot.local/schema/bpmn">
-  <bpmn:process id="Process_ProcessPilot" name="${name}" isExecutable="false">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_PilotProcess" targetNamespace="http://pilotprocess.local/schema/bpmn">
+  <bpmn:process id="Process_PilotProcess" name="${name}" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1" name="Début"><bpmn:outgoing>Flow_1</bpmn:outgoing></bpmn:startEvent>
     <bpmn:task id="Task_1" name="Activité à modéliser"><bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing></bpmn:task>
     <bpmn:exclusiveGateway id="Gateway_1" name="Décision"><bpmn:incoming>Flow_2</bpmn:incoming><bpmn:outgoing>Flow_3</bpmn:outgoing></bpmn:exclusiveGateway>
@@ -68,8 +68,8 @@ function defaultBpmnXml(projectName = 'Processus') {
     <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Gateway_1" />
     <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="EndEvent_1" />
   </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_ProcessPilot">
-    <bpmndi:BPMNPlane id="BPMNPlane_ProcessPilot" bpmnElement="Process_ProcessPilot">
+  <bpmndi:BPMNDiagram id="BPMNDiagram_PilotProcess">
+    <bpmndi:BPMNPlane id="BPMNPlane_PilotProcess" bpmnElement="Process_PilotProcess">
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1"><dc:Bounds x="170" y="150" width="36" height="36" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1"><dc:Bounds x="260" y="128" width="150" height="80" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1_di" bpmnElement="Gateway_1" isMarkerVisible="true"><dc:Bounds x="470" y="143" width="50" height="50" /></bpmndi:BPMNShape>
@@ -122,7 +122,7 @@ function loadJsPdf() {
   return window.__processPilotJsPdfLoader;
 }
 
-function slugFileName(value, fallback = 'processpilot') {
+function slugFileName(value, fallback = 'pilotprocess') {
   return (value || fallback).toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || fallback;
 }
 
@@ -1318,7 +1318,7 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${(projectName || 'processpilot').toLowerCase().replace(/[^a-z0-9]+/gi, '-')}-bpmn.bpmn`;
+    link.download = `${(projectName || 'pilotprocess').toLowerCase().replace(/[^a-z0-9]+/gi, '-')}-bpmn.bpmn`;
     link.click();
     URL.revokeObjectURL(url);
     setStatus('Fichier BPMN exporté');
@@ -3778,7 +3778,7 @@ const CSS = `
   .lean-app{ display:block; height:auto; max-height:none; border:none; position:absolute; left:0; top:0; width:100%; background:#fff!important; color:#10233F; }
   .sidebar, .main{ display:none; }
   .print-only{ display:block; font-family:var(--font-body); color:var(--ink); }
-  .print-only::before{ content:"ProcessPilot"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
+  .print-only::before{ content:"PilotProcess"; display:block; font-family:var(--font-mono); font-size:10px; color:#2F6F63; text-transform:uppercase; letter-spacing:.08em; border-bottom:2px solid #10233F; padding-bottom:8px; margin-bottom:16px; }
   .print-only h1{ font-family:var(--font-display); font-size:28px; line-height:1.12; margin:0 0 5px; color:#10233F; }
   .print-subtitle{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .print-step{ page-break-inside:avoid; break-inside:avoid; margin-bottom:18px; border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#fff; }
@@ -3868,7 +3868,7 @@ function PrintSummary({ data }) {
   return (
     <div className="print-only">
       <h1>{data.projectName || 'Projet Lean'}</h1>
-      <p className="print-subtitle">ProcessPilot — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
+      <p className="print-subtitle">PilotProcess — dossier de synthèse — {new Date().toLocaleDateString('fr-FR')}</p>
 
       <section className="print-step">
         <h2>Étape 00 — Préparer</h2>
@@ -4328,8 +4328,8 @@ export default function App() {
         <main className="landing-page">
           <nav className="landing-nav">
             <div className="landing-brand">
-              <img src="/processpilot-logo.svg" alt="" />
-              <span>ProcessPilot</span>
+              <img src="/pilotprocess-logo.svg" alt="" />
+              <span>PilotProcess</span>
             </div>
           </nav>
 
@@ -4337,7 +4337,7 @@ export default function App() {
             <div className="landing-copy">
               <div className="landing-kicker">Pilotage des démarches d'amélioration</div>
               <h1>Structurez vos projets processus de bout en bout.</h1>
-              <p>ProcessPilot aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
+              <p>PilotProcess aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
               <div className="landing-actions">
                 <button className="landing-primary" onClick={() => navigate('dashboard')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
                 <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
@@ -4401,10 +4401,10 @@ export default function App() {
           <header className="home-hero">
             <div>
               <button className="brand-lockup brand-home-link" onClick={() => navigate('landing')} title="Retour à l'accueil">
-                <img src="/processpilot-logo.svg" alt="" className="brand-logo" />
+                <img src="/pilotprocess-logo.svg" alt="" className="brand-logo" />
                 <div>
                   <div className="home-kicker">Tableau de bord</div>
-                  <h1>ProcessPilot</h1>
+                  <h1>PilotProcess</h1>
                 </div>
               </button>
               <p>Un espace de pilotage clair pour cadrer, analyser, prioriser et suivre vos démarches d'amélioration de processus, quel que soit le secteur.</p>
@@ -4498,8 +4498,8 @@ export default function App() {
           </div>
           <div className="sidebar-expanded-only">
             <div className="sidebar-brand">
-              <img src="/processpilot-logo.svg" alt="" className="sidebar-logo" />
-              <h1>ProcessPilot</h1>
+              <img src="/pilotprocess-logo.svg" alt="" className="sidebar-logo" />
+              <h1>PilotProcess</h1>
             </div>
             <input className="project-name" placeholder="Nom du projet…" value={data.projectName} onChange={e => updateField('projectName', e.target.value)} />
             <div className="progress-line"><div className="progress-fill" style={{ width: `${(validatedCount / 9) * 100}%` }} /></div>
