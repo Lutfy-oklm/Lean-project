@@ -4095,6 +4095,10 @@ export default function App() {
     setActive(0);
     navigate('project', id);
   };
+  const goToStep = useCallback((stepId) => {
+    setActive(stepId);
+    scrollAppToTop();
+  }, []);
   const createNewProject = () => {
     const project = createBlankProject({
       projectName: `Nouveau projet d'amélioration ${projects.length + 1}`,
@@ -4531,13 +4535,13 @@ export default function App() {
         </div>
         <nav className="steps-nav">
           {STEPS.map(s => (
-            <button key={s.id} className={`step-item ${active === s.id ? 'is-active' : ''}`} onClick={() => setActive(s.id)}>
+            <button key={s.id} className={`step-item ${active === s.id ? 'is-active' : ''}`} onClick={() => goToStep(s.id)}>
               <span className="step-num">{String(s.id).padStart(2, '0')}</span>
               <span className="step-title">{s.title}</span>
               {data.validated[s.id] && <span className="step-stamp">✔</span>}
             </button>
           ))}
-          <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => setActive(ADVANCED_BPMN_TAB.id)}>
+          <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => goToStep(ADVANCED_BPMN_TAB.id)}>
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
@@ -4558,11 +4562,11 @@ export default function App() {
           <div className="step-body">{renderStep()}</div>
           {active !== ADVANCED_BPMN_TAB.id && (
             <div className="step-actions">
-              <button className="nav-btn" disabled={active === 0} onClick={() => setActive(a => Math.max(0, a - 1))}><ChevronLeft size={16} /> Précédent</button>
+              <button className="nav-btn" disabled={active === 0} onClick={() => goToStep(Math.max(0, active - 1))}><ChevronLeft size={16} /> Précédent</button>
               <button className={`validate-btn ${data.validated[active] ? 'is-validated' : ''}`} onClick={() => toggleValidated(active)}>
                 {data.validated[active] ? '✔ Étape validée' : 'Marquer cette étape comme validée'}
               </button>
-              <button className="nav-btn" onClick={() => setActive(a => a === 8 ? ADVANCED_BPMN_TAB.id : Math.min(8, a + 1))}>Suivant <ChevronRight size={16} /></button>
+              <button className="nav-btn" onClick={() => goToStep(active === 8 ? ADVANCED_BPMN_TAB.id : Math.min(8, active + 1))}>Suivant <ChevronRight size={16} /></button>
             </div>
           )}
         </div>
