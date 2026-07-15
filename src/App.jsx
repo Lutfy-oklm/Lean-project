@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash2
+  FolderKanban, GitBranch, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -3624,6 +3624,17 @@ const CSS = `
   margin-top:8px;
   padding-top:14px;
 }
+.theme-light .advanced-step-icon{
+  flex:0 0 auto;
+  color:#2F756A;
+}
+.theme-light.sidebar-collapsed .advanced-step{
+  border-top:0;
+  padding-top:0;
+}
+.theme-light.sidebar-collapsed .advanced-step .advanced-step-icon{
+  color:#2F756A;
+}
 .theme-light .optional-badge{
   display:inline-flex;
   align-items:center;
@@ -4515,6 +4526,7 @@ export default function App() {
             </button>
           ))}
           <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => setActive(ADVANCED_BPMN_TAB.id)}>
+            <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
         </nav>
