@@ -3863,6 +3863,16 @@ function PrintTable({ title, columns, rows }) {
   );
 }
 
+function scrollAppToTop() {
+  if (typeof window === 'undefined') return;
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.main, .project-home, .landing-page').forEach(element => {
+      element.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  });
+}
+
 function PrintSummary({ data }) {
   const raciRoles = (data.step1.raci && data.step1.raci.roles) || [];
   const raciRows = (data.step1.raci && data.step1.raci.activites || []).map(a => ({
@@ -3988,6 +3998,7 @@ export default function App() {
       setView(nextView);
       setActiveProjectId(nextView === 'project' ? state.projectId : null);
       if (nextView !== 'project') setActive(0);
+      scrollAppToTop();
     };
 
     window.addEventListener('popstate', onPopState);
@@ -4004,6 +4015,7 @@ export default function App() {
     setView(nextView);
     setActiveProjectId(state.projectId);
     if (nextView !== 'project') setActive(0);
+    scrollAppToTop();
   }, []);
 
   useEffect(() => {
