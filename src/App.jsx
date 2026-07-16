@@ -3905,7 +3905,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     doc.rect(x, y, s, s, 'F');
 
     doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(s * 0.075);
+    doc.setLineWidth(s * 0.08);
     doc.setLineCap('square');
     doc.setLineJoin('round');
     doc.line(x + s * 0.29, y + s * 0.25, x + s * 0.29, y + s * 0.75);
@@ -4115,12 +4115,14 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   doc.rect(0, 0, pageWidth, 44, 'F');
   doc.setFillColor(...accent);
   doc.rect(0, 44, pageWidth, 2, 'F');
-  drawPilotProcessLogo(pageWidth - margin - 18, 14, 18);
+  const coverLogoSize = 16;
+  drawPilotProcessLogo(pageWidth - margin - coverLogoSize, 12, coverLogoSize);
   setText(9, 'bold', [222, 231, 243]);
   doc.text('DOSSIER PROJET', margin, 18);
   setText(24, 'bold', [255, 255, 255]);
-  const coverTitle = doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), contentWidth - 2);
-  doc.text(coverTitle, margin, 31, { maxWidth: contentWidth - 2 });
+  const coverTitleWidth = contentWidth - coverLogoSize - 18;
+  const coverTitle = doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), coverTitleWidth);
+  doc.text(coverTitle, margin, 31, { maxWidth: coverTitleWidth });
   y = Math.max(58, 31 + coverTitle.length * 8 + 10);
 
   const progressPct = Math.round((validatedCount / 9) * 100);
