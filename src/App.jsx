@@ -3873,6 +3873,336 @@ function scrollAppToTop() {
   });
 }
 
+function cleanPdfText(value) {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
+  return String(value).replace(/\s+/g, ' ').trim();
+}
+
+function generateProjectPdf(jsPDF, data, validatedCount) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 16;
+  const contentWidth = pageWidth - margin * 2;
+  const ink = [16, 35, 63];
+  const muted = [80, 96, 119];
+  const line = [205, 214, 226];
+  const soft = [246, 248, 251];
+  const accent = [47, 111, 99];
+  let y = margin;
+  let page = 1;
+
+  const setText = (size = 10, style = 'normal', color = ink) => {
+    doc.setFont('helvetica', style);
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+  };
+
+  const footer = () => {
+    doc.setDrawColor(...line);
+    doc.line(margin, pageHeight - 13, pageWidth - margin, pageHeight - 13);
+    setText(8, 'normal', muted);
+    doc.text('PilotProcess - Dossier projet', margin, pageHeight - 8);
+    doc.text(String(page), pageWidth - margin, pageHeight - 8, { align: 'right' });
+  };
+
+  const newPage = () => {
+    footer();
+    doc.addPage();
+    page += 1;
+    y = margin;
+  };
+
+  const ensureSpace = (height) => {
+    if (y + height > pageHeight - 18) newPage();
+  };
+
+  const sectionTitle = (title) => {
+    ensureSpace(18);
+    y += 4;
+    doc.setFillColor(...ink);
+    doc.rect(margin, y, 2, 9, 'F');
+    setText(15, 'bold', ink);
+    doc.text(title, margin + 5, y + 7);
+    y += 15;
+  };
+
+  const subTitle = (title) => {
+    ensureSpace(12);
+    setText(10, 'bold', muted);
+    doc.text(title.toUpperCase(), margin, y);
+    doc.setDrawColor(...line);
+    doc.line(margin, y + 3, pageWidth - margin, y + 3);
+    y += 9;
+  };
+
+  const field = (label, value) => {
+    const text = cleanPdfText(value);
+    if (!text) return;
+    const lines = doc.splitTextToSize(text, contentWidth - 4);
+    const height = 12 + lines.length * 4.8;
+    ensureSpace(height);
+    doc.setFillColor(...soft);
+    doc.setDrawColor(...line);
+    doc.roundedRect(margin, y, contentWidth, height, 1.5, 1.5, 'FD');
+    setText(7.5, 'bold', muted);
+    doc.text(cleanPdfText(label).toUpperCase(), margin + 3, y + 5);
+    setText(10, 'normal', ink);
+    doc.text(lines, margin + 3, y + 11);
+    y += height + 3;
+  };
+
+  const table = (title, columns, rows = []) => {
+    const visibleRows = (rows || []).filter(Boolean);
+    if (!visibleRows.length) return;
+    subTitle(title);
+    const gap = 1;
+    const colWidth = (contentWidth - gap * (columns.length - 1)) / columns.length;
+    const widths = columns.map(col => col.width ? contentWidth * col.width : colWidth);
+    const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+    const ratio = totalWidth > contentWidth ? contentWidth / totalWidth : 1;
+    const finalWidths = widths.map(width => width * ratio);
+
+    ensureSpace(12);
+    doc.setFillColor(...ink);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    let x = margin;
+    setText(7.2, 'bold', [255, 255, 255]);
+    columns.forEach((col, index) => {
+      doc.text(cleanPdfText(col.label).toUpperCase(), x + 2, y + 5.2, { maxWidth: finalWidths[index] - 4 });
+      x += finalWidths[index];
+    });
+    y += 8;
+
+    visibleRows.forEach((row, rowIndex) => {
+      const cells = columns.map((col, index) => {
+        const raw = col.render ? col.render(row) : row[col.key];
+        return doc.splitTextToSize(cleanPdfText(raw) || '-', finalWidths[index] - 4);
+      });
+      const rowHeight = Math.max(9, ...cells.map(lines => lines.length * 4.2 + 5));
+      ensureSpace(rowHeight + 2);
+      doc.setFillColor(rowIndex % 2 === 0 ? 255 : 249, rowIndex % 2 === 0 ? 255 : 250, rowIndex % 2 === 0 ? 255 : 252);
+      doc.setDrawColor(...line);
+      doc.rect(margin, y, contentWidth, rowHeight, 'FD');
+      x = margin;
+      setText(8.5, 'normal', ink);
+      cells.forEach((lines, index) => {
+        doc.text(lines, x + 2, y + 5.5);
+        x += finalWidths[index];
+      });
+      y += rowHeight;
+    });
+    y += 4;
+  };
+
+  const charte = data.step1?.charte || {};
+  const raciRoles = data.step1?.raci?.roles || [];
+  const raciRows = (data.step1?.raci?.activites || []).map(activity => ({
+    ...activity,
+    ...raciRoles.reduce((acc, role) => ({ ...acc, [role]: activity.assign?.[role] || '-' }), {}),
+  }));
+  const totalTrait = (data.step3?.vsm || []).reduce((sum, row) => sum + (Number(row.tempsTraitement) || 0), 0);
+  const totalAttente = (data.step3?.vsm || []).reduce((sum, row) => sum + (Number(row.tempsAttente) || 0), 0);
+  const leadTime = totalTrait + totalAttente;
+  const vaPct = leadTime > 0 ? Math.round((totalTrait / leadTime) * 1000) / 10 : 0;
+  const bc = data.step6?.businessCase || {};
+  const ishikawa = data.step4?.ishikawa || {};
+  const fiveWhy = data.step4?.fivewhy || {};
+
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
+  doc.setFillColor(...ink);
+  doc.rect(0, 0, pageWidth, 44, 'F');
+  doc.setFillColor(...accent);
+  doc.rect(0, 44, pageWidth, 2, 'F');
+  setText(9, 'bold', [222, 231, 243]);
+  doc.text('DOSSIER PROJET', margin, 18);
+  setText(26, 'bold', [255, 255, 255]);
+  doc.text(doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), contentWidth), margin, 31);
+  y = 58;
+
+  const progressPct = Math.round((validatedCount / 9) * 100);
+  doc.setFillColor(...soft);
+  doc.setDrawColor(...line);
+  doc.roundedRect(margin, y, contentWidth, 31, 2, 2, 'FD');
+  setText(8, 'bold', muted);
+  doc.text('SOLUTION', margin + 5, y + 8);
+  doc.text('DATE', margin + 70, y + 8);
+  doc.text('AVANCEMENT', margin + 125, y + 8);
+  setText(14, 'bold', ink);
+  doc.text('PilotProcess', margin + 5, y + 19);
+  doc.text(new Date().toLocaleDateString('fr-FR'), margin + 70, y + 19);
+  doc.text(`${progressPct}%`, margin + 125, y + 19);
+  setText(8.5, 'normal', muted);
+  doc.text(`${validatedCount}/9 etapes validees`, margin + 125, y + 26);
+  y += 42;
+
+  field('Synthese du probleme', charte.probleme || data.step0?.note);
+  field('Objectifs SMART', charte.objectifs);
+  field('Perimetre inclus', charte.perimetreIn);
+  field('Gains attendus', charte.gains);
+
+  newPage();
+  sectionTitle('00 - Preparer');
+  field('Note de cadrage initiale', data.step0?.note);
+  table('Planning macro', [
+    { key: 'phase', label: 'Phase' },
+    { key: 'debut', label: 'Debut' },
+    { key: 'fin', label: 'Fin' },
+    { key: 'responsable', label: 'Responsable' },
+  ], data.step0?.planning);
+  table('Parties prenantes', [
+    { key: 'nom', label: 'Nom' },
+    { key: 'role', label: 'Role' },
+    { key: 'service', label: 'Service' },
+    { key: 'interet', label: 'Position' },
+    { key: 'influence', label: 'Influence' },
+  ], data.step0?.parties);
+
+  sectionTitle('01 - Cadrer');
+  [
+    ['Titre du projet', charte.titre],
+    ['Sponsor', charte.sponsor],
+    ['Probleme initial', charte.probleme],
+    ['Objectifs SMART', charte.objectifs],
+    ['Perimetre inclus', charte.perimetreIn],
+    ['Perimetre exclu', charte.perimetreOut],
+    ['Contraintes', charte.contraintes],
+    ['Risques principaux', charte.risques],
+    ['Budget estime', charte.budget],
+    ['Date de debut', charte.dateDebut],
+    ['Date de fin cible', charte.dateFin],
+    ['Gains attendus', charte.gains],
+  ].forEach(([label, value]) => field(label, value));
+  table('SIPOC', [
+    { key: 'supplier', label: 'Fournisseurs' },
+    { key: 'input', label: 'Entrees' },
+    { key: 'process', label: 'Processus' },
+    { key: 'output', label: 'Sorties' },
+    { key: 'customer', label: 'Clients' },
+  ], data.step1?.sipoc);
+  table('RACI', [{ key: 'nom', label: 'Activite', width: 0.32 }, ...raciRoles.map(role => ({ key: role, label: role }))], raciRows);
+
+  sectionTitle('02 - Observer');
+  table('Guide d entretien', [{ key: 'question', label: 'Question' }], data.step2?.questions);
+  table('Journal d observation', [
+    { key: 'date', label: 'Date' },
+    { key: 'lieu', label: 'Lieu' },
+    { key: 'observateur', label: 'Observateur' },
+    { key: 'type', label: 'Type' },
+    { key: 'constat', label: 'Constat', width: 0.34 },
+  ], data.step2?.journal);
+
+  sectionTitle('03 - Cartographier');
+  table('Referentiel de processus', [
+    { key: 'processus', label: 'Processus' },
+    { key: 'macro', label: 'Macro' },
+    { key: 'niveau', label: 'Niveau' },
+    { key: 'proprietaire', label: 'Proprietaire' },
+    { key: 'systeme', label: 'Systeme' },
+  ], data.step3?.referentiel);
+  table('Cartographie AS-IS', [
+    { key: 'label', label: 'Etape' },
+    { key: 'type', label: 'Type' },
+    { key: 'acteur', label: 'Acteur' },
+    { key: 'systeme', label: 'Systeme' },
+    { key: 'painpoint', label: 'Douleur', render: row => row.painpoint ? 'Oui' : '-' },
+  ], data.step3?.flow);
+  table('VSM', [
+    { key: 'etape', label: 'Etape' },
+    { key: 'tempsTraitement', label: 'Traitement min' },
+    { key: 'tempsAttente', label: 'Attente min' },
+  ], data.step3?.vsm);
+  field('Lead time total', `${leadTime} min`);
+  field('Pourcentage valeur ajoutee', `${vaPct}%`);
+
+  sectionTitle('04 - Analyser');
+  table('Pareto des causes', [
+    { key: 'cause', label: 'Cause' },
+    { key: 'occurrences', label: 'Occurrences' },
+  ], data.step4?.pareto);
+  Object.entries(ishikawa).forEach(([branch, causes]) => field(`Ishikawa - ${branch}`, (causes || []).join(', ')));
+  field('5 Pourquoi - Probleme', fiveWhy.probleme);
+  [1, 2, 3, 4, 5].forEach(index => field(`Pourquoi ${index}`, fiveWhy[`why${index}`]));
+  field('Cause racine', fiveWhy.causeRacine);
+  field('Action corrective', fiveWhy.action);
+  table('AMDEC', [
+    { key: 'mode', label: 'Mode de defaillance' },
+    { key: 'effet', label: 'Effet' },
+    { key: 'cause', label: 'Cause' },
+    { key: 'crit', label: 'Criticite', render: row => (Number(row.F) || 0) * (Number(row.G) || 0) * (Number(row.D) || 0) },
+    { key: 'actions', label: 'Actions' },
+  ], data.step4?.amdec);
+
+  sectionTitle('05 - Prioriser');
+  table('Backlog d actions', [
+    { key: 'action', label: 'Action', width: 0.32 },
+    { key: 'impact', label: 'Impact' },
+    { key: 'effort', label: 'Effort' },
+    { key: 'responsable', label: 'Responsable' },
+    { key: 'echeance', label: 'Echeance' },
+    { key: 'statut', label: 'Statut' },
+  ], data.step5?.actions);
+
+  sectionTitle('06 - Concevoir');
+  table('Cartographie cible TO-BE', [
+    { key: 'label', label: 'Etape' },
+    { key: 'type', label: 'Type' },
+    { key: 'acteur', label: 'Acteur' },
+    { key: 'systeme', label: 'Systeme' },
+  ], data.step6?.flow);
+  field('Gains annuels estimes', bc.gains ? `${bc.gains} EUR` : '');
+  field('Cout d investissement', bc.couts ? `${bc.couts} EUR` : '');
+  field('Retour sur investissement', roiText(bc));
+  field('Risques', bc.risques);
+  table('Feuille de route', [
+    { key: 'phase', label: 'Phase' },
+    { key: 'debut', label: 'Debut' },
+    { key: 'fin', label: 'Fin' },
+    { key: 'responsable', label: 'Responsable' },
+    { key: 'livrable', label: 'Livrable' },
+  ], data.step6?.roadmap);
+
+  sectionTitle('07 - Deployer');
+  table('Plan d action', [
+    { key: 'action', label: 'Action', width: 0.34 },
+    { key: 'responsable', label: 'Responsable' },
+    { key: 'echeance', label: 'Echeance' },
+    { key: 'statut', label: 'Statut' },
+  ], data.step7?.plan);
+  table('Conduite du changement', [
+    { key: 'item', label: 'Element' },
+    { key: 'done', label: 'Fait', render: row => row.done ? 'Oui' : 'Non' },
+  ], data.step7?.changement);
+  field('PV de recette', data.step7?.recette);
+
+  sectionTitle('08 - Controler');
+  table('KPI', [
+    { key: 'nom', label: 'KPI' },
+    { key: 'unite', label: 'Unite' },
+    { key: 'cible', label: 'Cible' },
+    { key: 'actuel', label: 'Actuel' },
+    { key: 'frequence', label: 'Frequence' },
+  ], data.step8?.kpis);
+  table('Rituels de pilotage', [
+    { key: 'nom', label: 'Rituel' },
+    { key: 'frequence', label: 'Frequence' },
+    { key: 'participants', label: 'Participants' },
+    { key: 'objet', label: 'Objet' },
+  ], data.step8?.rituels);
+  table('Plan de controle', [
+    { key: 'point', label: 'Point de controle' },
+    { key: 'frequence', label: 'Frequence' },
+    { key: 'responsable', label: 'Responsable' },
+    { key: 'seuil', label: 'Seuil d alerte' },
+  ], data.step8?.controle);
+  field('REX', data.step8?.rex);
+
+  footer();
+  doc.save(`${slugFileName(data.projectName, 'dossier-pilotprocess')}-dossier.pdf`);
+}
+
 function PrintSummary({ data }) {
   const raciRoles = (data.step1.raci && data.step1.raci.roles) || [];
   const raciRows = (data.step1.raci && data.step1.raci.activites || []).map(a => ({
@@ -4085,11 +4415,14 @@ export default function App() {
       setProjects(prev => prev.map(project => project._projectId === activeProjectId ? createBlankProject({ _projectId: activeProjectId }) : project));
     }
   };
-  const exportPdf = () => {
-    const previousTitle = document.title;
-    document.title = `${(data.projectName || 'projet-lean').replace(/\s+/g, '_')}_dossier_lean`;
-    window.print();
-    setTimeout(() => { document.title = previousTitle; }, 1000);
+  const exportPdf = async () => {
+    try {
+      const jsPDF = await loadJsPdf();
+      generateProjectPdf(jsPDF, data, validatedCount);
+    } catch (error) {
+      console.error('Erreur export PDF', error);
+      window.alert("Le PDF n'a pas pu etre genere. Verifiez votre connexion puis reessayez.");
+    }
   };
   const openProject = (id) => {
     setActive(0);
@@ -4548,7 +4881,7 @@ export default function App() {
         </nav>
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
-          <div className="pdf-hint">Un dossier structuré s’ouvre en aperçu. Choisissez “Enregistrer au format PDF”.</div>
+          <div className="pdf-hint">Génère un dossier projet structuré, prêt à partager.</div>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
         </div>
