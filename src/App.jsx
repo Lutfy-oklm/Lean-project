@@ -3899,11 +3899,47 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     doc.setTextColor(...color);
   };
 
+  const drawPilotProcessLogo = (x, y, size) => {
+    const s = size;
+    doc.setFillColor(...ink);
+    doc.rect(x, y, s, s, 'F');
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(s * 0.075);
+    doc.setLineCap('square');
+    doc.setLineJoin('round');
+    doc.line(x + s * 0.29, y + s * 0.25, x + s * 0.29, y + s * 0.75);
+    doc.line(x + s * 0.29, y + s * 0.25, x + s * 0.54, y + s * 0.25);
+    doc.line(x + s * 0.54, y + s * 0.25, x + s * 0.73, y + s * 0.42);
+    doc.line(x + s * 0.73, y + s * 0.42, x + s * 0.54, y + s * 0.60);
+    doc.line(x + s * 0.54, y + s * 0.60, x + s * 0.40, y + s * 0.60);
+
+    doc.setFillColor(...accent);
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(s * 0.025);
+    const diamond = [
+      [x + s * 0.50, y + s * 0.36],
+      [x + s * 0.62, y + s * 0.48],
+      [x + s * 0.50, y + s * 0.60],
+      [x + s * 0.38, y + s * 0.48],
+    ];
+    doc.lines(diamond.slice(1).map((point, index) => [point[0] - diamond[index][0], point[1] - diamond[index][1]]), diamond[0][0], diamond[0][1], [1, 1], 'FD', true);
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(s * 0.035);
+    doc.line(x + s * 0.39, y + s * 0.48, x + s * 0.67, y + s * 0.48);
+
+    doc.setFillColor(179, 107, 30);
+    doc.circle(x + s * 0.29, y + s * 0.25, s * 0.045, 'F');
+    doc.circle(x + s * 0.29, y + s * 0.75, s * 0.045, 'F');
+  };
+
   const footer = () => {
     doc.setDrawColor(...line);
     doc.line(margin, pageHeight - 13, pageWidth - margin, pageHeight - 13);
+    drawPilotProcessLogo(margin, pageHeight - 11.5, 5);
     setText(8, 'normal', muted);
-    doc.text('PilotProcess - Dossier projet', margin, pageHeight - 8);
+    doc.text('PilotProcess - Dossier projet', margin + 7, pageHeight - 8);
     doc.text(String(page), pageWidth - margin, pageHeight - 8, { align: 'right' });
   };
 
@@ -4079,6 +4115,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   doc.rect(0, 0, pageWidth, 44, 'F');
   doc.setFillColor(...accent);
   doc.rect(0, 44, pageWidth, 2, 'F');
+  drawPilotProcessLogo(pageWidth - margin - 18, 14, 18);
   setText(9, 'bold', [222, 231, 243]);
   doc.text('DOSSIER PROJET', margin, 18);
   setText(24, 'bold', [255, 255, 255]);
