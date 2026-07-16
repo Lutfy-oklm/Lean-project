@@ -3920,16 +3920,16 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
 
   const sectionTitle = (title) => {
     ensureSpace(18);
-    y += 4;
+    y += y === margin ? 0 : 5;
     doc.setFillColor(...ink);
     doc.rect(margin, y, 2, 9, 'F');
     setText(15, 'bold', ink);
     doc.text(title, margin + 5, y + 7);
-    y += 15;
+    y += 14;
   };
 
   const subTitle = (title) => {
-    ensureSpace(12);
+    ensureSpace(22);
     setText(10, 'bold', muted);
     doc.text(title.toUpperCase(), margin, y);
     doc.setDrawColor(...line);
@@ -3937,25 +3937,80 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     y += 9;
   };
 
+  const drawField = (x, startY, width, label, value, compact = false) => {
+    const text = cleanPdfText(value);
+    if (!text) return 0;
+    const paddingX = 3.5;
+    const bodySize = compact ? 8.4 : 8.8;
+    setText(bodySize, 'normal', ink);
+    const lines = doc.splitTextToSize(text, width - paddingX * 2);
+    const height = Math.max(compact ? 17 : 20, 10 + lines.length * 4.5);
+    doc.setFillColor(...soft);
+    doc.setDrawColor(...line);
+    doc.roundedRect(x, startY, width, height, 1.5, 1.5, 'FD');
+    setText(7.5, 'bold', muted);
+    doc.text(cleanPdfText(label).toUpperCase(), x + paddingX, startY + 5);
+    setText(bodySize, 'normal', ink);
+    doc.text(lines, x + paddingX, startY + 11, { maxWidth: width - paddingX * 2 });
+    return height;
+  };
+
   const field = (label, value) => {
     const text = cleanPdfText(value);
     if (!text) return;
-    const lines = doc.splitTextToSize(text, contentWidth - 4);
-    const height = 12 + lines.length * 4.8;
-    ensureSpace(height);
-    doc.setFillColor(...soft);
-    doc.setDrawColor(...line);
-    doc.roundedRect(margin, y, contentWidth, height, 1.5, 1.5, 'FD');
-    setText(7.5, 'bold', muted);
-    doc.text(cleanPdfText(label).toUpperCase(), margin + 3, y + 5);
-    setText(10, 'normal', ink);
-    doc.text(lines, margin + 3, y + 11);
-    y += height + 3;
+    setText(8.8, 'normal', ink);
+    const lines = doc.splitTextToSize(text, contentWidth - 7);
+    const height = Math.max(20, 10 + lines.length * 4.5);
+    ensureSpace(height + 4);
+    drawField(margin, y, contentWidth, label, text);
+    y += height + 4;
+  };
+
+  const fieldGrid = (items) => {
+    const fields = items.map(([label, value]) => [label, cleanPdfText(value)]).filter(([, value]) => value);
+    const colGap = 4;
+    const colWidth = (contentWidth - colGap) / 2;
+    let pending = null;
+
+    const flushPending = () => {
+      if (!pending) return;
+      setText(8.4, 'normal', ink);
+      const lines = doc.splitTextToSize(pending[1], colWidth - 7);
+      const height = Math.max(17, 10 + lines.length * 4.5);
+      ensureSpace(height + 4);
+      drawField(margin, y, colWidth, pending[0], pending[1], true);
+      y += height + 4;
+      pending = null;
+    };
+
+    fields.forEach(([label, value]) => {
+      const isLong = value.length > 105;
+      if (isLong) {
+        flushPending();
+        field(label, value);
+        return;
+      }
+      if (!pending) {
+        pending = [label, value];
+        return;
+      }
+      setText(8.4, 'normal', ink);
+      const leftLines = doc.splitTextToSize(pending[1], colWidth - 7);
+      const rightLines = doc.splitTextToSize(value, colWidth - 7);
+      const rowHeight = Math.max(17, 10 + Math.max(leftLines.length, rightLines.length) * 4.5);
+      ensureSpace(rowHeight + 4);
+      drawField(margin, y, colWidth, pending[0], pending[1], true);
+      drawField(margin + colWidth + colGap, y, colWidth, label, value, true);
+      y += rowHeight + 4;
+      pending = null;
+    });
+    flushPending();
   };
 
   const table = (title, columns, rows = []) => {
     const visibleRows = (rows || []).filter(Boolean);
     if (!visibleRows.length) return;
+    ensureSpace(28);
     subTitle(title);
     const gap = 1;
     const colWidth = (contentWidth - gap * (columns.length - 1)) / columns.length;
@@ -3964,31 +4019,39 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     const ratio = totalWidth > contentWidth ? contentWidth / totalWidth : 1;
     const finalWidths = widths.map(width => width * ratio);
 
-    ensureSpace(12);
-    doc.setFillColor(...ink);
-    doc.rect(margin, y, contentWidth, 8, 'F');
-    let x = margin;
-    setText(7.2, 'bold', [255, 255, 255]);
-    columns.forEach((col, index) => {
-      doc.text(cleanPdfText(col.label).toUpperCase(), x + 2, y + 5.2, { maxWidth: finalWidths[index] - 4 });
-      x += finalWidths[index];
-    });
-    y += 8;
+    const drawTableHeader = () => {
+      ensureSpace(18);
+      doc.setFillColor(...ink);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      let headerX = margin;
+      setText(7.2, 'bold', [255, 255, 255]);
+      columns.forEach((col, index) => {
+        doc.text(cleanPdfText(col.label).toUpperCase(), headerX + 2, y + 5.2, { maxWidth: finalWidths[index] - 4 });
+        headerX += finalWidths[index];
+      });
+      y += 8;
+    };
+
+    drawTableHeader();
 
     visibleRows.forEach((row, rowIndex) => {
+      setText(8, 'normal', ink);
       const cells = columns.map((col, index) => {
         const raw = col.render ? col.render(row) : row[col.key];
         return doc.splitTextToSize(cleanPdfText(raw) || '-', finalWidths[index] - 4);
       });
-      const rowHeight = Math.max(9, ...cells.map(lines => lines.length * 4.2 + 5));
-      ensureSpace(rowHeight + 2);
+      const rowHeight = Math.max(9, ...cells.map(lines => lines.length * 3.9 + 5));
+      if (y + rowHeight > pageHeight - 18) {
+        newPage();
+        drawTableHeader();
+      }
       doc.setFillColor(rowIndex % 2 === 0 ? 255 : 249, rowIndex % 2 === 0 ? 255 : 250, rowIndex % 2 === 0 ? 255 : 252);
       doc.setDrawColor(...line);
       doc.rect(margin, y, contentWidth, rowHeight, 'FD');
-      x = margin;
-      setText(8.5, 'normal', ink);
+      let x = margin;
+      setText(8, 'normal', ink);
       cells.forEach((lines, index) => {
-        doc.text(lines, x + 2, y + 5.5);
+        doc.text(lines, x + 2, y + 5.2, { maxWidth: finalWidths[index] - 4 });
         x += finalWidths[index];
       });
       y += rowHeight;
@@ -4018,9 +4081,10 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   doc.rect(0, 44, pageWidth, 2, 'F');
   setText(9, 'bold', [222, 231, 243]);
   doc.text('DOSSIER PROJET', margin, 18);
-  setText(26, 'bold', [255, 255, 255]);
-  doc.text(doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), contentWidth), margin, 31);
-  y = 58;
+  setText(24, 'bold', [255, 255, 255]);
+  const coverTitle = doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), contentWidth - 2);
+  doc.text(coverTitle, margin, 31, { maxWidth: contentWidth - 2 });
+  y = Math.max(58, 31 + coverTitle.length * 8 + 10);
 
   const progressPct = Math.round((validatedCount / 9) * 100);
   doc.setFillColor(...soft);
@@ -4061,7 +4125,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   ], data.step0?.parties);
 
   sectionTitle('01 - Cadrer');
-  [
+  fieldGrid([
     ['Titre du projet', charte.titre],
     ['Sponsor', charte.sponsor],
     ['Probleme initial', charte.probleme],
@@ -4074,7 +4138,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     ['Date de debut', charte.dateDebut],
     ['Date de fin cible', charte.dateFin],
     ['Gains attendus', charte.gains],
-  ].forEach(([label, value]) => field(label, value));
+  ]);
   table('SIPOC', [
     { key: 'supplier', label: 'Fournisseurs' },
     { key: 'input', label: 'Entrees' },
@@ -4152,10 +4216,12 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'acteur', label: 'Acteur' },
     { key: 'systeme', label: 'Systeme' },
   ], data.step6?.flow);
-  field('Gains annuels estimes', bc.gains ? `${bc.gains} EUR` : '');
-  field('Cout d investissement', bc.couts ? `${bc.couts} EUR` : '');
-  field('Retour sur investissement', roiText(bc));
-  field('Risques', bc.risques);
+  fieldGrid([
+    ['Gains annuels estimes', bc.gains ? `${bc.gains} EUR` : ''],
+    ['Cout d investissement', bc.couts ? `${bc.couts} EUR` : ''],
+    ['Retour sur investissement', roiText(bc)],
+    ['Risques', bc.risques],
+  ]);
   table('Feuille de route', [
     { key: 'phase', label: 'Phase' },
     { key: 'debut', label: 'Debut' },
