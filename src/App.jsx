@@ -4834,52 +4834,110 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
       .filter(([, causes]) => causes.length > 0);
     if (!entries.length) return;
 
-    const height = Math.max(82, Math.ceil(Math.min(entries.length, 6) / 2) * 31 + 30);
+    const maxBranches = entries.slice(0, 6);
+    const height = Math.max(90, Math.ceil(maxBranches.length / 2) * 34 + 32);
     ensureSpace(height + 12);
     subTitle('Ishikawa - causes racines');
 
     const startY = y + 8;
     const centerY = startY + height / 2;
-    const spineStart = margin + 10;
-    const spineEnd = pageWidth - margin - 40;
-    const headX = spineEnd + 4;
+    const effectBoxW = 42;
+    const effectBoxH = 32;
+    const effectX = pageWidth - margin - effectBoxW - 3;
+    const effectY = centerY - effectBoxH / 2;
+    const spineStart = margin + 6;
+    const spineEnd = effectX - 9;
+    const fishHeadX = effectX - 3;
+    const usableSpine = spineEnd - spineStart;
 
     doc.setDrawColor(...accent);
     doc.setLineWidth(0.8);
     doc.line(spineStart, centerY, spineEnd, centerY);
-    doc.line(spineEnd, centerY, headX, centerY - 8);
-    doc.line(spineEnd, centerY, headX, centerY + 8);
-    doc.line(headX, centerY - 8, headX, centerY + 8);
+    doc.line(spineEnd, centerY, fishHeadX, centerY - 8);
+    doc.line(spineEnd, centerY, fishHeadX, centerY + 8);
+    doc.line(fishHeadX, centerY - 8, fishHeadX, centerY + 8);
 
     doc.setFillColor(238, 243, 247);
     doc.setDrawColor(...line);
-    doc.roundedRect(headX + 3, centerY - 14, pageWidth - margin - headX - 3, 28, 1.5, 1.5, 'FD');
+    doc.roundedRect(effectX, effectY, effectBoxW, effectBoxH, 1.5, 1.5, 'FD');
     setText(7, 'bold', muted);
-    doc.text('EFFET', headX + 6, centerY - 7);
+    doc.text('EFFET / PROBLEME', effectX + 4, effectY + 6);
     setText(8, 'bold', ink);
-    doc.text(doc.splitTextToSize(cleanPdfText(problem || 'Probleme analyse'), pageWidth - margin - headX - 11), headX + 6, centerY);
+    doc.text(doc.splitTextToSize(cleanPdfText(problem || 'Probleme analyse'), effectBoxW - 8), effectX + 4, effectY + 15, { maxWidth: effectBoxW - 8 });
 
-    entries.slice(0, 6).forEach(([label, causes], index) => {
+    maxBranches.forEach(([label, causes], index) => {
       const top = index % 2 === 0;
       const pairIndex = Math.floor(index / 2);
-      const anchorX = spineStart + 22 + pairIndex * 48;
-      const branchY = top ? centerY - 24 : centerY + 24;
-      const boxY = top ? branchY - 20 : branchY + 3;
-      const boxW = 42;
-      const boxH = 18;
+      const anchorX = spineStart + usableSpine * (pairIndex + 0.55) / 3;
+      const branchY = top ? centerY - 25 : centerY + 25;
+      const boxW = 39;
+      const boxH = 21;
+      const boxX = Math.min(anchorX + 21, effectX - boxW - 7);
+      const boxY = top ? branchY - boxH - 2 : branchY + 3;
+      const causeLines = causes.slice(0, 3).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, boxW - 7));
 
       doc.setDrawColor(...accent);
       doc.setLineWidth(0.45);
-      doc.line(anchorX, centerY, anchorX + 24, branchY);
+      doc.line(anchorX, centerY, boxX, branchY);
       doc.setFillColor(top ? 255 : 248, top ? 252 : 250, top ? 246 : 252);
       doc.setDrawColor(...line);
-      doc.roundedRect(anchorX + 25, boxY, boxW, boxH, 1.2, 1.2, 'FD');
+      doc.roundedRect(boxX, boxY, boxW, boxH, 1.2, 1.2, 'FD');
       setText(6.7, 'bold', muted);
-      doc.text(cleanPdfText(label).toUpperCase(), anchorX + 28, boxY + 5);
+      doc.text(cleanPdfText(label).toUpperCase(), boxX + 3, boxY + 5);
       setText(6.7, 'normal', ink);
-      doc.text(doc.splitTextToSize(causes.slice(0, 2).join(', '), boxW - 6), anchorX + 28, boxY + 10, { maxWidth: boxW - 6 });
+      doc.text(causeLines.slice(0, 4), boxX + 3, boxY + 10, { maxWidth: boxW - 7 });
     });
     y += height + 10;
+  };
+
+  const drawFiveWhy = (analysis) => {
+    const problem = cleanPdfText(analysis?.probleme);
+    const whys = [1, 2, 3, 4, 5].map(index => cleanPdfText(analysis?.[`why${index}`])).filter(Boolean);
+    const rootCause = cleanPdfText(analysis?.causeRacine);
+    const action = cleanPdfText(analysis?.action);
+    if (!problem && !whys.length && !rootCause && !action) return;
+
+    subTitle('5 pourquoi - analyse causale');
+
+    if (problem) {
+      setText(8.2, 'normal', ink);
+      const lines = doc.splitTextToSize(problem, contentWidth - 42);
+      const height = Math.max(16, 8 + lines.length * 4);
+      ensureSpace(height + 4);
+      doc.setFillColor(238, 243, 247);
+      doc.setDrawColor(...line);
+      doc.roundedRect(margin, y, contentWidth, height, 1.5, 1.5, 'FD');
+      doc.setFillColor(...accent);
+      doc.rect(margin, y, 2.5, height, 'F');
+      setText(7.2, 'bold', muted);
+      doc.text('EFFET / PROBLEME', margin + 5, y + 6);
+      setText(8.2, 'bold', ink);
+      doc.text(lines, margin + 37, y + 6, { maxWidth: contentWidth - 42 });
+      y += height + 4;
+    }
+
+    whys.forEach((why, index) => {
+      setText(8, 'normal', ink);
+      const lines = doc.splitTextToSize(why, contentWidth - 24);
+      const height = Math.max(11, 5 + lines.length * 4);
+      ensureSpace(height + 2.5);
+      doc.setFillColor(index % 2 === 0 ? 255 : 245, index % 2 === 0 ? 255 : 248, index % 2 === 0 ? 255 : 251);
+      doc.setDrawColor(...line);
+      doc.rect(margin, y, contentWidth, height, 'FD');
+      doc.setFillColor(...ink);
+      doc.rect(margin, y, 10, height, 'F');
+      setText(7.4, 'bold', [255, 255, 255]);
+      doc.text(`P${index + 1}`, margin + 3, y + 6.2);
+      setText(8, 'normal', ink);
+      doc.text(lines, margin + 14, y + 6.2, { maxWidth: contentWidth - 24 });
+      y += height;
+    });
+    y += 5;
+
+    fieldGrid([
+      ['Cause racine', rootCause],
+      ['Action corrective', action],
+    ]);
   };
 
   const table = (title, columns, rows = []) => {
@@ -5069,10 +5127,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'occurrences', label: 'Occurrences' },
   ], data.step4?.pareto);
   drawIshikawa(ishikawa, fiveWhy.probleme || charte.probleme || data.projectName);
-  field('5 Pourquoi - Probleme', fiveWhy.probleme);
-  [1, 2, 3, 4, 5].forEach(index => field(`Pourquoi ${index}`, fiveWhy[`why${index}`]));
-  field('Cause racine', fiveWhy.causeRacine);
-  field('Action corrective', fiveWhy.action);
+  drawFiveWhy(fiveWhy);
   table('AMDEC', [
     { key: 'mode', label: 'Mode de defaillance' },
     { key: 'effet', label: 'Effet' },
