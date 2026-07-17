@@ -4701,13 +4701,19 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     y += 14;
   };
 
+  const stepPage = (title) => {
+    newPage();
+    sectionTitle(title);
+  };
+
   const subTitle = (title) => {
     ensureSpace(22);
+    y += y === margin ? 0 : 8;
     setText(10, 'bold', muted);
     doc.text(title.toUpperCase(), margin, y);
     doc.setDrawColor(...line);
     doc.line(margin, y + 3, pageWidth - margin, y + 3);
-    y += 9;
+    y += 13;
   };
 
   const drawField = (x, startY, width, label, value, compact = false) => {
@@ -4813,8 +4819,8 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...line);
     doc.roundedRect(x, y, width, height, 1.5, 1.5, 'FD');
-    doc.setFillColor(...(options.warning ? [255, 248, 236] : soft));
-    doc.rect(x, y, 3, height, 'F');
+    doc.setFillColor(...(options.warning ? [250, 238, 218] : [231, 237, 244]));
+    doc.roundedRect(x + 0.8, y + 0.8, 2.4, height - 1.6, 0.8, 0.8, 'F');
     setText(7.2, 'bold', muted);
     doc.text(cleanPdfText(label).toUpperCase(), x + 6, y + 6);
     setText(bodySize, 'normal', ink);
@@ -4822,10 +4828,63 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     y += height + 5;
   };
 
+  const drawIshikawa = (branches, problem) => {
+    const entries = Object.entries(branches || {})
+      .map(([label, causes]) => [label, (causes || []).filter(Boolean)])
+      .filter(([, causes]) => causes.length > 0);
+    if (!entries.length) return;
+
+    const height = Math.max(82, Math.ceil(Math.min(entries.length, 6) / 2) * 31 + 30);
+    ensureSpace(height + 12);
+    subTitle('Ishikawa - causes racines');
+
+    const startY = y + 8;
+    const centerY = startY + height / 2;
+    const spineStart = margin + 10;
+    const spineEnd = pageWidth - margin - 40;
+    const headX = spineEnd + 4;
+
+    doc.setDrawColor(...accent);
+    doc.setLineWidth(0.8);
+    doc.line(spineStart, centerY, spineEnd, centerY);
+    doc.line(spineEnd, centerY, headX, centerY - 8);
+    doc.line(spineEnd, centerY, headX, centerY + 8);
+    doc.line(headX, centerY - 8, headX, centerY + 8);
+
+    doc.setFillColor(238, 243, 247);
+    doc.setDrawColor(...line);
+    doc.roundedRect(headX + 3, centerY - 14, pageWidth - margin - headX - 3, 28, 1.5, 1.5, 'FD');
+    setText(7, 'bold', muted);
+    doc.text('EFFET', headX + 6, centerY - 7);
+    setText(8, 'bold', ink);
+    doc.text(doc.splitTextToSize(cleanPdfText(problem || 'Probleme analyse'), pageWidth - margin - headX - 11), headX + 6, centerY);
+
+    entries.slice(0, 6).forEach(([label, causes], index) => {
+      const top = index % 2 === 0;
+      const pairIndex = Math.floor(index / 2);
+      const anchorX = spineStart + 22 + pairIndex * 48;
+      const branchY = top ? centerY - 24 : centerY + 24;
+      const boxY = top ? branchY - 20 : branchY + 3;
+      const boxW = 42;
+      const boxH = 18;
+
+      doc.setDrawColor(...accent);
+      doc.setLineWidth(0.45);
+      doc.line(anchorX, centerY, anchorX + 24, branchY);
+      doc.setFillColor(top ? 255 : 248, top ? 252 : 250, top ? 246 : 252);
+      doc.setDrawColor(...line);
+      doc.roundedRect(anchorX + 25, boxY, boxW, boxH, 1.2, 1.2, 'FD');
+      setText(6.7, 'bold', muted);
+      doc.text(cleanPdfText(label).toUpperCase(), anchorX + 28, boxY + 5);
+      setText(6.7, 'normal', ink);
+      doc.text(doc.splitTextToSize(causes.slice(0, 2).join(', '), boxW - 6), anchorX + 28, boxY + 10, { maxWidth: boxW - 6 });
+    });
+    y += height + 10;
+  };
+
   const table = (title, columns, rows = []) => {
     const visibleRows = (rows || []).filter(Boolean);
     if (!visibleRows.length) return;
-    ensureSpace(28);
     subTitle(title);
     const gap = 1;
     const colWidth = (contentWidth - gap * (columns.length - 1)) / columns.length;
@@ -4860,7 +4919,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
         newPage();
         drawTableHeader();
       }
-      doc.setFillColor(rowIndex % 2 === 0 ? 255 : 249, rowIndex % 2 === 0 ? 255 : 250, rowIndex % 2 === 0 ? 255 : 252);
+      doc.setFillColor(rowIndex % 2 === 0 ? 255 : 245, rowIndex % 2 === 0 ? 255 : 248, rowIndex % 2 === 0 ? 255 : 251);
       doc.setDrawColor(...line);
       doc.rect(margin, y, contentWidth, rowHeight, 'FD');
       let x = margin;
@@ -4935,8 +4994,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   executiveField('Gains attendus', charte.gains || (bc.gains ? `${bc.gains} EUR` : ''));
   executiveField('Risques de pilotage', charte.risques || bc.risques, { warning: true });
 
-  newPage();
-  sectionTitle('00 - Preparer');
+  stepPage('00 - Preparer');
   field('Note de cadrage initiale', data.step0?.note);
   table('Planning macro', [
     { key: 'phase', label: 'Phase' },
@@ -4952,7 +5010,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'influence', label: 'Influence' },
   ], data.step0?.parties);
 
-  sectionTitle('01 - Cadrer');
+  stepPage('01 - Cadrer');
   fieldGrid([
     ['Titre du projet', charte.titre],
     ['Sponsor', charte.sponsor],
@@ -4972,7 +5030,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   ], data.step1?.sipoc);
   table('RACI', [{ key: 'nom', label: 'Activite', width: 0.32 }, ...raciRoles.map(role => ({ key: role, label: role }))], raciRows);
 
-  sectionTitle('02 - Observer');
+  stepPage('02 - Observer');
   table('Guide d entretien', [{ key: 'question', label: 'Question' }], data.step2?.questions);
   table('Journal d observation', [
     { key: 'date', label: 'Date' },
@@ -4982,7 +5040,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'constat', label: 'Constat', width: 0.34 },
   ], data.step2?.journal);
 
-  sectionTitle('03 - Cartographier');
+  stepPage('03 - Cartographier');
   table('Referentiel de processus', [
     { key: 'processus', label: 'Processus' },
     { key: 'macro', label: 'Macro' },
@@ -5005,12 +5063,12 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   field('Lead time total', `${leadTime} min`);
   field('Pourcentage valeur ajoutee', `${vaPct}%`);
 
-  sectionTitle('04 - Analyser');
+  stepPage('04 - Analyser');
   table('Pareto des causes', [
     { key: 'cause', label: 'Cause' },
     { key: 'occurrences', label: 'Occurrences' },
   ], data.step4?.pareto);
-  Object.entries(ishikawa).forEach(([branch, causes]) => field(`Ishikawa - ${branch}`, (causes || []).join(', ')));
+  drawIshikawa(ishikawa, fiveWhy.probleme || charte.probleme || data.projectName);
   field('5 Pourquoi - Probleme', fiveWhy.probleme);
   [1, 2, 3, 4, 5].forEach(index => field(`Pourquoi ${index}`, fiveWhy[`why${index}`]));
   field('Cause racine', fiveWhy.causeRacine);
@@ -5023,7 +5081,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'actions', label: 'Actions' },
   ], data.step4?.amdec);
 
-  sectionTitle('05 - Prioriser');
+  stepPage('05 - Prioriser');
   table('Backlog d actions', [
     { key: 'action', label: 'Action', width: 0.32 },
     { key: 'impact', label: 'Impact' },
@@ -5033,7 +5091,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'statut', label: 'Statut' },
   ], data.step5?.actions);
 
-  sectionTitle('06 - Concevoir');
+  stepPage('06 - Concevoir');
   table('Cartographie cible TO-BE', [
     { key: 'label', label: 'Etape' },
     { key: 'type', label: 'Type' },
@@ -5054,7 +5112,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     { key: 'livrable', label: 'Livrable' },
   ], data.step6?.roadmap);
 
-  sectionTitle('07 - Deployer');
+  stepPage('07 - Deployer');
   table('Plan d action', [
     { key: 'action', label: 'Action', width: 0.34 },
     { key: 'responsable', label: 'Responsable' },
@@ -5067,7 +5125,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   ], data.step7?.changement);
   field('PV de recette', data.step7?.recette);
 
-  sectionTitle('08 - Controler');
+  stepPage('08 - Controler');
   table('KPI', [
     { key: 'nom', label: 'KPI' },
     { key: 'unite', label: 'Unite' },
