@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import _ from 'lodash';
 import {
   getCurrentSession, isSupabaseConfigured, loadProjectsFromSupabase,
-  saveProjectsToSupabase, signInWithEmail, signOutFromSupabase, signUpWithEmail
+  saveProjectsToSupabase, signInWithEmail, signInWithOAuth, signOutFromSupabase, signUpWithEmail
 } from './supabaseStorage';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -3634,6 +3634,55 @@ const CSS = `
   background:#FFFFFF;
   padding:0 12px;
 }
+.theme-light .auth-social-actions{
+  display:grid;
+  gap:9px;
+}
+.theme-light .auth-social-button{
+  min-height:42px;
+  border:1px solid #C7D4E5;
+  background:#FFFFFF;
+  color:#10233F;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:0 14px;
+  font-size:13px;
+  font-weight:850;
+  cursor:pointer;
+}
+.theme-light .auth-social-button:hover,
+.theme-light .auth-social-button:focus-visible{
+  border-color:#AEBBCC;
+  background:#F8FAFD;
+  outline:none;
+}
+.theme-light .auth-social-button:disabled{
+  opacity:.62;
+  cursor:wait;
+}
+.theme-light .auth-provider-mark{
+  width:22px;
+  height:22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  font-size:12px;
+  font-weight:900;
+  line-height:1;
+}
+.theme-light .auth-provider-mark.google{
+  background:#FFFFFF;
+  border:1px solid #D5DDE8;
+  color:#1A73E8;
+}
+.theme-light .auth-provider-mark.microsoft{
+  background:#F3F7FB;
+  border:1px solid #D5DDE8;
+  color:#10233F;
+}
 .theme-light .auth-page-switch{
   min-height:42px;
   border:1px dashed #2F6F63;
@@ -6154,6 +6203,17 @@ export default function App() {
     }
   };
 
+  const handleOAuthSignIn = (provider) => {
+    setAuthBusy(true);
+    setAuthMessage('');
+    try {
+      signInWithOAuth(provider);
+    } catch (error) {
+      setAuthBusy(false);
+      setAuthMessage(error.message || 'Connexion impossible.');
+    }
+  };
+
   const handleSignOut = async () => {
     await signOutFromSupabase(authSession);
     setAuthSession(null);
@@ -6663,6 +6723,14 @@ export default function App() {
                   {authBusy ? 'Verification...' : (authMode === 'signup' ? 'Creer mon compte' : 'Se connecter')}
                 </button>
                 <div className="auth-page-divider"><span>ou</span></div>
+                <div className="auth-social-actions">
+                  <button className="auth-social-button" type="button" onClick={() => handleOAuthSignIn('google')} disabled={authBusy}>
+                    <span className="auth-provider-mark google">G</span> Continuer avec Google
+                  </button>
+                  <button className="auth-social-button" type="button" onClick={() => handleOAuthSignIn('azure')} disabled={authBusy}>
+                    <span className="auth-provider-mark microsoft">M</span> Continuer avec Microsoft
+                  </button>
+                </div>
                 <button className="auth-page-switch" type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthMessage(''); }}>
                   {authMode === 'signup' ? 'J ai deja un compte' : 'Creer un compte'}
                 </button>

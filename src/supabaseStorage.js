@@ -44,6 +44,27 @@ function storeSession(session) {
   return session;
 }
 
+function authRedirectUrl() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function readOAuthSessionFromHash() {
+  const hash = window.location.hash || '';
+  if (!hash.includes('access_token=')) return null;
+
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  const accessToken = params.get('access_token');
+  if (!accessToken) return null;
+
+  return {
+    access_token: accessToken,
+    refresh_token: params.get('refresh_token') || '',
+    expires_in: Number(params.get('expires_in') || 0),
+    expires_at: Number(params.get('expires_at') || 0),
+    token_type: params.get('token_type') || 'bearer',
+  };
+}
+
 async function requestAuth(path, options = {}) {
   const config = getSupabaseConfig();
   if (!config) throw new Error('Supabase non configure');
@@ -78,6 +99,26 @@ export async function signInWithEmail(email, password) {
   return storeSession(payload);
 }
 
+async function attachUser(session) {
+  if (!session?.access_token || session.user?.id) return session;
+  const payload = await requestAuth('user', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  return { ...session, user: payload };
+}
+
+export function signInWithOAuth(provider) {
+  const config = getSupabaseConfig();
+  if (!config) throw new Error('Supabase non configure');
+
+  const params = new URLSearchParams({
+    provider,
+    redirect_to: authRedirectUrl(),
+  });
+  window.location.href = `${config.url}/auth/v1/authorize?${params.toString()}`;
+}
+
 export async function signOutFromSupabase(session) {
   const config = getSupabaseConfig();
   if (config && session?.access_token) {
@@ -93,6 +134,17 @@ export async function signOutFromSupabase(session) {
 }
 
 export async function getCurrentSession() {
+  const hashSession = readOAuthSessionFromHash();
+  if (hashSession?.access_token) {
+    window.history.replaceState(window.history.state || { view: 'landing', projectId: null }, '', authRedirectUrl());
+    try {
+      return storeSession(await attachUser(hashSession));
+    } catch {
+      storeSession(null);
+      return null;
+    }
+  }
+
   const session = getStoredSession();
   if (!session?.access_token) return null;
   const expiresAt = Number(session.expires_at || 0) * 1000;
@@ -102,7 +154,16 @@ export async function getCurrentSession() {
         method: 'POST',
         body: JSON.stringify({ refresh_token: session.refresh_token }),
       });
-      return storeSession(refreshed);
+      return storeSession(await attachUser(refreshed));
+    } catch {
+      storeSession(null);
+      return null;
+    }
+  }
+
+  if (!session.user?.id) {
+    try {
+      return storeSession(await attachUser(session));
     } catch {
       storeSession(null);
       return null;
