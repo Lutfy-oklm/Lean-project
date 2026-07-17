@@ -4576,6 +4576,17 @@ const CSS = `
     max-width:72px;
   }
 }
+
+.steps-nav .step-item{
+  gap:12px;
+}
+.steps-nav .step-icon,
+.steps-nav .advanced-step-icon{
+  flex:0 0 20px;
+}
+.sidebar-collapsed .steps-nav .step-item{
+  gap:0;
+}
 `;
 
 function PrintField({ label, value }) {
@@ -5891,7 +5902,6 @@ export default function App() {
             const StepIcon = s.icon;
             return (
               <button key={s.id} className={`step-item ${active === s.id ? 'is-active' : ''}`} onClick={() => goToStep(s.id)}>
-                <span className="step-num">{String(s.id).padStart(2, '0')}</span>
                 <StepIcon className="step-icon" size={15} aria-hidden="true" />
                 <span className="step-title">{s.title}</span>
                 {data.validated[s.id] && <span className="step-stamp">✔</span>}
