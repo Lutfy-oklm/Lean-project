@@ -3234,6 +3234,41 @@ const CSS = `
   height:58px;
   border:1px solid var(--line-strong);
 }
+.theme-light .landing-auth-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.theme-light .auth-nav-button{
+  min-height:38px;
+  border:1px solid #C9D4E3;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.01em;
+  cursor:pointer;
+}
+.theme-light .auth-nav-button.primary{
+  background:#10233F;
+  border-color:#10233F;
+  color:#FFFFFF;
+}
+.theme-light .auth-nav-button.ghost{
+  background:#F8FAFD;
+}
+.theme-light .auth-nav-button:hover,
+.theme-light .auth-nav-button:focus-visible{
+  border-color:#2F6F63;
+  outline:none;
+}
 .theme-light .landing-secondary{
   min-height:36px;
   display:inline-flex;
@@ -3410,6 +3445,179 @@ const CSS = `
   color:var(--ink-soft);
   font-size:12.5px;
   line-height:1.45;
+}
+.theme-light .auth-page{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  width:min(1180px,100%);
+  margin:0 auto;
+  padding:28px 32px 52px;
+  display:grid;
+  grid-template-rows:auto 1fr;
+}
+.theme-light .auth-page-nav{
+  display:flex;
+  justify-content:flex-start;
+}
+.theme-light .auth-back-button{
+  min-height:38px;
+  border:1px solid #C9D4E3;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:0 14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:850;
+  cursor:pointer;
+}
+.theme-light .auth-shell{
+  width:min(470px,100%);
+  margin:auto;
+  padding:34px;
+  border:1px solid #C9D4E3;
+  border-top:3px solid #10233F;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 28px 80px rgba(16,35,63,.13);
+}
+.theme-light .auth-brand-block{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:28px;
+}
+.theme-light .auth-brand-block img{
+  width:42px;
+  height:42px;
+  border:1px solid #C9D4E3;
+}
+.theme-light .auth-heading{
+  text-align:center;
+  margin:24px 0 22px;
+}
+.theme-light .auth-heading span,
+.theme-light .auth-connected-card span{
+  color:#4F6582;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .auth-heading h1{
+  margin:8px 0 10px;
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:34px;
+  font-weight:500;
+  line-height:1.08;
+}
+.theme-light .auth-heading p{
+  margin:0 auto;
+  max-width:360px;
+  color:#51627A;
+  font-size:13px;
+  line-height:1.55;
+}
+.theme-light .auth-page-card{
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+}
+.theme-light .auth-page-card label{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#10233F;
+  font-size:12px;
+  font-weight:850;
+}
+.theme-light .auth-page-card input{
+  width:100%;
+  min-height:44px;
+  border:1px solid #C7D4E5;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:0 12px;
+  font:inherit;
+  font-size:13px;
+  outline:none;
+}
+.theme-light .auth-page-card input:focus{
+  border-color:#2F6F63;
+  box-shadow:0 0 0 3px rgba(47,111,99,.12);
+}
+.theme-light .auth-page-submit,
+.theme-light .auth-connected-card button{
+  min-height:44px;
+  border:1px solid #10233F;
+  background:#10233F;
+  color:#FFFFFF;
+  padding:0 16px;
+  font-weight:900;
+  cursor:pointer;
+}
+.theme-light .auth-page-submit:disabled{
+  opacity:.62;
+  cursor:wait;
+}
+.theme-light .auth-page-divider{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  color:#7A8798;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .auth-page-divider:before{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:0;
+  right:0;
+  height:1px;
+  background:#D9E1EC;
+}
+.theme-light .auth-page-divider span{
+  position:relative;
+  background:#FFFFFF;
+  padding:0 12px;
+}
+.theme-light .auth-page-switch{
+  min-height:42px;
+  border:1px dashed #2F6F63;
+  background:#F4FAF8;
+  color:#2F6F63;
+  font-weight:850;
+  cursor:pointer;
+}
+.theme-light .auth-page-message{
+  margin:2px 0 0;
+  border-left:3px solid #C47A1A;
+  background:#FFF8ED;
+  color:#7A4B12;
+  padding:10px 12px;
+  font-size:12px;
+  line-height:1.45;
+}
+.theme-light .auth-connected-card{
+  display:grid;
+  gap:12px;
+  border:1px solid #C9D4E3;
+  background:#F7FAFD;
+  padding:18px;
+}
+.theme-light .auth-connected-card strong{
+  color:#10233F;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .auth-panel{ border:1px solid #CBD7E8; border-top:2px solid #2F6F63; background:linear-gradient(180deg,#FFFFFF 0%,#F7FAFD 100%); color:#10233F; padding:12px; display:flex; align-items:center; gap:12px; min-width:300px; box-shadow:0 14px 36px rgba(16,35,63,.08); }
 .auth-panel.compact{ min-width:360px; max-width:520px; padding:12px 14px; }
@@ -4322,6 +4530,8 @@ const CSS = `
 
 @media (max-width: 560px){
   .landing-nav{ align-items:flex-start; flex-direction:column; }
+  .landing-auth-actions{ width:100%; display:grid; grid-template-columns:1fr; }
+  .auth-nav-button{ width:100%; }
   .landing-actions,.landing-primary,.landing-secondary{ width:100%; }
   .landing-panel-metrics{ grid-template-columns:1fr; }
   .home-dashboard{ grid-template-columns:1fr; }
@@ -4344,9 +4554,18 @@ const CSS = `
     overflow:visible;
   }
   .theme-light .landing-page,
+  .theme-light .auth-page,
   .theme-light .project-home{
     width:100%;
     padding:14px 14px 34px;
+  }
+  .theme-light .auth-shell{
+    padding:24px 18px;
+    margin:26px auto 0;
+    box-shadow:0 18px 48px rgba(16,35,63,.12);
+  }
+  .theme-light .auth-heading h1{
+    font-size:29px;
   }
   .theme-light .landing-nav{
     gap:12px;
@@ -5805,7 +6024,7 @@ export default function App() {
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createBlankProject();
 
   useEffect(() => {
-    const validViews = new Set(['landing', 'dashboard', 'project']);
+    const validViews = new Set(['landing', 'auth', 'dashboard', 'project']);
     if (!window.history.state?.view) {
       window.history.replaceState({ view: 'landing', projectId: null }, '', window.location.href);
     }
@@ -5824,9 +6043,11 @@ export default function App() {
   }, []);
 
   const navigate = useCallback((nextView, projectId = null, replace = false) => {
-    if (nextView !== 'landing' && !authSession) {
+    const publicViews = new Set(['landing', 'auth']);
+    if (!publicViews.has(nextView) && !authSession) {
       setAuthMessage('Connectez-vous pour acceder a votre espace.');
-      nextView = 'landing';
+      setAuthMode('signin');
+      nextView = 'auth';
       projectId = null;
       replace = true;
     }
@@ -5842,6 +6063,12 @@ export default function App() {
     scrollAppToTop();
   }, [authSession]);
 
+  const openAuth = useCallback((mode = 'signin') => {
+    setAuthMode(mode);
+    setAuthMessage('');
+    navigate('auth', null);
+  }, [navigate]);
+
   useEffect(() => {
     (async () => {
       const session = await getCurrentSession();
@@ -5851,8 +6078,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (authReady && !authSession && view !== 'landing') {
-      navigate('landing', null, true);
+    if (authReady && !authSession && view !== 'landing' && view !== 'auth') {
+      navigate('auth', null, true);
     }
   }, [authReady, authSession, view, navigate]);
 
@@ -5867,6 +6094,11 @@ export default function App() {
         setAuthSession(session);
         setAuthPassword('');
         setAuthMessage('Compte connecte.');
+        window.history.replaceState({ view: 'dashboard', projectId: null }, '', window.location.href);
+        setView('dashboard');
+        setActiveProjectId(null);
+        setActive(0);
+        scrollAppToTop();
       } else {
         setAuthMessage('Compte cree. Verifiez votre email si une confirmation est demandee.');
       }
@@ -6026,7 +6258,8 @@ export default function App() {
   const createNewProject = () => {
     if (!authSession) {
       setAuthMessage('Connectez-vous pour creer un projet.');
-      navigate('landing', null, true);
+      setAuthMode('signin');
+      navigate('auth', null, true);
       return;
     }
     const project = createBlankProject({
@@ -6082,6 +6315,22 @@ export default function App() {
           </button>
           {authMessage && <p>{authMessage}</p>}
         </form>
+      )}
+    </div>
+  );
+
+  const landingAuthActions = (
+    <div className="landing-auth-actions">
+      {userEmail ? (
+        <>
+          <button className="auth-nav-button" type="button" onClick={() => navigate('dashboard')}>Tableau de bord</button>
+          <button className="auth-nav-button ghost" type="button" onClick={handleSignOut}><LogOut size={15} /> Deconnexion</button>
+        </>
+      ) : (
+        <>
+          <button className="auth-nav-button ghost" type="button" onClick={() => openAuth('signin')}>Se connecter</button>
+          <button className="auth-nav-button primary" type="button" onClick={() => openAuth('signup')}>Creer un compte</button>
+        </>
       )}
     </div>
   );
@@ -6310,6 +6559,71 @@ export default function App() {
     }
   }
 
+  if (view === 'auth') {
+    return (
+      <div className={`${appClass} auth-mode`}>
+        <style>{CSS}</style>
+        <div className="landing-background" aria-hidden="true">
+          <span className="landing-flowline one" />
+          <span className="landing-flowline two" />
+          <span className="landing-flowline three" />
+          <span className="landing-node n1" />
+          <span className="landing-node n2" />
+          <span className="landing-node n3" />
+          <span className="landing-card-ghost g1" />
+          <span className="landing-card-ghost g2" />
+          <span className="landing-loop" />
+        </div>
+        <main className="auth-page">
+          <nav className="auth-page-nav">
+            <button className="auth-back-button" type="button" onClick={() => navigate('landing')}>
+              <ArrowLeft size={17} /> Retour
+            </button>
+          </nav>
+          <section className="auth-shell" aria-label={authMode === 'signup' ? 'Creation de compte' : 'Connexion'}>
+            <div className="auth-brand-block">
+              <img src="/pilotprocess-logo.svg" alt="" />
+              <span>PilotProcess</span>
+            </div>
+            <div className="auth-heading">
+              <span>Acces securise</span>
+              <h1>{authMode === 'signup' ? 'Creer votre compte' : 'Se connecter'}</h1>
+              <p>{authMode === 'signup'
+                ? 'Creez votre espace pour sauvegarder vos projets et les retrouver sur tous vos appareils.'
+                : 'Connectez-vous pour acceder a votre tableau de bord et a vos projets sauvegardes.'}</p>
+            </div>
+            {userEmail ? (
+              <div className="auth-connected-card">
+                <span>Session active</span>
+                <strong>{userEmail}</strong>
+                <button type="button" onClick={() => navigate('dashboard')}>Ouvrir le tableau de bord</button>
+              </div>
+            ) : (
+              <form className="auth-page-card" onSubmit={handleAuthSubmit}>
+                <label>
+                  E-mail
+                  <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="votre@email.com" required />
+                </label>
+                <label>
+                  Mot de passe
+                  <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Minimum 6 caracteres" minLength={6} required />
+                </label>
+                <button className="auth-page-submit" type="submit" disabled={authBusy}>
+                  {authBusy ? 'Verification...' : (authMode === 'signup' ? 'Creer mon compte' : 'Se connecter')}
+                </button>
+                <div className="auth-page-divider"><span>ou</span></div>
+                <button className="auth-page-switch" type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthMessage(''); }}>
+                  {authMode === 'signup' ? 'J ai deja un compte' : 'Creer un compte'}
+                </button>
+                {authMessage && <p className="auth-page-message">{authMessage}</p>}
+              </form>
+            )}
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   if (view === 'landing') {
     return (
       <div className={`${appClass} landing-mode`}>
@@ -6331,7 +6645,7 @@ export default function App() {
               <img src="/pilotprocess-logo.svg" alt="" />
               <span>PilotProcess</span>
             </div>
-            {authPanel(true)}
+            {landingAuthActions}
           </nav>
 
           <section className="landing-hero">
@@ -6340,7 +6654,7 @@ export default function App() {
               <h1>Structurez vos projets processus de bout en bout.</h1>
               <p>PilotProcess aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
               <div className="landing-actions">
-                <button className="landing-primary" onClick={() => navigate('dashboard')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
+                <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
                 <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
               </div>
             </div>
