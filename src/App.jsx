@@ -4677,7 +4677,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     drawPilotProcessLogo(margin, pageHeight - 11.5, 5);
     setText(8, 'normal', muted);
     const projectTitle = cleanPdfText(data.projectName);
-    const footerLabel = projectTitle ? `PilotProcess - Dossier projet - ${projectTitle}` : 'PilotProcess - Dossier projet';
+    const footerLabel = projectTitle ? `PilotProcess - ${projectTitle}` : 'PilotProcess';
     const maxFooterWidth = pageWidth - margin * 2 - 18;
     let footerText = footerLabel;
     while (doc.getTextWidth(footerText) > maxFooterWidth && footerText.length > 24) {
@@ -5028,7 +5028,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   const coverLogoSize = 16;
   drawPilotProcessLogo(pageWidth - margin - coverLogoSize, 12, coverLogoSize);
   setText(9, 'bold', [222, 231, 243]);
-  doc.text('DOSSIER PROJET', margin, 18);
+  doc.text('PILOTPROCESS', margin, 18);
   setText(24, 'bold', [255, 255, 255]);
   const coverTitleWidth = contentWidth - coverLogoSize - 18;
   const coverTitle = doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), coverTitleWidth);
