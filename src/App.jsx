@@ -3117,11 +3117,100 @@ const CSS = `
   width:100vw;
   min-height:100vh;
   background:#FFFFFF;
+  position:relative;
+  overflow:hidden;
 }
 .theme-light .landing-page{
+  position:relative;
+  z-index:1;
   width:min(1180px,calc(100vw - 40px));
   margin:0 auto;
   padding:28px 0 46px;
+}
+.theme-light .landing-background{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(16,35,63,.035) 1px,transparent 1px),
+    linear-gradient(rgba(16,35,63,.028) 1px,transparent 1px);
+  background-size:64px 64px;
+}
+.theme-light .landing-flowline{
+  position:absolute;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(47,111,99,.42),transparent);
+  opacity:.55;
+  animation:landingFlow 9s linear infinite;
+}
+.theme-light .landing-flowline.one{ width:42vw; top:18%; left:-12vw; }
+.theme-light .landing-flowline.two{ width:34vw; top:64%; right:-10vw; animation-delay:-3s; }
+.theme-light .landing-flowline.three{ width:28vw; top:38%; left:48vw; animation-delay:-6s; }
+.theme-light .landing-node{
+  position:absolute;
+  width:10px;
+  height:10px;
+  border:1px solid rgba(47,111,99,.42);
+  background:rgba(255,255,255,.9);
+  box-shadow:0 0 0 5px rgba(47,111,99,.06);
+  animation:landingPulse 4.5s ease-in-out infinite;
+}
+.theme-light .landing-node.n1{ top:17.5%; left:21%; }
+.theme-light .landing-node.n2{ top:37.5%; left:66%; animation-delay:-1.2s; }
+.theme-light .landing-node.n3{ top:63.5%; left:78%; animation-delay:-2.4s; }
+.theme-light .landing-card-ghost{
+  position:absolute;
+  border:1px solid rgba(82,99,122,.18);
+  background:rgba(248,250,252,.68);
+  box-shadow:0 16px 38px rgba(16,35,63,.06);
+  animation:landingFloat 8s ease-in-out infinite;
+}
+.theme-light .landing-card-ghost.g1{ width:132px; height:74px; top:16%; right:9%; }
+.theme-light .landing-card-ghost.g2{ width:110px; height:62px; bottom:16%; left:7%; animation-delay:-3.8s; }
+.theme-light .landing-loop{
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:18%;
+  bottom:10%;
+  border:1px dashed rgba(47,111,99,.28);
+  border-radius:50%;
+  animation:landingRotate 18s linear infinite;
+}
+.theme-light .landing-loop::before,
+.theme-light .landing-loop::after{
+  content:"";
+  position:absolute;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#2F6F63;
+}
+.theme-light .landing-loop::before{ top:13px; left:25px; }
+.theme-light .landing-loop::after{ right:22px; bottom:18px; background:#C97D2E; }
+@keyframes landingFlow{
+  from{ transform:translateX(-12%); }
+  to{ transform:translateX(42%); }
+}
+@keyframes landingPulse{
+  0%,100%{ transform:scale(1); opacity:.38; }
+  50%{ transform:scale(1.28); opacity:.85; }
+}
+@keyframes landingFloat{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-12px); }
+}
+@keyframes landingRotate{
+  to{ transform:rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce){
+  .theme-light .landing-flowline,
+  .theme-light .landing-node,
+  .theme-light .landing-card-ghost,
+  .theme-light .landing-loop{
+    animation:none;
+  }
 }
 .theme-light .landing-nav{
   display:flex;
@@ -4727,6 +4816,17 @@ const CSS = `
     padding-left:12px;
     padding-right:12px;
   }
+  .theme-light .landing-background{
+    background-size:48px 48px;
+  }
+  .theme-light .landing-card-ghost,
+  .theme-light .landing-loop{
+    opacity:.45;
+    transform:scale(.78);
+  }
+  .theme-light .landing-flowline.three{
+    display:none;
+  }
   .theme-light .landing-nav{
     position:sticky;
     top:0;
@@ -6035,6 +6135,17 @@ export default function App() {
     return (
       <div className={`${appClass} landing-mode`}>
         <style>{CSS}</style>
+        <div className="landing-background" aria-hidden="true">
+          <span className="landing-flowline one" />
+          <span className="landing-flowline two" />
+          <span className="landing-flowline three" />
+          <span className="landing-node n1" />
+          <span className="landing-node n2" />
+          <span className="landing-node n3" />
+          <span className="landing-card-ghost g1" />
+          <span className="landing-card-ghost g2" />
+          <span className="landing-loop" />
+        </div>
         <main className="landing-page">
           <nav className="landing-nav">
             <div className="landing-brand">
