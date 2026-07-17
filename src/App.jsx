@@ -21,6 +21,7 @@ const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _t
 const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId: uid(), _templateKey: 'industrial-aircraft-turnaround-example', updatedAt: new Date().toISOString() });
 const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: uid(), _templateKey: 'insurance-home-claims-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
+const localProjectsKey = (session) => session?.user?.id ? `pilotprocess-projects-${session.user.id}` : 'lean-projects-data';
 
 const STEPS = [
   { id: 0, title: 'Préparer', icon: ClipboardList, objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
@@ -5794,6 +5795,7 @@ export default function App() {
   const [authBusy, setAuthBusy] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
   const knownProjectIdsRef = useRef(new Set());
+  const deletedProjectIdsRef = useRef(new Set());
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
 
   useEffect(() => {
@@ -5869,12 +5871,13 @@ export default function App() {
     (async () => {
       setLoaded(false);
       let localProjects = [];
+      const storageKey = localProjectsKey(authSession);
       try {
-        const savedProjects = window.localStorage.getItem('lean-projects-data');
+        const savedProjects = window.localStorage.getItem(storageKey);
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
           localProjects = ensureExampleProjects(Array.isArray(parsed) ? parsed : [createProject()]);
-        } else {
+        } else if (!authSession) {
           const legacy = window.localStorage.getItem('lean-projet-data');
           localProjects = ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
         }
@@ -5884,14 +5887,15 @@ export default function App() {
         const cloudProjects = await loadProjectsFromSupabase(authSession);
         const nextProjects = cloudProjects?.length
           ? ensureExampleProjects(cloudProjects)
-          : (localProjects.length ? localProjects : ensureExampleProjects([createProject()]));
+          : (authSession ? ensureExampleProjects([]) : (localProjects.length ? localProjects : ensureExampleProjects([createProject()])));
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
+        deletedProjectIdsRef.current = new Set();
         setProjects(nextProjects);
         setStorageMode(isSupabaseConfigured() && authSession ? 'cloud' : 'local');
         setSyncError('');
       } catch (error) {
         console.warn('Supabase indisponible, stockage local utilise', error);
-        const nextProjects = localProjects.length ? localProjects : ensureExampleProjects([createProject()]);
+        const nextProjects = localProjects.length ? localProjects : (authSession ? ensureExampleProjects([]) : ensureExampleProjects([createProject()]));
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
         setStorageMode('local');
@@ -5905,12 +5909,18 @@ export default function App() {
     if (!loaded) return;
     const t = setTimeout(async () => {
       try {
-        window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
+        window.localStorage.setItem(localProjectsKey(authSession), JSON.stringify(projects));
         if (isSupabaseConfigured() && authSession) {
           const currentIds = new Set(projects.map(project => project._projectId));
-          const deletedIds = [...knownProjectIdsRef.current].filter(id => !currentIds.has(id));
+          const deletedIds = [
+            ...new Set([
+              ...deletedProjectIdsRef.current,
+              ...[...knownProjectIdsRef.current].filter(id => !currentIds.has(id)),
+            ]),
+          ];
           await saveProjectsToSupabase(projects, deletedIds, authSession);
           knownProjectIdsRef.current = currentIds;
+          deletedProjectIdsRef.current = new Set();
           setStorageMode('cloud');
           setSyncError('');
         } else {
@@ -5994,6 +6004,7 @@ export default function App() {
   const deleteProject = (project) => {
     const name = project.projectName || 'ce projet';
     if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
+    deletedProjectIdsRef.current.add(project._projectId);
     setProjects(prev => prev.filter(item => item._projectId !== project._projectId));
     if (activeProjectId === project._projectId) {
       navigate('dashboard');
