@@ -3306,6 +3306,14 @@ const CSS = `
   background:#193154;
   border-color:#3A587F;
 }
+.theme-light .sidebar-foot .logout-button.sidebar{
+  width:auto;
+  max-width:100%;
+  min-width:0;
+  align-self:stretch;
+  padding:0 10px;
+  overflow:hidden;
+}
 .theme-light .landing-secondary{
   min-height:36px;
   display:inline-flex;
