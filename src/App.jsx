@@ -4590,6 +4590,203 @@ const CSS = `
 .sidebar-collapsed .steps-nav .step-item{
   gap:0;
 }
+
+@media (max-width: 640px){
+  .theme-light.lean-app{
+    display:block;
+    background:#F8FAFC;
+  }
+  .theme-light .landing-page,
+  .theme-light .project-home{
+    padding-left:12px;
+    padding-right:12px;
+  }
+  .theme-light .landing-nav{
+    position:sticky;
+    top:0;
+    z-index:30;
+    background:#F8FAFC;
+    padding-top:10px;
+  }
+  .theme-light .landing-brand{
+    font-size:24px;
+  }
+  .theme-light .landing-copy h1,
+  .theme-light .home-hero h1{
+    font-size:32px;
+    line-height:1.04;
+  }
+  .theme-light .home-hero{
+    padding:14px;
+    border-top-width:4px;
+  }
+  .theme-light .home-dashboard{
+    gap:8px;
+  }
+  .theme-light .home-widget{
+    padding:12px;
+  }
+  .theme-light .project-card{
+    padding:14px;
+  }
+  .theme-light .project-card h2{
+    font-size:19px;
+  }
+  .theme-light .sidebar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    border-right:0;
+    border-bottom:1px solid #243247;
+    box-shadow:0 10px 24px rgba(16,24,40,.14);
+  }
+  .theme-light .sidebar-head{
+    padding:10px 10px 8px;
+  }
+  .theme-light .sidebar-top-actions{
+    margin-bottom:8px;
+  }
+  .theme-light .back-home{
+    min-height:36px;
+    padding:0 10px;
+  }
+  .theme-light .sidebar-brand{
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .theme-light .sidebar-logo{
+    width:34px;
+    height:34px;
+  }
+  .theme-light .sidebar-brand h1{
+    font-size:21px;
+  }
+  .theme-light .project-name{
+    min-height:36px;
+    font-size:13px;
+    padding:8px 10px;
+  }
+  .theme-light .progress-line{
+    height:5px;
+    margin-top:9px;
+  }
+  .theme-light .progress-text{
+    margin-top:7px;
+    font-size:11px;
+  }
+  .theme-light .steps-nav{
+    position:relative;
+    display:flex;
+    gap:7px;
+    padding:8px 10px 9px;
+    overflow-x:auto;
+    scroll-snap-type:x proximity;
+    background:#0A1220;
+  }
+  .theme-light .step-item,
+  .theme-light.sidebar-collapsed .step-item{
+    flex:0 0 auto;
+    min-width:86px;
+    max-width:104px;
+    min-height:42px;
+    padding:8px 9px;
+    gap:7px;
+    scroll-snap-align:start;
+  }
+  .theme-light .step-icon,
+  .theme-light .advanced-step-icon{
+    flex:0 0 16px;
+  }
+  .theme-light .step-title,
+  .theme-light.sidebar-collapsed .step-title{
+    max-width:66px;
+    font-size:12px;
+  }
+  .theme-light .step-stamp{
+    display:none;
+  }
+  .theme-light .main{
+    padding:12px 10px 28px;
+  }
+  .theme-light .dossier-card{
+    padding:12px;
+    border-radius:0;
+  }
+  .theme-light .step-page-title{
+    gap:8px;
+  }
+  .theme-light .step-page-title svg{
+    width:18px;
+    height:18px;
+  }
+  .theme-light .dossier-card h2{
+    font-size:24px;
+    line-height:1.08;
+  }
+  .theme-light .objectif,
+  .theme-light .livrable{
+    margin-top:8px;
+    padding:8px 9px!important;
+    line-height:1.35;
+  }
+  .theme-light .sub-title{
+    margin-top:22px;
+    font-size:22px;
+  }
+  .theme-light .field input,
+  .theme-light .field textarea,
+  .theme-light .field select{
+    min-height:38px;
+  }
+  .theme-light .ledger-table-wrap{
+    margin-left:-2px;
+    margin-right:-2px;
+    border-radius:0;
+  }
+  .theme-light .ledger-table{
+    min-width:620px;
+    font-size:12px;
+  }
+  .theme-light .ledger-table th,
+  .theme-light .ledger-table td{
+    padding:8px 9px;
+  }
+  .theme-light .add-row,
+  .theme-light .ghost-btn,
+  .theme-light .primary-btn,
+  .theme-light .open-project{
+    min-height:44px;
+  }
+  .theme-light .flow-viz{
+    gap:8px;
+    padding-bottom:16px;
+  }
+  .theme-light .flow-arrow{
+    min-width:18px;
+  }
+  .theme-light .bpmn-workbench{
+    min-height:calc(100svh - 168px);
+  }
+  .theme-light .bpmn-editor-shell,
+  .theme-light .bpmn-canvas{
+    min-height:calc(100svh - 260px);
+  }
+}
+
+@media (max-width: 390px){
+  .theme-light .step-item,
+  .theme-light.sidebar-collapsed .step-item{
+    min-width:78px;
+    max-width:92px;
+  }
+  .theme-light .step-title,
+  .theme-light.sidebar-collapsed .step-title{
+    max-width:58px;
+  }
+  .theme-light .project-name{
+    font-size:12px;
+  }
+}
 `;
 
 function PrintField({ label, value }) {
