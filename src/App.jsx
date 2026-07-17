@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import _ from 'lodash';
+import { isSupabaseConfigured, loadProjectsFromSupabase, saveProjectsToSupabase } from './supabaseStorage';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell
@@ -5763,6 +5764,9 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
+  const [storageMode, setStorageMode] = useState(isSupabaseConfigured() ? 'cloud' : 'local');
+  const [syncError, setSyncError] = useState('');
+  const knownProjectIdsRef = useRef(new Set());
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
 
   useEffect(() => {
@@ -5799,16 +5803,35 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
+      let localProjects = [];
       try {
         const savedProjects = window.localStorage.getItem('lean-projects-data');
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
-          setProjects(ensureExampleProjects(Array.isArray(parsed) ? parsed : [createProject()]));
+          localProjects = ensureExampleProjects(Array.isArray(parsed) ? parsed : [createProject()]);
         } else {
           const legacy = window.localStorage.getItem('lean-projet-data');
-          setProjects(ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]));
+          localProjects = ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
         }
-      } catch (e) { /* pas de projet sauvegardé */ }
+      } catch (e) { /* pas de projet sauvegarde */ }
+
+      try {
+        const cloudProjects = await loadProjectsFromSupabase();
+        const nextProjects = cloudProjects?.length
+          ? ensureExampleProjects(cloudProjects)
+          : (localProjects.length ? localProjects : ensureExampleProjects([createProject()]));
+        knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
+        setProjects(nextProjects);
+        setStorageMode(isSupabaseConfigured() ? 'cloud' : 'local');
+        setSyncError('');
+      } catch (error) {
+        console.warn('Supabase indisponible, stockage local utilise', error);
+        const nextProjects = localProjects.length ? localProjects : ensureExampleProjects([createProject()]);
+        knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
+        setProjects(nextProjects);
+        setStorageMode('local');
+        setSyncError('Supabase indisponible');
+      }
       setLoaded(true);
     })();
   }, []);
@@ -5818,8 +5841,22 @@ export default function App() {
     const t = setTimeout(async () => {
       try {
         window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
+        if (isSupabaseConfigured()) {
+          const currentIds = new Set(projects.map(project => project._projectId));
+          const deletedIds = [...knownProjectIdsRef.current].filter(id => !currentIds.has(id));
+          await saveProjectsToSupabase(projects, deletedIds);
+          knownProjectIdsRef.current = currentIds;
+          setStorageMode('cloud');
+          setSyncError('');
+        } else {
+          setStorageMode('local');
+        }
         setSavedAt(new Date());
-      } catch (e) { console.error('Erreur de sauvegarde', e); }
+      } catch (e) {
+        console.error('Erreur de sauvegarde', e);
+        setStorageMode('local');
+        setSyncError('Sauvegarde cloud impossible');
+      }
     }, 600);
     return () => clearTimeout(t);
   }, [projects, loaded]);
@@ -6354,7 +6391,12 @@ export default function App() {
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Génère un dossier projet structuré, prêt à partager.</div>
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
-          <div className="save-indicator">{savedAt ? `Enregistré ${savedAt.toLocaleTimeString('fr-FR')}` : (loaded ? 'Non enregistré' : 'Chargement…')}</div>
+          <div className="save-indicator">
+            {savedAt
+              ? `${storageMode === 'cloud' ? 'Cloud' : 'Local'} sauvegarde ${savedAt.toLocaleTimeString('fr-FR')}`
+              : (loaded ? 'Non enregistre' : 'Chargement...')}
+            {syncError ? ` - ${syncError}` : ''}
+          </div>
         </div>
       </aside>
       <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
