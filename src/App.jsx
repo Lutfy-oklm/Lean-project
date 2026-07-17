@@ -3411,23 +3411,34 @@ const CSS = `
   font-size:12.5px;
   line-height:1.45;
 }
-.auth-panel{ border:1px solid #C7D4E5; background:#FFFFFF; color:#10233F; padding:12px; display:flex; align-items:center; gap:10px; min-width:260px; }
-.auth-panel.compact{ min-width:220px; padding:10px; }
-.auth-panel form{ width:100%; display:grid; gap:8px; }
-.auth-panel div{ min-width:0; }
-.auth-panel span{ display:block; font-family:var(--font-mono); font-size:10px; color:#5B6E8A; text-transform:uppercase; font-weight:800; }
-.auth-panel strong{ display:block; color:#10233F; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.auth-panel input{ width:100%; border:1px solid #C7D4E5; background:#F8FAFC; color:#10233F; min-height:34px; padding:0 10px; font:inherit; }
-.auth-panel button{ border:1px solid #10233F; background:#10233F; color:#FFFFFF; min-height:34px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:800; cursor:pointer; }
+.auth-panel{ border:1px solid #CBD7E8; border-top:2px solid #2F6F63; background:linear-gradient(180deg,#FFFFFF 0%,#F7FAFD 100%); color:#10233F; padding:12px; display:flex; align-items:center; gap:12px; min-width:300px; box-shadow:0 14px 36px rgba(16,35,63,.08); }
+.auth-panel.compact{ min-width:360px; max-width:520px; padding:12px 14px; }
+.auth-panel form{ width:100%; display:grid; grid-template-columns:1.1fr 1.5fr auto auto; align-items:center; gap:10px; }
+.auth-panel.is-connected{ justify-content:space-between; }
+.auth-copy{ min-width:0; }
+.auth-panel span{ display:block; font-family:var(--font-mono); font-size:10px; color:#4F6582; text-transform:uppercase; font-weight:800; line-height:1.2; }
+.auth-panel strong{ display:block; color:#10233F; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; }
+.auth-fields{ display:grid; grid-template-columns:1fr 1fr; gap:8px; min-width:0; }
+.auth-panel input{ width:100%; border:1px solid #C7D4E5; background:#FFFFFF; color:#10233F; min-height:36px; padding:0 10px; font:inherit; font-size:12px; outline:none; }
+.auth-panel input:focus{ border-color:#2F6F63; box-shadow:0 0 0 2px rgba(47,111,99,.12); }
+.auth-panel button{ border:1px solid #10233F; background:#10233F; color:#FFFFFF; min-height:36px; padding:0 12px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:800; cursor:pointer; white-space:nowrap; }
 .auth-panel button:disabled{ opacity:.6; cursor:wait; }
-.auth-panel .auth-switch{ background:#FFFFFF; color:#10233F; border-color:#C7D4E5; }
-.auth-panel p{ margin:0; color:#7A4B12; font-size:11px; line-height:1.35; }
-.sidebar .auth-panel{ min-width:0; width:100%; background:#132644; border-color:#2A456A; color:#FFFFFF; }
+.auth-panel .auth-switch{ background:transparent; color:#2F6F63; border-color:transparent; padding:0 4px; min-height:30px; }
+.auth-panel .auth-switch:hover{ text-decoration:underline; }
+.auth-panel p{ grid-column:1/-1; margin:0; color:#7A4B12; font-size:11px; line-height:1.35; }
+.sidebar .auth-panel{ min-width:0; max-width:none; width:100%; background:#132644; border-color:#2A456A; border-top-color:#2F6F63; color:#FFFFFF; box-shadow:none; }
+.sidebar .auth-panel form{ grid-template-columns:1fr; }
+.sidebar .auth-fields{ grid-template-columns:1fr; }
 .sidebar .auth-panel span{ color:#B9C7D8; }
 .sidebar .auth-panel strong{ color:#FFFFFF; }
 .sidebar .auth-panel input{ background:#0D1E36; border-color:#2A456A; color:#FFFFFF; }
 .sidebar .auth-panel button{ background:#FFFFFF; border-color:#FFFFFF; color:#10233F; }
-.sidebar .auth-panel .auth-switch{ background:transparent; color:#FFFFFF; border-color:#2A456A; }
+.sidebar .auth-panel .auth-switch{ background:transparent; color:#FFFFFF; border-color:transparent; }
+@media (max-width: 920px){
+  .auth-panel,.auth-panel.compact{ min-width:0; width:100%; max-width:none; }
+  .auth-panel form{ grid-template-columns:1fr; }
+  .auth-fields{ grid-template-columns:1fr; }
+}
 .theme-light .project-name{
   min-height:34px;
   background:#172C4D!important;
@@ -6046,26 +6057,28 @@ export default function App() {
   const userEmail = authSession?.user?.email;
 
   const authPanel = (compact = false) => (
-    <div className={`auth-panel ${compact ? 'compact' : ''}`}>
+    <div className={`auth-panel ${compact ? 'compact' : ''} ${userEmail ? 'is-connected' : ''}`}>
       {userEmail ? (
         <>
-          <div>
-            <span>Compte connecte</span>
+          <div className="auth-copy">
+            <span>Session active</span>
             <strong>{userEmail}</strong>
           </div>
           <button type="button" onClick={handleSignOut}><LogOut size={15} /> Deconnexion</button>
         </>
       ) : (
         <form onSubmit={handleAuthSubmit}>
-          <div>
-            <span>{authMode === 'signup' ? 'Creer un compte' : 'Connexion'}</span>
-            <strong>Sauvegarde cloud personnelle</strong>
+          <div className="auth-copy">
+            <span>Acces securise</span>
+            <strong>{authMode === 'signup' ? 'Creer votre espace' : 'Se connecter a PilotProcess'}</strong>
           </div>
-          <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="email@exemple.com" required />
-          <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Mot de passe" minLength={6} required />
-          <button type="submit" disabled={authBusy}>{authBusy ? 'Patientez...' : (authMode === 'signup' ? 'Creer le compte' : 'Se connecter')}</button>
+          <div className="auth-fields">
+            <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="Email professionnel" required />
+            <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Mot de passe" minLength={6} required />
+          </div>
+          <button className="auth-submit" type="submit" disabled={authBusy}>{authBusy ? 'Patientez...' : (authMode === 'signup' ? 'Creer mon espace' : 'Entrer')}</button>
           <button className="auth-switch" type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthMessage(''); }}>
-            {authMode === 'signup' ? 'J’ai deja un compte' : 'Creer un compte'}
+            {authMode === 'signup' ? 'J?ai deja un compte' : 'Creer un compte'}
           </button>
           {authMessage && <p>{authMessage}</p>}
         </form>
