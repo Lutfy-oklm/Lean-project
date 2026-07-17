@@ -1397,7 +1397,6 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
       <div className="bpmn-toolbar">
         <div>
           <strong>Éditeur BPMN</strong>
-          <span>{status}{selectedElements.length > 0 ? ` · ${selectedElements.length} élément(s) sélectionné(s)` : ''}</span>
         </div>
         <div className="bpmn-actions">
           <div className="bpmn-color-palette" aria-label="Couleurs BPMN">
