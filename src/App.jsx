@@ -3895,6 +3895,101 @@ const CSS = `
   margin:10px 14px 14px;
 }
 
+/* Step hierarchy refinement */
+.theme-light .dossier-card{
+  counter-reset: step-section;
+}
+.theme-light .step-body{
+  margin-top:22px;
+}
+.theme-light .sub-title{
+  counter-increment:step-section;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#FFFFFF;
+  border:1px solid #D8D0C2;
+  border-left:4px solid #112747;
+  margin:34px 0 16px;
+  padding:12px 14px;
+}
+.theme-light .sub-title::before{
+  content:"Bloc " counter(step-section);
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 8px;
+  background:#EEF3F7;
+  border:1px solid #CAD4E0;
+  color:#52637A;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .step-body > .field,
+.theme-light .charte-grid .field{
+  background:#FFFCF6;
+  border:1px solid #DDD5C8;
+  border-left:3px solid #B9C3D2;
+  padding:12px 12px 10px;
+  margin-bottom:12px;
+}
+.theme-light .field label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.theme-light .field label::before{
+  content:"";
+  width:6px;
+  height:6px;
+  background:#2F756A;
+}
+.theme-light .step-body .ledger-table-wrap{
+  background:#FFFFFF;
+  border:1px solid #D8D0C2;
+  border-top:3px solid #2F756A;
+  padding:12px;
+  margin:10px 0 20px;
+}
+.theme-light .step-body .ledger-table th{
+  background:#F6F8FB;
+}
+.theme-light .fivewhy,
+.theme-light .ishikawa-grid,
+.theme-light .vsm-summary,
+.theme-light .kpi-grid,
+.theme-light .pain-callout{
+  margin-top:12px;
+}
+.theme-light .fivewhy{
+  border-left:3px solid #112747;
+  background:#FFFFFF;
+  padding:14px;
+}
+.theme-light .ishikawa-grid .branch{
+  background:#FFFFFF;
+  border:1px solid #D8D0C2;
+  border-top:3px solid #B36B1E;
+}
+.theme-light .vsm-summary div,
+.theme-light .kpi-card{
+  border-top:3px solid #2F756A;
+}
+.theme-light .pain-callout{
+  background:#FFF8EC;
+  border:1px solid #E7BD7A;
+  border-left:4px solid #B36B1E;
+}
+.theme-light .empty-hint,
+.theme-light .empty-row{
+  background:#F8FAFC;
+  border:1px dashed #B9C3D2;
+  color:#52637A;
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
