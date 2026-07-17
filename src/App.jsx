@@ -3970,6 +3970,372 @@ const CSS = `
   .view-toggle{ width:100%; }
   .view-toggle button{ flex:1; }
 }
+
+@media (max-width: 640px){
+  html,body,#root{ width:100%; min-width:0; overflow-x:hidden; }
+  .lean-app{
+    width:100%;
+    min-width:0;
+    min-height:100svh;
+    margin:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    overflow:visible;
+  }
+  .theme-light .landing-page,
+  .theme-light .project-home{
+    width:100%;
+    padding:14px 14px 34px;
+  }
+  .theme-light .landing-nav{
+    gap:12px;
+    padding-bottom:14px;
+  }
+  .theme-light .landing-brand{
+    font-size:26px;
+    gap:10px;
+  }
+  .theme-light .landing-brand img{
+    width:44px;
+    height:44px;
+  }
+  .theme-light .landing-hero{
+    display:block;
+    padding:24px 0 16px;
+  }
+  .theme-light .landing-copy{
+    padding-top:16px;
+  }
+  .theme-light .landing-copy h1{
+    font-size:36px;
+    line-height:1.04;
+    overflow-wrap:anywhere;
+  }
+  .theme-light .landing-copy p{
+    font-size:14px;
+    line-height:1.55;
+  }
+  .theme-light .landing-actions{
+    flex-direction:column;
+  }
+  .theme-light .landing-primary,
+  .theme-light .landing-secondary{
+    width:100%;
+    min-height:44px;
+  }
+  .theme-light .landing-panel{
+    margin-top:22px;
+    padding:14px;
+  }
+  .theme-light .landing-panel-head,
+  .theme-light .landing-mini-list div{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .theme-light .landing-mini-list span{
+    white-space:normal;
+  }
+  .theme-light .landing-sectors{
+    grid-template-columns:1fr;
+  }
+
+  .theme-light .home-hero{
+    padding:16px;
+    display:block;
+  }
+  .theme-light .brand-lockup{
+    gap:10px;
+  }
+  .theme-light .brand-logo{
+    width:52px;
+    height:52px;
+  }
+  .theme-light .home-hero h1{
+    font-size:34px;
+    overflow-wrap:anywhere;
+  }
+  .theme-light .home-hero p{
+    font-size:14px;
+  }
+  .theme-light .home-hero-actions{
+    margin-top:16px;
+  }
+  .theme-light .home-dashboard{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .theme-light .home-widget{
+    min-height:auto;
+    padding:14px;
+  }
+  .theme-light .portfolio-toolbar{
+    display:block;
+    padding-top:8px;
+  }
+  .theme-light .portfolio-toolbar h2{
+    font-size:25px;
+  }
+  .theme-light .portfolio-actions{
+    margin-top:12px;
+    flex-direction:column;
+  }
+  .theme-light .home-search{
+    width:100%;
+    min-height:46px;
+  }
+  .theme-light .view-toggle{
+    width:100%;
+  }
+  .theme-light .view-toggle button{
+    flex:1;
+    height:42px;
+  }
+  .theme-light .project-grid,
+  .theme-light .project-grid.view-list,
+  .theme-light .project-grid.view-compact{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  .theme-light .project-card,
+  .theme-light .project-grid.view-list .project-card,
+  .theme-light .project-grid.view-compact .project-card{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    padding:15px;
+  }
+  .theme-light .project-card-top,
+  .theme-light .project-grid.view-compact .project-card-top{
+    display:flex;
+    width:100%;
+    margin-bottom:12px;
+  }
+  .theme-light .project-card h2,
+  .theme-light .project-grid.view-compact .project-card h2{
+    font-size:20px;
+    line-height:1.15;
+  }
+  .theme-light .project-card p,
+  .theme-light .project-grid.view-compact .project-card p{
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+  }
+  .theme-light .project-grid.view-compact .status-badge,
+  .theme-light .project-grid.view-compact .delete-project,
+  .theme-light .project-grid.view-compact .project-icon,
+  .theme-light .project-grid.view-compact .project-progress,
+  .theme-light .project-grid.view-compact .open-project{
+    grid-column:auto;
+    grid-row:auto;
+  }
+  .theme-light .open-project{
+    width:100%;
+    min-height:44px;
+  }
+
+  .theme-light .sidebar{
+    width:100%;
+    min-width:0;
+    max-height:none;
+  }
+  .theme-light .sidebar-head{
+    padding:12px;
+  }
+  .theme-light .sidebar-top-actions{
+    margin-bottom:10px;
+  }
+  .theme-light .collapse-btn{
+    display:none;
+  }
+  .theme-light .sidebar-brand h1{
+    font-size:24px;
+  }
+  .theme-light .project-name{
+    min-height:40px;
+  }
+  .theme-light .steps-nav{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:8px 12px 10px;
+    scrollbar-width:none;
+  }
+  .theme-light .steps-nav::-webkit-scrollbar{
+    display:none;
+  }
+  .theme-light .step-item,
+  .theme-light.sidebar-collapsed .step-item{
+    flex:0 0 auto;
+    width:auto;
+    min-width:92px;
+    height:auto;
+    margin:0;
+    padding:9px 10px;
+    justify-content:flex-start;
+    border-left:0;
+    border-bottom:3px solid transparent;
+  }
+  .theme-light .step-title,
+  .theme-light.sidebar-collapsed .step-title{
+    display:block;
+    max-width:82px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .theme-light.sidebar-collapsed .sidebar{
+    width:100%;
+    min-width:0;
+  }
+  .theme-light.sidebar-collapsed .sidebar-expanded-only,
+  .theme-light.sidebar-collapsed .step-title,
+  .theme-light.sidebar-collapsed .sidebar-foot{
+    display:block;
+  }
+  .theme-light .sidebar-foot{
+    display:none;
+  }
+  .theme-light.sidebar-collapsed .main,
+  .theme-light .main{
+    width:100%;
+    padding:14px;
+    overflow:visible;
+  }
+  .theme-light .dossier-card{
+    max-width:none;
+    width:100%;
+    padding:14px;
+    border-left:0;
+    border-right:0;
+  }
+  .theme-light .dossier-card h2{
+    font-size:28px;
+    line-height:1.08;
+  }
+  .theme-light .eyebrow{
+    white-space:normal;
+  }
+  .theme-light .objectif,
+  .theme-light .livrable{
+    padding:9px 10px!important;
+    font-size:12.5px;
+  }
+  .theme-light .step-body{
+    margin-top:12px;
+  }
+  .theme-light .field{
+    margin-bottom:12px;
+  }
+  .theme-light .field label{
+    font-size:10.5px;
+  }
+  .theme-light .lean-app input,
+  .theme-light .lean-app select,
+  .theme-light .lean-app textarea{
+    font-size:16px!important;
+  }
+  .theme-light .charte-grid,
+  .theme-light .ishikawa-grid,
+  .theme-light .kpi-grid{
+    grid-template-columns:1fr;
+  }
+  .theme-light .ledger-table-wrap{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .theme-light .ledger-table{
+    min-width:680px;
+  }
+  .theme-light .flow-viz{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    align-items:center;
+    padding:16px 4px 20px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .theme-light .flow-node{
+    flex:0 0 auto;
+  }
+  .theme-light .shape-diamond{
+    width:104px;
+    height:104px;
+    min-width:104px;
+    max-width:104px;
+  }
+  .theme-light .shape-diamond::before{
+    width:72px;
+    height:72px;
+    top:16px;
+    left:16px;
+  }
+  .theme-light .shape-diamond .flow-node-label{
+    max-width:62px;
+    font-size:11px;
+  }
+  .theme-light .step-actions{
+    flex-direction:column;
+    align-items:stretch;
+    gap:9px;
+  }
+  .theme-light .step-actions button{
+    width:100%;
+    min-height:44px;
+  }
+  .theme-light .bpmn-main{
+    padding:10px;
+  }
+  .theme-light .bpmn-card{
+    padding:10px;
+  }
+  .theme-light .bpmn-toolbar{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    padding:10px;
+  }
+  .theme-light .bpmn-actions{
+    justify-content:flex-start;
+  }
+  .theme-light .bpmn-color-palette{
+    width:100%;
+    overflow-x:auto;
+  }
+  .theme-light .bpmn-actions > button{
+    flex:1 1 100%;
+    min-height:40px;
+  }
+  .theme-light .bpmn-editor-shell{
+    min-height:calc(100svh - 260px);
+  }
+  .theme-light .bpmn-canvas{
+    min-height:calc(100svh - 270px);
+  }
+  .theme-light .bpmn-workbench .djs-palette{
+    transform:scale(.86);
+    transform-origin:top left;
+  }
+}
+
+@media (max-width: 390px){
+  .theme-light .landing-copy h1,
+  .theme-light .home-hero h1{
+    font-size:31px;
+  }
+  .theme-light .dossier-card h2{
+    font-size:25px;
+  }
+  .theme-light .step-item,
+  .theme-light.sidebar-collapsed .step-item{
+    min-width:82px;
+  }
+  .theme-light .step-title,
+  .theme-light.sidebar-collapsed .step-title{
+    max-width:72px;
+  }
+}
 `;
 
 function PrintField({ label, value }) {
