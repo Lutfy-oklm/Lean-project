@@ -4834,61 +4834,61 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
       .filter(([, causes]) => causes.length > 0);
     if (!entries.length) return;
 
-    const maxBranches = entries.slice(0, 6);
-    const height = Math.max(90, Math.ceil(maxBranches.length / 2) * 34 + 32);
-    ensureSpace(height + 12);
+    const maxBranches = entries.slice(0, 5);
+    const gap = 3;
+    const colWidth = (contentWidth - gap * (maxBranches.length - 1)) / maxBranches.length;
+    const columnHeights = maxBranches.map(([, causes]) => {
+      const lines = causes.slice(0, 4).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, colWidth - 4));
+      return Math.max(34, 18 + lines.length * 3.8);
+    });
+    const chartHeight = Math.max(60, Math.max(...columnHeights) + 24);
+    ensureSpace(chartHeight + 12);
     subTitle('Ishikawa - causes racines');
 
-    const startY = y + 8;
-    const centerY = startY + height / 2;
-    const effectBoxW = 42;
-    const effectBoxH = 32;
-    const effectX = pageWidth - margin - effectBoxW - 3;
-    const effectY = centerY - effectBoxH / 2;
-    const spineStart = margin + 6;
-    const spineEnd = effectX - 9;
-    const fishHeadX = effectX - 3;
-    const usableSpine = spineEnd - spineStart;
+    const headerY = y + 5;
+    const effectW = 35;
+    const effectH = 10;
+    const effectX = pageWidth - margin - effectW;
+    const lineY = headerY + 7;
 
-    doc.setDrawColor(...accent);
-    doc.setLineWidth(0.8);
-    doc.line(spineStart, centerY, spineEnd, centerY);
-    doc.line(spineEnd, centerY, fishHeadX, centerY - 8);
-    doc.line(spineEnd, centerY, fishHeadX, centerY + 8);
-    doc.line(fishHeadX, centerY - 8, fishHeadX, centerY + 8);
+    setText(6.8, 'bold', muted);
+    doc.text('CAUSES', margin, lineY + 1);
+    doc.setDrawColor(...ink);
+    doc.setLineWidth(0.45);
+    doc.line(margin + 14, lineY, effectX - 4, lineY);
 
-    doc.setFillColor(238, 243, 247);
-    doc.setDrawColor(...line);
-    doc.roundedRect(effectX, effectY, effectBoxW, effectBoxH, 1.5, 1.5, 'FD');
-    setText(7, 'bold', muted);
-    doc.text('EFFET / PROBLEME', effectX + 4, effectY + 6);
-    setText(8, 'bold', ink);
-    doc.text(doc.splitTextToSize(cleanPdfText(problem || 'Probleme analyse'), effectBoxW - 8), effectX + 4, effectY + 15, { maxWidth: effectBoxW - 8 });
+    doc.setFillColor(...ink);
+    doc.roundedRect(effectX, headerY + 2, effectW, effectH, 1.5, 1.5, 'F');
+    setText(6.5, 'bold', [255, 255, 255]);
+    doc.text('EFFET / PROBLEME', effectX + 4, headerY + 8);
 
+    const columnsY = headerY + 18;
     maxBranches.forEach(([label, causes], index) => {
-      const top = index % 2 === 0;
-      const pairIndex = Math.floor(index / 2);
-      const anchorX = spineStart + usableSpine * (pairIndex + 0.55) / 3;
-      const boxW = 39;
-      const boxH = 21;
-      const boxX = Math.min(anchorX + 21, effectX - boxW - 7);
-      const boxY = top ? centerY - 52 : centerY + 31;
-      const lineEndX = boxX + 4;
-      const lineEndY = top ? boxY + boxH + 2 : boxY - 2;
-      const causeLines = causes.slice(0, 3).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, boxW - 7));
+      const x = margin + index * (colWidth + gap);
+      const causeLines = causes.slice(0, 4).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, colWidth - 4));
 
       doc.setDrawColor(...accent);
-      doc.setLineWidth(0.45);
-      doc.line(anchorX, centerY, lineEndX, lineEndY);
-      doc.setFillColor(top ? 255 : 248, top ? 252 : 250, top ? 246 : 252);
+      doc.setLineWidth(0.65);
+      doc.line(x, columnsY, x + colWidth, columnsY);
+      doc.setFillColor(index % 2 === 0 ? 255 : 248, index % 2 === 0 ? 252 : 250, index % 2 === 0 ? 246 : 252);
       doc.setDrawColor(...line);
-      doc.roundedRect(boxX, boxY, boxW, boxH, 1.2, 1.2, 'FD');
+      doc.rect(x, columnsY + 2, colWidth, columnHeights[index], 'FD');
       setText(6.7, 'bold', muted);
-      doc.text(cleanPdfText(label).toUpperCase(), boxX + 3, boxY + 5);
+      doc.text(cleanPdfText(label).toUpperCase(), x + 2, columnsY + 8);
       setText(6.7, 'normal', ink);
-      doc.text(causeLines.slice(0, 4), boxX + 3, boxY + 10, { maxWidth: boxW - 7 });
+      doc.text(causeLines.slice(0, 8), x + 2, columnsY + 15, { maxWidth: colWidth - 4 });
     });
-    y += height + 10;
+
+    const problemText = cleanPdfText(problem || 'Probleme analyse');
+    if (problemText) {
+      const problemY = columnsY + Math.max(...columnHeights) + 8;
+      setText(7, 'bold', muted);
+      doc.text('Effet / probleme :', margin, problemY);
+      setText(7.4, 'bold', ink);
+      doc.text(doc.splitTextToSize(problemText, contentWidth - 35), margin + 25, problemY, { maxWidth: contentWidth - 35 });
+    }
+
+    y += chartHeight + 10;
   };
 
   const drawFiveWhy = (analysis) => {
