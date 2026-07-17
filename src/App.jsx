@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import _ from 'lodash';
-import { isSupabaseConfigured, loadProjectsFromSupabase, saveProjectsToSupabase } from './supabaseStorage';
+import {
+  getCurrentSession, isSupabaseConfigured, loadProjectsFromSupabase,
+  saveProjectsToSupabase, signInWithEmail, signOutFromSupabase, signUpWithEmail
+} from './supabaseStorage';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell
@@ -8,7 +11,7 @@ import {
 import {
   ArrowLeft, BarChart3, BriefcaseBusiness, ChevronRight, ChevronLeft, ClipboardList, Download,
   Eye, FolderKanban, Gauge, GitBranch, LayoutGrid, List, Map, PanelLeftClose, PanelLeftOpen,
-  PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
+  LogOut, PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -3412,6 +3415,23 @@ const CSS = `
   font-size:12.5px;
   line-height:1.45;
 }
+.auth-panel{ border:1px solid #C7D4E5; background:#FFFFFF; color:#10233F; padding:12px; display:flex; align-items:center; gap:10px; min-width:260px; }
+.auth-panel.compact{ min-width:220px; padding:10px; }
+.auth-panel form{ width:100%; display:grid; gap:8px; }
+.auth-panel div{ min-width:0; }
+.auth-panel span{ display:block; font-family:var(--font-mono); font-size:10px; color:#5B6E8A; text-transform:uppercase; font-weight:800; }
+.auth-panel strong{ display:block; color:#10233F; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.auth-panel input{ width:100%; border:1px solid #C7D4E5; background:#F8FAFC; color:#10233F; min-height:34px; padding:0 10px; font:inherit; }
+.auth-panel button{ border:1px solid #10233F; background:#10233F; color:#FFFFFF; min-height:34px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:800; cursor:pointer; }
+.auth-panel button:disabled{ opacity:.6; cursor:wait; }
+.auth-panel .auth-switch{ background:#FFFFFF; color:#10233F; border-color:#C7D4E5; }
+.auth-panel p{ margin:0; color:#7A4B12; font-size:11px; line-height:1.35; }
+.sidebar .auth-panel{ min-width:0; width:100%; background:#132644; border-color:#2A456A; color:#FFFFFF; }
+.sidebar .auth-panel span{ color:#B9C7D8; }
+.sidebar .auth-panel strong{ color:#FFFFFF; }
+.sidebar .auth-panel input{ background:#0D1E36; border-color:#2A456A; color:#FFFFFF; }
+.sidebar .auth-panel button{ background:#FFFFFF; border-color:#FFFFFF; color:#10233F; }
+.sidebar .auth-panel .auth-switch{ background:transparent; color:#FFFFFF; border-color:#2A456A; }
 .theme-light .project-name{
   min-height:34px;
   background:#172C4D!important;
@@ -5766,6 +5786,13 @@ export default function App() {
   const [savedAt, setSavedAt] = useState(null);
   const [storageMode, setStorageMode] = useState(isSupabaseConfigured() ? 'cloud' : 'local');
   const [syncError, setSyncError] = useState('');
+  const [authReady, setAuthReady] = useState(false);
+  const [authSession, setAuthSession] = useState(null);
+  const [authMode, setAuthMode] = useState('signin');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
   const knownProjectIdsRef = useRef(new Set());
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
 
@@ -5803,6 +5830,44 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
+      const session = await getCurrentSession();
+      setAuthSession(session);
+      setAuthReady(true);
+    })();
+  }, []);
+
+  const handleAuthSubmit = async (event) => {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthMessage('');
+    try {
+      const action = authMode === 'signup' ? signUpWithEmail : signInWithEmail;
+      const session = await action(authEmail.trim(), authPassword);
+      if (session?.access_token) {
+        setAuthSession(session);
+        setAuthPassword('');
+        setAuthMessage('Compte connecte.');
+      } else {
+        setAuthMessage('Compte cree. Verifiez votre email si une confirmation est demandee.');
+      }
+    } catch (error) {
+      setAuthMessage(error.message || 'Connexion impossible.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOutFromSupabase(authSession);
+    setAuthSession(null);
+    setStorageMode('local');
+    setSyncError('');
+  };
+
+  useEffect(() => {
+    if (!authReady) return;
+    (async () => {
+      setLoaded(false);
       let localProjects = [];
       try {
         const savedProjects = window.localStorage.getItem('lean-projects-data');
@@ -5816,13 +5881,13 @@ export default function App() {
       } catch (e) { /* pas de projet sauvegarde */ }
 
       try {
-        const cloudProjects = await loadProjectsFromSupabase();
+        const cloudProjects = await loadProjectsFromSupabase(authSession);
         const nextProjects = cloudProjects?.length
           ? ensureExampleProjects(cloudProjects)
           : (localProjects.length ? localProjects : ensureExampleProjects([createProject()]));
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
-        setStorageMode(isSupabaseConfigured() ? 'cloud' : 'local');
+        setStorageMode(isSupabaseConfigured() && authSession ? 'cloud' : 'local');
         setSyncError('');
       } catch (error) {
         console.warn('Supabase indisponible, stockage local utilise', error);
@@ -5834,17 +5899,17 @@ export default function App() {
       }
       setLoaded(true);
     })();
-  }, []);
+  }, [authReady, authSession]);
 
   useEffect(() => {
     if (!loaded) return;
     const t = setTimeout(async () => {
       try {
         window.localStorage.setItem('lean-projects-data', JSON.stringify(projects));
-        if (isSupabaseConfigured()) {
+        if (isSupabaseConfigured() && authSession) {
           const currentIds = new Set(projects.map(project => project._projectId));
           const deletedIds = [...knownProjectIdsRef.current].filter(id => !currentIds.has(id));
-          await saveProjectsToSupabase(projects, deletedIds);
+          await saveProjectsToSupabase(projects, deletedIds, authSession);
           knownProjectIdsRef.current = currentIds;
           setStorageMode('cloud');
           setSyncError('');
@@ -5859,7 +5924,7 @@ export default function App() {
       }
     }, 600);
     return () => clearTimeout(t);
-  }, [projects, loaded]);
+  }, [projects, loaded, authSession]);
 
   const updateField = useCallback((path, value) => {
     setProjects(prev => prev.map(project => {
@@ -5943,6 +6008,35 @@ export default function App() {
   const appClass = 'lean-app theme-light';
   const activeMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : STEPS[active];
   const ActiveIcon = activeMeta.icon || GitBranch;
+  const userEmail = authSession?.user?.email;
+
+  const authPanel = (compact = false) => (
+    <div className={`auth-panel ${compact ? 'compact' : ''}`}>
+      {userEmail ? (
+        <>
+          <div>
+            <span>Compte connecte</span>
+            <strong>{userEmail}</strong>
+          </div>
+          <button type="button" onClick={handleSignOut}><LogOut size={15} /> Deconnexion</button>
+        </>
+      ) : (
+        <form onSubmit={handleAuthSubmit}>
+          <div>
+            <span>{authMode === 'signup' ? 'Creer un compte' : 'Connexion'}</span>
+            <strong>Sauvegarde cloud personnelle</strong>
+          </div>
+          <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="email@exemple.com" required />
+          <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Mot de passe" minLength={6} required />
+          <button type="submit" disabled={authBusy}>{authBusy ? 'Patientez...' : (authMode === 'signup' ? 'Creer le compte' : 'Se connecter')}</button>
+          <button className="auth-switch" type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthMessage(''); }}>
+            {authMode === 'signup' ? 'J’ai deja un compte' : 'Creer un compte'}
+          </button>
+          {authMessage && <p>{authMessage}</p>}
+        </form>
+      )}
+    </div>
+  );
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -6189,6 +6283,7 @@ export default function App() {
               <img src="/pilotprocess-logo.svg" alt="" />
               <span>PilotProcess</span>
             </div>
+            {authPanel(true)}
           </nav>
 
           <section className="landing-hero">
@@ -6270,6 +6365,7 @@ export default function App() {
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
+              {authPanel(true)}
             </div>
           </header>
 
@@ -6390,6 +6486,7 @@ export default function App() {
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Génère un dossier projet structuré, prêt à partager.</div>
+          {authPanel(true)}
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">
             {savedAt

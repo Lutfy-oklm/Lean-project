@@ -1,4 +1,5 @@
 const TABLE_NAME = 'pilotprocess_projects';
+const SESSION_KEY = 'pilotprocess-auth-session';
 
 function cleanUrl(value) {
   return String(value || '').trim().replace(/\/+$/, '');
@@ -26,7 +27,91 @@ export function isSupabaseConfigured() {
   return Boolean(getSupabaseConfig());
 }
 
-async function requestSupabase(path, options = {}) {
+function getStoredSession() {
+  try {
+    return JSON.parse(window.localStorage.getItem(SESSION_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function storeSession(session) {
+  if (!session) {
+    window.localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  return session;
+}
+
+async function requestAuth(path, options = {}) {
+  const config = getSupabaseConfig();
+  if (!config) throw new Error('Supabase non configure');
+
+  const response = await fetch(`${config.url}/auth/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: config.anonKey,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.msg || payload?.error_description || payload?.message || 'Authentification impossible');
+  return payload;
+}
+
+export async function signUpWithEmail(email, password) {
+  const payload = await requestAuth('signup', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+  return storeSession(payload.access_token ? payload : null);
+}
+
+export async function signInWithEmail(email, password) {
+  const payload = await requestAuth('token?grant_type=password', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+  return storeSession(payload);
+}
+
+export async function signOutFromSupabase(session) {
+  const config = getSupabaseConfig();
+  if (config && session?.access_token) {
+    await fetch(`${config.url}/auth/v1/logout`, {
+      method: 'POST',
+      headers: {
+        apikey: config.anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    }).catch(() => null);
+  }
+  storeSession(null);
+}
+
+export async function getCurrentSession() {
+  const session = getStoredSession();
+  if (!session?.access_token) return null;
+  const expiresAt = Number(session.expires_at || 0) * 1000;
+  if (session.refresh_token && expiresAt && Date.now() > expiresAt - 60000) {
+    try {
+      const refreshed = await requestAuth('token?grant_type=refresh_token', {
+        method: 'POST',
+        body: JSON.stringify({ refresh_token: session.refresh_token }),
+      });
+      return storeSession(refreshed);
+    } catch {
+      storeSession(null);
+      return null;
+    }
+  }
+  return session;
+}
+
+async function requestSupabase(path, options = {}, session = null) {
   const config = getSupabaseConfig();
   if (!config) throw new Error('Supabase non configure');
 
@@ -34,7 +119,7 @@ async function requestSupabase(path, options = {}) {
     ...options,
     headers: {
       apikey: config.anonKey,
-      Authorization: `Bearer ${config.anonKey}`,
+      Authorization: `Bearer ${session?.access_token || config.anonKey}`,
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     },
@@ -49,20 +134,21 @@ async function requestSupabase(path, options = {}) {
   return response.json();
 }
 
-export async function loadProjectsFromSupabase() {
-  if (!isSupabaseConfigured()) return null;
+export async function loadProjectsFromSupabase(session) {
+  if (!isSupabaseConfigured() || !session?.access_token) return null;
 
-  const rows = await requestSupabase(`${TABLE_NAME}?select=id,payload,updated_at&order=updated_at.desc`);
+  const rows = await requestSupabase(`${TABLE_NAME}?select=id,payload,updated_at&order=updated_at.desc`, {}, session);
   return (rows || [])
     .map((row) => ({ ...(row.payload || {}), _projectId: row.id || row.payload?._projectId }))
     .filter((project) => project && project._projectId);
 }
 
-export async function saveProjectsToSupabase(projects, deletedIds = []) {
-  if (!isSupabaseConfigured()) return false;
+export async function saveProjectsToSupabase(projects, deletedIds = [], session = null) {
+  if (!isSupabaseConfigured() || !session?.access_token || !session?.user?.id) return false;
 
   const rows = (projects || []).map((project) => ({
     id: project._projectId,
+    owner_id: session.user.id,
     payload: project,
     updated_at: project.updatedAt || new Date().toISOString(),
   }));
@@ -72,7 +158,7 @@ export async function saveProjectsToSupabase(projects, deletedIds = []) {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(rows),
-    });
+    }, session);
   }
 
   if (deletedIds.length) {
@@ -80,7 +166,7 @@ export async function saveProjectsToSupabase(projects, deletedIds = []) {
     await requestSupabase(`${TABLE_NAME}?id=in.(${encodeURIComponent(ids)})`, {
       method: 'DELETE',
       headers: { Prefer: 'return=minimal' },
-    });
+    }, session);
   }
 
   return true;
