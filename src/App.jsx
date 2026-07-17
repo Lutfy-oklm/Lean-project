@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, GitBranch, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash2
+  FolderKanban, GitBranch, LayoutGrid, List, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Rows3, Search, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -2855,8 +2855,14 @@ const CSS = `
   font-size:24px;
   font-weight:500;
 }
+.theme-light .portfolio-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
 .theme-light .home-search{
   min-height:42px;
+  flex:1;
   border-left:1px solid var(--line);
   padding:8px 12px;
   color:var(--ink-soft);
@@ -2866,6 +2872,31 @@ const CSS = `
   font-size:14px!important;
   color:var(--ink)!important;
   background:transparent!important;
+}
+.theme-light .view-toggle{
+  display:flex;
+  align-items:center;
+  border:1px solid var(--line);
+  background:#FFFFFF;
+}
+.theme-light .view-toggle button{
+  width:38px;
+  height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-left:1px solid var(--line);
+  background:#FFFFFF;
+  color:var(--ink-soft);
+}
+.theme-light .view-toggle button:first-child{
+  border-left:0;
+}
+.theme-light .view-toggle button:hover,
+.theme-light .view-toggle button.is-active{
+  background:#11233F;
+  color:#FFFFFF;
 }
 .theme-light .project-grid{
   gap:14px;
@@ -2964,6 +2995,82 @@ const CSS = `
 .theme-light .home-primary:hover,
 .theme-light .open-project:hover{
   background:var(--blue);
+}
+.theme-light .project-grid.view-list,
+.theme-light .project-grid.view-compact{
+  grid-template-columns:1fr;
+}
+.theme-light .project-grid.view-list .project-card,
+.theme-light .project-grid.view-compact .project-card{
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 170px;
+  column-gap:20px;
+  row-gap:10px;
+  align-items:center;
+}
+.theme-light .project-grid.view-list .project-card-top,
+.theme-light .project-grid.view-compact .project-card-top{
+  grid-column:1 / -1;
+  margin-bottom:0;
+}
+.theme-light .project-grid.view-list .project-card h2,
+.theme-light .project-grid.view-compact .project-card h2{
+  margin:0;
+}
+.theme-light .project-grid.view-list .project-card p,
+.theme-light .project-grid.view-compact .project-card p{
+  grid-column:1;
+  margin:0;
+  -webkit-line-clamp:2;
+}
+.theme-light .project-grid.view-list .project-progress,
+.theme-light .project-grid.view-compact .project-progress{
+  grid-column:1;
+}
+.theme-light .project-grid.view-list .open-project,
+.theme-light .project-grid.view-compact .open-project{
+  grid-column:2;
+  grid-row:2 / span 3;
+  align-self:center;
+}
+.theme-light .project-grid.view-compact .project-card{
+  grid-template-columns:32px minmax(0,1fr) 120px 150px;
+  padding:12px 14px;
+  column-gap:12px;
+}
+.theme-light .project-grid.view-compact .project-card-top{
+  display:contents;
+}
+.theme-light .project-grid.view-compact .project-icon{
+  grid-column:1;
+  grid-row:1;
+}
+.theme-light .project-grid.view-compact .status-badge{
+  grid-column:3;
+  grid-row:1;
+  justify-self:start;
+}
+.theme-light .project-grid.view-compact .delete-project{
+  grid-column:4;
+  grid-row:1;
+  justify-self:end;
+}
+.theme-light .project-grid.view-compact .project-card h2{
+  grid-column:2;
+  grid-row:1;
+  font-size:17px;
+}
+.theme-light .project-grid.view-compact .project-card p{
+  display:none;
+}
+.theme-light .project-grid.view-compact .project-progress{
+  grid-column:2 / 4;
+  grid-row:2;
+}
+.theme-light .project-grid.view-compact .open-project{
+  grid-column:4;
+  grid-row:1 / span 2;
 }
 .theme-light .sidebar{
   width:262px;
@@ -3825,7 +3932,21 @@ const CSS = `
   .home-primary{ width:100%; }
   .home-dashboard{ grid-template-columns:1fr 1fr; }
   .portfolio-toolbar{ grid-template-columns:1fr; }
+  .portfolio-actions{ align-items:stretch; }
   .project-grid{ grid-template-columns:1fr; }
+  .project-grid.view-list .project-card,
+  .project-grid.view-compact .project-card{ grid-template-columns:1fr; }
+  .project-grid.view-list .open-project,
+  .project-grid.view-compact .open-project,
+  .project-grid.view-compact .project-card h2,
+  .project-grid.view-compact .project-progress,
+  .project-grid.view-compact .status-badge,
+  .project-grid.view-compact .delete-project,
+  .project-grid.view-compact .project-icon{
+    grid-column:auto;
+    grid-row:auto;
+  }
+  .project-grid.view-compact .project-card-top{ display:flex; }
   .sidebar{ width:100%; min-width:0; }
   .steps-nav{ display:flex; overflow-x:auto; }
   .step-item{ flex-direction:column; width:auto; min-width:96px; margin:4px; border-left:none; border-bottom:3px solid transparent; }
@@ -3845,6 +3966,9 @@ const CSS = `
   .landing-panel-metrics{ grid-template-columns:1fr; }
   .home-dashboard{ grid-template-columns:1fr; }
   .portfolio-toolbar h2{ font-size:22px; }
+  .portfolio-actions{ flex-direction:column; }
+  .view-toggle{ width:100%; }
+  .view-toggle button{ flex:1; }
 }
 `;
 
@@ -4422,6 +4546,7 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState(initialHistoryState?.view === 'project' ? initialHistoryState.projectId : null);
   const [view, setView] = useState(initialHistoryState?.view || 'landing');
   const [projectQuery, setProjectQuery] = useState('');
+  const [projectView, setProjectView] = useState('cards');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -4915,13 +5040,20 @@ export default function App() {
               <span className="section-eyebrow">Portefeuille</span>
               <h2>Projets sauvegardés</h2>
             </div>
-            <label className="home-search">
-              <Search size={18} />
-              <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
-            </label>
+            <div className="portfolio-actions">
+              <label className="home-search">
+                <Search size={18} />
+                <input value={projectQuery} onChange={e => setProjectQuery(e.target.value)} placeholder="Rechercher un projet par nom..." />
+              </label>
+              <div className="view-toggle" aria-label="Choix de vue des projets">
+                <button className={projectView === 'cards' ? 'is-active' : ''} onClick={() => setProjectView('cards')} title="Vue cartes" aria-label="Vue cartes"><LayoutGrid size={15} /></button>
+                <button className={projectView === 'list' ? 'is-active' : ''} onClick={() => setProjectView('list')} title="Vue liste" aria-label="Vue liste"><List size={16} /></button>
+                <button className={projectView === 'compact' ? 'is-active' : ''} onClick={() => setProjectView('compact')} title="Vue compacte" aria-label="Vue compacte"><Rows3 size={16} /></button>
+              </div>
+            </div>
           </section>
 
-          <section className="project-grid">
+          <section className={`project-grid view-${projectView}`}>
             {filteredProjects.map(project => {
               const done = projectProgress(project);
               const pct = Math.round((done / STEPS.length) * 100);
