@@ -4873,7 +4873,7 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
       const boxH = 21;
       const boxX = Math.min(anchorX + 21, effectX - boxW - 7);
       const boxY = top ? centerY - 52 : centerY + 31;
-      const lineEndX = boxX + boxW / 2;
+      const lineEndX = boxX + 4;
       const lineEndY = top ? boxY + boxH + 2 : boxY - 2;
       const causeLines = causes.slice(0, 3).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, boxW - 7));
 
