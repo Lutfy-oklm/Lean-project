@@ -5,8 +5,9 @@ import {
   ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell
 } from 'recharts';
 import {
-  ArrowLeft, BriefcaseBusiness, ChevronRight, ChevronLeft, Download,
-  FolderKanban, GitBranch, LayoutGrid, List, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Rows3, Search, Trash2
+  ArrowLeft, BarChart3, BriefcaseBusiness, ChevronRight, ChevronLeft, ClipboardList, Download,
+  Eye, FolderKanban, Gauge, GitBranch, LayoutGrid, List, Map, PanelLeftClose, PanelLeftOpen,
+  PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -18,15 +19,15 @@ const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: ui
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 
 const STEPS = [
-  { id: 0, title: 'Préparer', objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
-  { id: 1, title: 'Cadrer', objectif: 'Définir le problème, les objectifs, les KPI, le périmètre, les contraintes et les risques.', livrable: 'Charte projet, SIPOC, RACI.' },
-  { id: 2, title: 'Observer', objectif: 'Mener entretiens, immersions, shadowing et collecte de données.', livrable: "Guide d'entretien, journal d'observation." },
-  { id: 3, title: 'Cartographier', objectif: 'Modéliser le AS-IS en BPMN et/ou VSM, matérialiser acteurs et systèmes.', livrable: 'Cartographie AS-IS, points de douleur.' },
-  { id: 4, title: 'Analyser', objectif: 'Qualifier les gaspillages, causes racines, risques, ruptures et goulots.', livrable: 'Pareto, Ishikawa, 5 Pourquoi, AMDEC.' },
-  { id: 5, title: 'Prioriser', objectif: 'Classer les problèmes selon impact, effort, risque, urgence et valeur.', livrable: "Matrice impact/effort, backlog d'actions." },
-  { id: 6, title: 'Concevoir', objectif: 'Construire la cible TO-BE, les standards, les automatisations, les KPI et les contrôles.', livrable: 'Cartographie cible, business case.' },
-  { id: 7, title: 'Déployer', objectif: 'Piloter les actions, conduire le changement, tester, former, migrer.', livrable: "Plan d'action, supports, PV de recette." },
-  { id: 8, title: 'Contrôler', objectif: 'Mesurer les gains, installer des rituels, ajuster et maintenir.', livrable: 'Dashboard, plan de contrôle, REX.' },
+  { id: 0, title: 'Préparer', icon: ClipboardList, objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
+  { id: 1, title: 'Cadrer', icon: Target, objectif: 'Définir le problème, les objectifs, les KPI, le périmètre, les contraintes et les risques.', livrable: 'Charte projet, SIPOC, RACI.' },
+  { id: 2, title: 'Observer', icon: Eye, objectif: 'Mener entretiens, immersions, shadowing et collecte de données.', livrable: "Guide d'entretien, journal d'observation." },
+  { id: 3, title: 'Cartographier', icon: Map, objectif: 'Modéliser le AS-IS en BPMN et/ou VSM, matérialiser acteurs et systèmes.', livrable: 'Cartographie AS-IS, points de douleur.' },
+  { id: 4, title: 'Analyser', icon: BarChart3, objectif: 'Qualifier les gaspillages, causes racines, risques, ruptures et goulots.', livrable: 'Pareto, Ishikawa, 5 Pourquoi, AMDEC.' },
+  { id: 5, title: 'Prioriser', icon: Gauge, objectif: 'Classer les problèmes selon impact, effort, risque, urgence et valeur.', livrable: "Matrice impact/effort, backlog d'actions." },
+  { id: 6, title: 'Concevoir', icon: PencilRuler, objectif: 'Construire la cible TO-BE, les standards, les automatisations, les KPI et les contrôles.', livrable: 'Cartographie cible, business case.' },
+  { id: 7, title: 'Déployer', icon: Rocket, objectif: 'Piloter les actions, conduire le changement, tester, former, migrer.', livrable: "Plan d'action, supports, PV de recette." },
+  { id: 8, title: 'Contrôler', icon: Gauge, objectif: 'Mesurer les gains, installer des rituels, ajuster et maintenir.', livrable: 'Dashboard, plan de contrôle, REX.' },
 ];
 
 const ADVANCED_BPMN_TAB = {
@@ -1087,7 +1088,7 @@ function EditableTable({ columns, rows, onAdd, onRemove, onChange, addLabel }) {
             </tr>
           ))}
           {rows.length === 0 && (
-            <tr><td className="empty-row" colSpan={columns.length + 1}>Aucune ligne — utilisez le bouton ci-dessous pour commencer.</td></tr>
+            <tr><td className="empty-row" colSpan={columns.length + 1}><span>Aucune donnée pour le moment</span><small>Ajoutez une première ligne pour structurer cette section.</small></td></tr>
           )}
         </tbody>
       </table>
@@ -1512,7 +1513,7 @@ function AmdecTable({ rows, addRow, removeRow, updateField }) {
               </tr>
             );
           })}
-          {rows.length === 0 && <tr><td className="empty-row" colSpan={9}>Aucun mode de défaillance recensé.</td></tr>}
+          {rows.length === 0 && <tr><td className="empty-row" colSpan={9}><span>Aucun mode de défaillance recensé</span><small>Ajoutez les risques principaux pour prioriser les actions.</small></td></tr>}
         </tbody>
       </table>
       <button className="btn-add" onClick={() => addRow('step4.amdec', { mode: '', effet: '', cause: '', F: '', G: '', D: '', actions: '' })}>+ Ajouter un mode de défaillance</button>
@@ -3990,6 +3991,150 @@ const CSS = `
   color:#52637A;
 }
 
+/* Product polish: icons, buttons, empty states and alerts */
+.theme-light .step-icon{
+  flex:0 0 auto;
+  color:#8FA6C4;
+}
+.theme-light .step-item.is-active .step-icon{
+  color:#2F756A;
+}
+.theme-light .step-page-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.theme-light .step-page-icon{
+  flex:0 0 auto;
+  color:#2F756A;
+}
+.theme-light .home-primary,
+.theme-light .open-project,
+.theme-light .validate-btn,
+.theme-light .nav-btn,
+.theme-light .btn-add,
+.theme-light .btn-add-mini,
+.theme-light .ghost-btn,
+.theme-light .back-home,
+.theme-light .collapse-btn,
+.theme-light .bpmn-actions > button{
+  border-radius:0;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.theme-light .home-primary,
+.theme-light .open-project,
+.theme-light .validate-btn{
+  background:#112747;
+  border:1px solid #112747;
+  color:#FFFFFF;
+  box-shadow:none;
+}
+.theme-light .home-primary:hover,
+.theme-light .open-project:hover,
+.theme-light .validate-btn:hover{
+  background:#1F4F80;
+  border-color:#1F4F80;
+}
+.theme-light .validate-btn.is-validated{
+  background:#2F756A;
+  border-color:#2F756A;
+  color:#FFFFFF;
+}
+.theme-light .nav-btn,
+.theme-light .btn-add,
+.theme-light .ghost-btn,
+.theme-light .back-home,
+.theme-light .collapse-btn,
+.theme-light .bpmn-actions > button{
+  background:#FFFFFF;
+  border:1px solid #B9C3D2;
+  color:#112747;
+  box-shadow:none;
+}
+.theme-light .nav-btn:not(:disabled):hover,
+.theme-light .btn-add:hover,
+.theme-light .ghost-btn:hover,
+.theme-light .back-home:hover,
+.theme-light .collapse-btn:hover,
+.theme-light .bpmn-actions > button:hover{
+  background:#EEF3F7;
+  border-color:#52637A;
+  color:#112747;
+}
+.theme-light .btn-add{
+  border-style:dashed;
+  border-color:#2F756A;
+  color:#2F756A;
+}
+.theme-light .btn-add-mini{
+  color:#2F756A;
+  font-weight:800;
+}
+.theme-light .empty-row{
+  padding:22px!important;
+  text-align:center;
+}
+.theme-light .empty-row span,
+.theme-light .empty-hint::before{
+  display:block;
+  color:#112747;
+  font-weight:750;
+  font-style:normal;
+}
+.theme-light .empty-row small{
+  display:block;
+  margin-top:4px;
+  color:#52637A;
+  font-style:normal;
+}
+.theme-light .empty-hint{
+  padding:18px;
+  text-align:center;
+  font-style:normal;
+}
+.theme-light .empty-hint::before{
+  content:"Zone vide";
+  margin-bottom:4px;
+}
+.theme-light .is-pain{
+  border-color:#B36B1E!important;
+  background:#FFF8EC!important;
+  box-shadow:inset 0 0 0 1px rgba(179,107,30,.16);
+}
+.theme-light .shape-diamond.is-pain{
+  background:transparent!important;
+  box-shadow:none;
+}
+.theme-light .shape-diamond.is-pain::before{
+  background:#FFF8EC!important;
+  border-color:#B36B1E!important;
+  box-shadow:0 0 0 3px rgba(179,107,30,.13);
+}
+.theme-light .flow-pain-badge{
+  background:#B36B1E;
+  border:2px solid #FFFFFF;
+  color:#FFFFFF;
+}
+.theme-light .pain-callout strong{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#7B430B;
+}
+.theme-light .pain-callout strong::before{
+  content:"!";
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  background:#B36B1E;
+  color:#FFFFFF;
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:900;
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -5154,6 +5299,7 @@ export default function App() {
     : 0;
   const appClass = 'lean-app theme-light';
   const activeMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : STEPS[active];
+  const ActiveIcon = activeMeta.icon || GitBranch;
 
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
@@ -5572,13 +5718,17 @@ export default function App() {
           </div>
         </div>
         <nav className="steps-nav">
-          {STEPS.map(s => (
-            <button key={s.id} className={`step-item ${active === s.id ? 'is-active' : ''}`} onClick={() => goToStep(s.id)}>
-              <span className="step-num">{String(s.id).padStart(2, '0')}</span>
-              <span className="step-title">{s.title}</span>
-              {data.validated[s.id] && <span className="step-stamp">✔</span>}
-            </button>
-          ))}
+          {STEPS.map(s => {
+            const StepIcon = s.icon;
+            return (
+              <button key={s.id} className={`step-item ${active === s.id ? 'is-active' : ''}`} onClick={() => goToStep(s.id)}>
+                <span className="step-num">{String(s.id).padStart(2, '0')}</span>
+                <StepIcon className="step-icon" size={15} aria-hidden="true" />
+                <span className="step-title">{s.title}</span>
+                {data.validated[s.id] && <span className="step-stamp">✔</span>}
+              </button>
+            );
+          })}
           <button className={`step-item advanced-step ${active === ADVANCED_BPMN_TAB.id ? 'is-active' : ''}`} onClick={() => goToStep(ADVANCED_BPMN_TAB.id)}>
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
@@ -5594,7 +5744,7 @@ export default function App() {
       <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
         <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
           <div className="eyebrow">{active === ADVANCED_BPMN_TAB.id ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
-          <h2>{activeMeta.title}{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
+          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
           <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
