@@ -3269,6 +3269,43 @@ const CSS = `
   border-color:#2F6F63;
   outline:none;
 }
+.theme-light .logout-button{
+  min-height:38px;
+  border:1px solid #C9D4E3;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:0 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:850;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.theme-light .logout-button:hover,
+.theme-light .logout-button:focus-visible{
+  border-color:#AEBBCC;
+  background:#F8FAFD;
+  outline:none;
+}
+.theme-light .logout-button.header{
+  align-self:flex-end;
+  min-width:0;
+}
+.theme-light .logout-button.sidebar{
+  width:100%;
+  min-height:42px;
+  border-color:#2A456A;
+  background:#132644;
+  color:#FFFFFF;
+}
+.theme-light .logout-button.sidebar:hover,
+.theme-light .logout-button.sidebar:focus-visible{
+  background:#193154;
+  border-color:#3A587F;
+}
 .theme-light .landing-secondary{
   min-height:36px;
   display:inline-flex;
@@ -6335,6 +6372,12 @@ export default function App() {
     </div>
   );
 
+  const logoutButton = (placement = 'header') => (
+    <button className={`logout-button ${placement}`} type="button" onClick={handleSignOut}>
+      <LogOut size={16} /> Deconnexion
+    </button>
+  );
+
   const charteFields = [
     ['titre', 'Titre du projet'], ['sponsor', 'Sponsor'], ['probleme', 'Problème initial'],
     ['objectifs', 'Objectifs (SMART)'], ['perimetreIn', 'Périmètre inclus'], ['perimetreOut', 'Périmètre exclu'],
@@ -6726,8 +6769,8 @@ export default function App() {
             </div>
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
+              {logoutButton('header')}
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
-              {authPanel(true)}
             </div>
           </header>
 
@@ -6848,7 +6891,7 @@ export default function App() {
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Génère un dossier projet structuré, prêt à partager.</div>
-          {authPanel(true)}
+          {logoutButton('sidebar')}
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">
             {savedAt
