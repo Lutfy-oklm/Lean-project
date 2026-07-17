@@ -4780,6 +4780,48 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     flushPending();
   };
 
+  const summaryCards = (items) => {
+    const cards = items.filter(item => cleanPdfText(item.value));
+    if (!cards.length) return;
+    const gap = 4;
+    const cardWidth = (contentWidth - gap * 3) / 4;
+    const cardHeight = 23;
+    ensureSpace(cardHeight + 8);
+    cards.slice(0, 4).forEach((item, index) => {
+      const x = margin + index * (cardWidth + gap);
+      doc.setFillColor(index === 0 ? 238 : 255, index === 0 ? 243 : 255, index === 0 ? 247 : 255);
+      doc.setDrawColor(...line);
+      doc.roundedRect(x, y, cardWidth, cardHeight, 1.5, 1.5, 'FD');
+      setText(6.8, 'bold', muted);
+      doc.text(cleanPdfText(item.label).toUpperCase(), x + 3, y + 6);
+      setText(item.large ? 13 : 10.5, 'bold', item.accent ? accent : ink);
+      doc.text(doc.splitTextToSize(cleanPdfText(item.value), cardWidth - 6), x + 3, y + 15, { maxWidth: cardWidth - 6 });
+    });
+    y += cardHeight + 8;
+  };
+
+  const executiveField = (label, value, options = {}) => {
+    const text = cleanPdfText(value);
+    if (!text) return;
+    const width = options.width || contentWidth;
+    const x = options.x || margin;
+    const bodySize = options.small ? 8 : 8.6;
+    setText(bodySize, 'normal', ink);
+    const lines = doc.splitTextToSize(text, width - 8);
+    const height = Math.max(22, 13 + lines.length * 4.2);
+    ensureSpace(height + 5);
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...line);
+    doc.roundedRect(x, y, width, height, 1.5, 1.5, 'FD');
+    doc.setFillColor(...(options.warning ? [255, 248, 236] : soft));
+    doc.rect(x, y, 3, height, 'F');
+    setText(7.2, 'bold', muted);
+    doc.text(cleanPdfText(label).toUpperCase(), x + 6, y + 6);
+    setText(bodySize, 'normal', ink);
+    doc.text(lines, x + 6, y + 13, { maxWidth: width - 9 });
+    y += height + 5;
+  };
+
   const table = (title, columns, rows = []) => {
     const visibleRows = (rows || []).filter(Boolean);
     if (!visibleRows.length) return;
@@ -4845,6 +4887,12 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   const bc = data.step6?.businessCase || {};
   const ishikawa = data.step4?.ishikawa || {};
   const fiveWhy = data.step4?.fivewhy || {};
+  const progressPct = Math.round((validatedCount / 9) * 100);
+  const activeActions = (data.step5?.actions || []).filter(action => cleanPdfText(action.action));
+  const openActions = activeActions.filter(action => !/termin/i.test(cleanPdfText(action.statut))).length;
+  const painPoints = (data.step3?.flow || []).filter(step => step.painpoint).length;
+  const projectStart = charte.dateDebut || data.step0?.planning?.[0]?.debut || '-';
+  const projectEnd = charte.dateFin || data.step0?.planning?.slice(-1)?.[0]?.fin || '-';
 
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
@@ -4862,26 +4910,30 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   doc.text(coverTitle, margin, 31, { maxWidth: coverTitleWidth });
   y = Math.max(58, 31 + coverTitle.length * 8 + 10);
 
-  const progressPct = Math.round((validatedCount / 9) * 100);
-  doc.setFillColor(...soft);
+  setText(9, 'bold', muted);
+  doc.text('SYNTHESE EXECUTIVE', margin, y);
   doc.setDrawColor(...line);
-  doc.roundedRect(margin, y, contentWidth, 31, 2, 2, 'FD');
-  setText(8, 'bold', muted);
-  doc.text('SOLUTION', margin + 5, y + 8);
-  doc.text('DATE', margin + 70, y + 8);
-  doc.text('AVANCEMENT', margin + 125, y + 8);
-  setText(14, 'bold', ink);
-  doc.text('PilotProcess', margin + 5, y + 19);
-  doc.text(new Date().toLocaleDateString('fr-FR'), margin + 70, y + 19);
-  doc.text(`${progressPct}%`, margin + 125, y + 19);
-  setText(8.5, 'normal', muted);
-  doc.text(`${validatedCount}/9 etapes validees`, margin + 125, y + 26);
-  y += 42;
+  doc.line(margin, y + 4, pageWidth - margin, y + 4);
+  y += 12;
 
-  field('Synthese du probleme', charte.probleme || data.step0?.note);
-  field('Objectifs SMART', charte.objectifs);
-  field('Perimetre inclus', charte.perimetreIn);
-  field('Gains attendus', charte.gains);
+  summaryCards([
+    { label: 'Avancement', value: `${progressPct}%`, large: true, accent: true },
+    { label: 'Etapes validees', value: `${validatedCount}/9` },
+    { label: 'Actions ouvertes', value: String(openActions) },
+    { label: 'Points de douleur', value: String(painPoints) },
+  ]);
+
+  fieldGrid([
+    ['Solution', 'PilotProcess'],
+    ['Date du dossier', new Date().toLocaleDateString('fr-FR')],
+    ['Debut projet', projectStart],
+    ['Fin cible', projectEnd],
+  ]);
+
+  executiveField('Contexte et probleme traite', charte.probleme || data.step0?.note);
+  executiveField('Objectifs attendus', charte.objectifs);
+  executiveField('Gains attendus', charte.gains || (bc.gains ? `${bc.gains} EUR` : ''));
+  executiveField('Risques de pilotage', charte.risques || bc.risques, { warning: true });
 
   newPage();
   sectionTitle('00 - Preparer');
@@ -4904,16 +4956,12 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   fieldGrid([
     ['Titre du projet', charte.titre],
     ['Sponsor', charte.sponsor],
-    ['Probleme initial', charte.probleme],
-    ['Objectifs SMART', charte.objectifs],
     ['Perimetre inclus', charte.perimetreIn],
     ['Perimetre exclu', charte.perimetreOut],
     ['Contraintes', charte.contraintes],
-    ['Risques principaux', charte.risques],
     ['Budget estime', charte.budget],
     ['Date de debut', charte.dateDebut],
     ['Date de fin cible', charte.dateFin],
-    ['Gains attendus', charte.gains],
   ]);
   table('SIPOC', [
     { key: 'supplier', label: 'Fournisseurs' },
