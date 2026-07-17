@@ -3741,14 +3741,14 @@ const CSS = `
 }
 .theme-light .advanced-step-icon{
   flex:0 0 auto;
-  color:#2F756A;
+  color:#8FA6C4;
 }
 .theme-light.sidebar-collapsed .advanced-step{
   border-top:0;
   padding-top:0;
 }
 .theme-light.sidebar-collapsed .advanced-step .advanced-step-icon{
-  color:#2F756A;
+  color:#8FA6C4;
 }
 .theme-light .optional-badge{
   display:inline-flex;
@@ -3997,6 +3997,9 @@ const CSS = `
   color:#8FA6C4;
 }
 .theme-light .step-item.is-active .step-icon{
+  color:#2F756A;
+}
+.theme-light .step-item.is-active .advanced-step-icon{
   color:#2F756A;
 }
 .theme-light .step-page-title{
