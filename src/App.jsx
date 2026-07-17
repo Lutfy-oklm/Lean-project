@@ -4676,7 +4676,14 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     doc.line(margin, pageHeight - 13, pageWidth - margin, pageHeight - 13);
     drawPilotProcessLogo(margin, pageHeight - 11.5, 5);
     setText(8, 'normal', muted);
-    doc.text('PilotProcess - Dossier projet', margin + 7, pageHeight - 8);
+    const projectTitle = cleanPdfText(data.projectName);
+    const footerLabel = projectTitle ? `PilotProcess - Dossier projet - ${projectTitle}` : 'PilotProcess - Dossier projet';
+    const maxFooterWidth = pageWidth - margin * 2 - 18;
+    let footerText = footerLabel;
+    while (doc.getTextWidth(footerText) > maxFooterWidth && footerText.length > 24) {
+      footerText = `${footerText.slice(0, -4).trim()}...`;
+    }
+    doc.text(footerText, margin + 7, pageHeight - 8);
     doc.text(String(page), pageWidth - margin, pageHeight - 8, { align: 'right' });
   };
 
