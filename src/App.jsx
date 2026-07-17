@@ -28,6 +28,7 @@ const EXAMPLE_TEMPLATE_KEYS = new Set([
   'insurance-home-claims-example',
 ]);
 const EXAMPLE_PROJECT_NAMES = new Set([
+  'Optimisation du processus de clôture de compte bancaire',
   'Optimisation du traitement des réclamations clients',
   'Réduction du temps d’immobilisation avion en maintenance',
   'Optimisation du traitement des sinistres habitation',
@@ -5790,7 +5791,7 @@ export default function App() {
   const [authMessage, setAuthMessage] = useState('');
   const knownProjectIdsRef = useRef(new Set());
   const deletedProjectIdsRef = useRef(new Set());
-  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createProject();
+  const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createBlankProject();
 
   useEffect(() => {
     const validViews = new Set(['landing', 'dashboard', 'project']);
@@ -5875,7 +5876,7 @@ export default function App() {
           localProjects = ensureExampleProjects(parsedProjects);
         } else if (!authSession) {
           const legacy = window.localStorage.getItem('lean-projet-data');
-          localProjects = ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
+          localProjects = ensureExampleProjects([createBlankProject(legacy ? JSON.parse(legacy) : undefined)]);
         }
       } catch (e) { /* pas de projet sauvegarde */ }
 
@@ -5886,14 +5887,14 @@ export default function App() {
         }
         const nextProjects = cloudProjects?.length
           ? ensureExampleProjects(cloudProjects)
-          : (authSession ? [] : (localProjects.length ? localProjects : ensureExampleProjects([createProject()])));
+          : (authSession ? [] : localProjects);
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
         setStorageMode(isSupabaseConfigured() && authSession ? 'cloud' : 'local');
         setSyncError('');
       } catch (error) {
         console.warn('Supabase indisponible, stockage local utilise', error);
-        const nextProjects = localProjects.length ? localProjects : (authSession ? [] : ensureExampleProjects([createProject()]));
+        const nextProjects = localProjects.length ? localProjects : [];
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
         setStorageMode('local');
