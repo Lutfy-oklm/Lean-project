@@ -3676,12 +3676,12 @@ const CSS = `
 .theme-light .auth-provider-mark.google{
   background:#FFFFFF;
   border:1px solid #D5DDE8;
-  color:#1A73E8;
+  padding:4px;
 }
-.theme-light .auth-provider-mark.microsoft{
-  background:#F3F7FB;
-  border:1px solid #D5DDE8;
-  color:#10233F;
+.theme-light .auth-provider-mark.google svg{
+  width:14px;
+  height:14px;
+  display:block;
 }
 .theme-light .auth-page-switch{
   min-height:42px;
@@ -6725,10 +6725,15 @@ export default function App() {
                 <div className="auth-page-divider"><span>ou</span></div>
                 <div className="auth-social-actions">
                   <button className="auth-social-button" type="button" onClick={() => handleOAuthSignIn('google')} disabled={authBusy}>
-                    <span className="auth-provider-mark google">G</span> Continuer avec Google
-                  </button>
-                  <button className="auth-social-button" type="button" onClick={() => handleOAuthSignIn('azure')} disabled={authBusy}>
-                    <span className="auth-provider-mark microsoft">M</span> Continuer avec Microsoft
+                    <span className="auth-provider-mark google" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h6.5c-.3 1.4-1.1 2.7-2.3 3.5v2.9h3.7c2.2-2 3.6-5 3.6-8.4Z" />
+                        <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.1-4.2 1.1-3.1 0-5.7-2.1-6.7-4.9H1.5v3C3.5 21.3 7.5 24 12 24Z" />
+                        <path fill="#FBBC05" d="M5.3 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.6.4-2.4v-3H1.5C.5 8.2 0 10.1 0 12s.5 3.8 1.5 5.4l3.8-3Z" />
+                        <path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.3-3.3C17.9 1.2 15.2 0 12 0 7.5 0 3.5 2.7 1.5 6.6l3.8 3C6.3 6.9 8.9 4.8 12 4.8Z" />
+                      </svg>
+                    </span>
+                    Continuer avec Google
                   </button>
                 </div>
                 <button className="auth-page-switch" type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthMessage(''); }}>
