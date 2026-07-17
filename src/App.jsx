@@ -22,6 +22,17 @@ const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId
 const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: uid(), _templateKey: 'insurance-home-claims-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 const localProjectsKey = (session) => session?.user?.id ? `pilotprocess-projects-${session.user.id}` : 'lean-projects-data';
+const EXAMPLE_TEMPLATE_KEYS = new Set([
+  'bank-complaints-example',
+  'industrial-aircraft-turnaround-example',
+  'insurance-home-claims-example',
+]);
+const EXAMPLE_PROJECT_NAMES = new Set([
+  'Optimisation du traitement des réclamations clients',
+  'Réduction du temps d’immobilisation avion en maintenance',
+  'Optimisation du traitement des sinistres habitation',
+]);
+const isExampleProject = (project) => EXAMPLE_TEMPLATE_KEYS.has(project?._templateKey) || EXAMPLE_PROJECT_NAMES.has(project?.projectName);
 
 const STEPS = [
   { id: 0, title: 'Préparer', icon: ClipboardList, objectif: "Choisir le périmètre, collecter les documents, identifier les parties prenantes.", livrable: 'Note de cadrage initiale, planning macro.' },
@@ -1019,24 +1030,7 @@ function insuranceClaimsData() {
 
 function ensureExampleProjects(projects) {
   const list = Array.isArray(projects) ? projects.filter(project => project && typeof project === 'object') : [];
-  const hasBankExample = list.some(project =>
-    project._templateKey === 'bank-complaints-example' ||
-    project.projectName === 'Optimisation du traitement des réclamations clients'
-  );
-  const hasIndustrialExample = list.some(project =>
-    project._templateKey === 'industrial-aircraft-turnaround-example' ||
-    project.projectName === 'Réduction du temps d’immobilisation avion en maintenance'
-  );
-  const hasInsuranceExample = list.some(project =>
-    project._templateKey === 'insurance-home-claims-example' ||
-    project.projectName === 'Optimisation du traitement des sinistres habitation'
-  );
-  return [
-    ...list,
-    ...(!hasBankExample ? [createBankExample()] : []),
-    ...(!hasIndustrialExample ? [createIndustrialExample()] : []),
-    ...(!hasInsuranceExample ? [createInsuranceExample()] : []),
-  ];
+  return list.filter(project => !isExampleProject(project));
 }
 
 function roiText(bc) {
@@ -5871,12 +5865,14 @@ export default function App() {
     (async () => {
       setLoaded(false);
       let localProjects = [];
+      deletedProjectIdsRef.current = new Set();
       const storageKey = localProjectsKey(authSession);
       try {
         const savedProjects = window.localStorage.getItem(storageKey);
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
-          localProjects = ensureExampleProjects(Array.isArray(parsed) ? parsed : [createProject()]);
+          const parsedProjects = Array.isArray(parsed) ? parsed : [createProject()];
+          localProjects = ensureExampleProjects(parsedProjects);
         } else if (!authSession) {
           const legacy = window.localStorage.getItem('lean-projet-data');
           localProjects = ensureExampleProjects([createProject(legacy ? JSON.parse(legacy) : undefined)]);
@@ -5885,17 +5881,19 @@ export default function App() {
 
       try {
         const cloudProjects = await loadProjectsFromSupabase(authSession);
+        if (authSession && cloudProjects?.length) {
+          cloudProjects.filter(isExampleProject).forEach(project => deletedProjectIdsRef.current.add(project._projectId));
+        }
         const nextProjects = cloudProjects?.length
           ? ensureExampleProjects(cloudProjects)
-          : (authSession ? ensureExampleProjects([]) : (localProjects.length ? localProjects : ensureExampleProjects([createProject()])));
+          : (authSession ? [] : (localProjects.length ? localProjects : ensureExampleProjects([createProject()])));
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
-        deletedProjectIdsRef.current = new Set();
         setProjects(nextProjects);
         setStorageMode(isSupabaseConfigured() && authSession ? 'cloud' : 'local');
         setSyncError('');
       } catch (error) {
         console.warn('Supabase indisponible, stockage local utilise', error);
-        const nextProjects = localProjects.length ? localProjects : (authSession ? ensureExampleProjects([]) : ensureExampleProjects([createProject()]));
+        const nextProjects = localProjects.length ? localProjects : (authSession ? [] : ensureExampleProjects([createProject()]));
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
         setStorageMode('local');
