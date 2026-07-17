@@ -5813,6 +5813,12 @@ export default function App() {
   }, []);
 
   const navigate = useCallback((nextView, projectId = null, replace = false) => {
+    if (nextView !== 'landing' && !authSession) {
+      setAuthMessage('Connectez-vous pour acceder a votre espace.');
+      nextView = 'landing';
+      projectId = null;
+      replace = true;
+    }
     const state = { view: nextView, projectId: nextView === 'project' ? projectId : null };
     if (replace) {
       window.history.replaceState(state, '', window.location.href);
@@ -5823,7 +5829,7 @@ export default function App() {
     setActiveProjectId(state.projectId);
     if (nextView !== 'project') setActive(0);
     scrollAppToTop();
-  }, []);
+  }, [authSession]);
 
   useEffect(() => {
     (async () => {
@@ -5832,6 +5838,12 @@ export default function App() {
       setAuthReady(true);
     })();
   }, []);
+
+  useEffect(() => {
+    if (authReady && !authSession && view !== 'landing') {
+      navigate('landing', null, true);
+    }
+  }, [authReady, authSession, view, navigate]);
 
   const handleAuthSubmit = async (event) => {
     event.preventDefault();
@@ -5857,8 +5869,12 @@ export default function App() {
   const handleSignOut = async () => {
     await signOutFromSupabase(authSession);
     setAuthSession(null);
+    setProjects([]);
+    setActiveProjectId(null);
+    setActive(0);
     setStorageMode('local');
     setSyncError('');
+    navigate('landing', null, true);
   };
 
   useEffect(() => {
@@ -5985,6 +6001,10 @@ export default function App() {
     }
   };
   const openProject = (id) => {
+    if (!authSession) {
+      navigate('landing', null, true);
+      return;
+    }
     setActive(0);
     navigate('project', id);
   };
@@ -5993,6 +6013,11 @@ export default function App() {
     scrollAppToTop();
   }, []);
   const createNewProject = () => {
+    if (!authSession) {
+      setAuthMessage('Connectez-vous pour creer un projet.');
+      navigate('landing', null, true);
+      return;
+    }
     const project = createBlankProject({
       projectName: `Nouveau projet d'amélioration ${projects.length + 1}`,
       validated: {},
