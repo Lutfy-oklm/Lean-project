@@ -4869,18 +4869,17 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
       const top = index % 2 === 0;
       const pairIndex = Math.floor(index / 2);
       const anchorX = spineStart + usableSpine * (pairIndex + 0.55) / 3;
-      const branchY = top ? centerY - 29 : centerY + 29;
       const boxW = 39;
       const boxH = 21;
       const boxX = Math.min(anchorX + 21, effectX - boxW - 7);
-      const boxY = branchY - boxH / 2;
-      const lineEndX = boxX - 2.5;
+      const boxY = top ? centerY - 52 : centerY + 31;
+      const lineEndX = boxX + boxW / 2;
+      const lineEndY = top ? boxY + boxH + 2 : boxY - 2;
       const causeLines = causes.slice(0, 3).flatMap(cause => doc.splitTextToSize(`- ${cleanPdfText(cause)}`, boxW - 7));
 
       doc.setDrawColor(...accent);
       doc.setLineWidth(0.45);
-      doc.line(anchorX, centerY, lineEndX, branchY);
-      doc.line(lineEndX, branchY, boxX - 0.6, branchY);
+      doc.line(anchorX, centerY, lineEndX, lineEndY);
       doc.setFillColor(top ? 255 : 248, top ? 252 : 250, top ? 246 : 252);
       doc.setDrawColor(...line);
       doc.roundedRect(boxX, boxY, boxW, boxH, 1.2, 1.2, 'FD');
