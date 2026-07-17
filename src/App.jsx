@@ -5032,8 +5032,8 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   setText(24, 'bold', [255, 255, 255]);
   const coverTitleWidth = contentWidth - coverLogoSize - 18;
   const coverTitle = doc.splitTextToSize(cleanPdfText(data.projectName || 'Projet d amelioration'), coverTitleWidth);
-  doc.text(coverTitle, margin, 31, { maxWidth: coverTitleWidth });
-  y = Math.max(58, 31 + coverTitle.length * 8 + 10);
+  doc.text(coverTitle, margin, 28, { maxWidth: coverTitleWidth });
+  y = Math.max(58, 28 + coverTitle.length * 8 + 10);
 
   setText(9, 'bold', muted);
   doc.text('SYNTHESE EXECUTIVE', margin, y);
