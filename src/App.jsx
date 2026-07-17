@@ -1695,11 +1695,11 @@ const CSS = `
 .flow-node{ min-width:110px; max-width:150px; padding:10px 14px; border:1.5px solid var(--ink); background:var(--paper-2); font-size:12px; cursor:pointer; text-align:center; position:relative; }
 .flow-node:hover{ border-color:var(--teal); }
 .shape-diamond{
-  width:118px;
-  height:82px;
-  min-width:118px;
-  max-width:118px;
-  padding:0 18px;
+  width:112px;
+  height:112px;
+  min-width:112px;
+  max-width:112px;
+  padding:0;
   border:0!important;
   background:transparent!important;
   display:flex;
@@ -1710,7 +1710,10 @@ const CSS = `
 .shape-diamond::before{
   content:"";
   position:absolute;
-  inset:8px 18px;
+  width:78px;
+  height:78px;
+  top:17px;
+  left:17px;
   background:var(--paper-2);
   border:1.5px solid var(--ink);
   transform:rotate(45deg);
@@ -1718,12 +1721,14 @@ const CSS = `
 }
 .shape-diamond:hover::before{ border-color:var(--teal); }
 .flow-node-label{ position:relative; z-index:1; }
+.shape-diamond .flow-node-label{ max-width:66px; line-height:1.2; }
 .shape-circle{ border-radius:50%; width:92px; height:92px; display:flex; align-items:center; justify-content:center; min-width:92px; }
 .shape-ctrl{ border-style:dashed; border-color:var(--amber); }
 .is-pain{ border-color:var(--amber)!important; box-shadow:0 0 0 3px rgba(201,125,46,0.16); }
 .shape-diamond.is-pain{ box-shadow:none; }
 .shape-diamond.is-pain::before{ border-color:var(--amber)!important; box-shadow:0 0 0 3px rgba(201,125,46,0.16); }
 .flow-pain-badge{ position:absolute; top:-8px; right:-8px; background:var(--amber); color:#fff; border-radius:50%; width:18px; height:18px; font-size:11px; display:flex; align-items:center; justify-content:center; }
+.shape-diamond .flow-pain-badge{ top:10px; right:8px; z-index:2; }
 .flow-arrow{ color:var(--ink-soft); font-size:16px; padding:0 2px; }
 .pain-callout{ background:rgba(201,125,46,0.08); border-left:3px solid var(--amber); padding:10px 14px; font-size:12.5px; margin-top:6px; }
 .pain-callout ul{ margin:6px 0 0 18px; }
@@ -3521,14 +3526,17 @@ const CSS = `
   min-width:76px;
 }
 .theme-light .shape-diamond{
-  width:116px;
-  height:84px;
-  min-width:116px;
-  max-width:116px;
-  padding:0 18px;
+  width:112px;
+  height:112px;
+  min-width:112px;
+  max-width:112px;
+  padding:0;
 }
 .theme-light .shape-diamond::before{
-  inset:9px 18px;
+  width:78px;
+  height:78px;
+  top:17px;
+  left:17px;
   background:#FFFFFF;
   border-color:var(--line-strong);
 }
