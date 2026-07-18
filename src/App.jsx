@@ -3242,16 +3242,16 @@ const CSS = `
   flex-wrap:wrap;
 }
 .theme-light .auth-nav-button{
-  min-height:38px;
+  min-height:34px;
   border:1px solid #C9D4E3;
   background:#FFFFFF;
   color:#10233F;
-  padding:0 16px;
+  padding:0 13px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
-  font-size:12px;
+  font-size:11.5px;
   font-weight:850;
   letter-spacing:.01em;
   cursor:pointer;
@@ -3270,16 +3270,16 @@ const CSS = `
   outline:none;
 }
 .theme-light .logout-button{
-  min-height:38px;
+  min-height:34px;
   border:1px solid #C9D4E3;
   background:#FFFFFF;
   color:#10233F;
-  padding:0 14px;
+  padding:0 12px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
-  font-size:12px;
+  font-size:11.5px;
   font-weight:850;
   cursor:pointer;
   white-space:nowrap;
@@ -3335,7 +3335,7 @@ const CSS = `
   grid-template-columns:minmax(0,1.08fr) minmax(320px,.72fr);
   gap:28px;
   align-items:stretch;
-  padding:46px 0 26px;
+  padding:38px 0 24px;
 }
 .theme-light .landing-copy{
   border-top:4px solid var(--line-strong);
@@ -3349,26 +3349,58 @@ const CSS = `
   text-transform:uppercase;
 }
 .theme-light .landing-copy h1{
-  max-width:760px;
+  max-width:700px;
   margin:10px 0 14px;
   color:var(--ink);
   font-family:Georgia,'Times New Roman',serif;
-  font-size:clamp(42px,5.2vw,72px);
+  font-size:clamp(40px,4.7vw,64px);
   font-weight:500;
-  line-height:1.02;
+  line-height:1.04;
 }
 .theme-light .landing-copy p{
-  max-width:720px;
+  max-width:680px;
   margin:0;
   color:var(--ink-soft);
-  font-size:16px;
-  line-height:1.62;
+  font-size:15px;
+  line-height:1.58;
+}
+.theme-light .landing-method-strip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.theme-light .landing-method-strip span{
+  border:1px solid #D5DFEA;
+  background:#F8FAFD;
+  color:#334A68;
+  padding:7px 10px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .landing-trust-note{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+  color:#536884;
+  font-size:13px;
+}
+.theme-light .landing-trust-note:before{
+  content:'';
+  width:8px;
+  height:8px;
+  border:2px solid #2F776B;
+  transform:rotate(45deg);
+  flex:0 0 auto;
 }
 .theme-light .landing-actions{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  margin-top:24px;
+  margin-top:20px;
 }
 .theme-light .landing-primary{
   min-height:40px;
@@ -3411,7 +3443,7 @@ const CSS = `
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:8px;
-  margin:14px 0;
+  margin:12px 0;
 }
 .theme-light .landing-panel-metrics div{
   border:1px solid var(--line);
@@ -3425,6 +3457,27 @@ const CSS = `
   font-family:Georgia,'Times New Roman',serif;
   font-size:22px;
   font-weight:500;
+}
+.theme-light .landing-panel-progress{
+  margin:0 0 12px;
+}
+.theme-light .landing-panel-progress-bar{
+  height:7px;
+  background:#E4DED1;
+  overflow:hidden;
+}
+.theme-light .landing-panel-progress-bar span{
+  display:block;
+  width:78%;
+  height:100%;
+  background:#2F776B;
+}
+.theme-light .landing-panel-progress small{
+  display:block;
+  margin-top:7px;
+  color:#64748B;
+  font-size:11px;
+  line-height:1.45;
 }
 .theme-light .landing-mini-list{
   display:flex;
@@ -6776,7 +6829,13 @@ export default function App() {
             <div className="landing-copy">
               <div className="landing-kicker">Pilotage des démarches d'amélioration</div>
               <h1>Structurez vos projets processus de bout en bout.</h1>
-              <p>PilotProcess aide les équipes à cadrer, observer, cartographier, analyser, prioriser, déployer et contrôler leurs projets d'amélioration dans tous les secteurs.</p>
+              <p>Pilotez vos projets d'amélioration de processus avec une méthode structurée, des livrables prêts à remplir et un suivi clair de bout en bout.</p>
+              <div className="landing-method-strip" aria-label="Méthode PilotProcess">
+                <span>9 étapes structurées</span>
+                <span>Livrables guidés</span>
+                <span>Suivi par projet</span>
+              </div>
+              <div className="landing-trust-note">Vos projets sont sauvegardés dans votre espace sécurisé.</div>
               <div className="landing-actions">
                 <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
                 <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
@@ -6785,12 +6844,16 @@ export default function App() {
 
             <div className="landing-panel" aria-label="Aperçu du tableau de bord">
               <div className="landing-panel-head">
-                <span>Exemple portefeuille</span>
+                <span>Exemple de portefeuille projet</span>
               </div>
               <div className="landing-panel-metrics">
                 <div><span>Total projets</span><strong>12</strong></div>
                 <div><span>À finaliser</span><strong>5</strong></div>
                 <div><span>Avancement</span><strong>78%</strong></div>
+              </div>
+              <div className="landing-panel-progress" aria-label="Avancement global exemple 78%">
+                <div className="landing-panel-progress-bar"><span /></div>
+                <small>Vision consolidée des projets en cours, terminés et à prioriser.</small>
               </div>
               <div className="landing-mini-list">
                 <div>
