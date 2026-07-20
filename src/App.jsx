@@ -11,7 +11,7 @@ import {
 import {
   ArrowLeft, BarChart3, BriefcaseBusiness, ChevronRight, ChevronLeft, ClipboardList, Download,
   Eye, FolderKanban, Gauge, GitBranch, LayoutGrid, List, Map, PanelLeftClose, PanelLeftOpen,
-  LogOut, Moon, PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Sun, Target, Trash2
+  LogOut, PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
@@ -3556,9 +3556,7 @@ const CSS = `
 }
 .theme-light .auth-page-nav{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
+  justify-content:flex-start;
 }
 .theme-light .auth-back-button{
   min-height:38px;
@@ -5409,347 +5407,6 @@ const CSS = `
     font-size:12px;
   }
 }
-
-/* Dark mode */
-.theme-dark{
-  --blue:#7DA2FF; --teal:#59B8A7; --amber:#F0A94A; --red:#F87171;
-  --ink:#F8FAFC; --ink-soft:#CBD5E1; --paper:#0B1220; --paper-2:#111C2E; --line:#2A3A52;
-  background:
-    radial-gradient(circle at 12% -10%, rgba(125,162,255,.18), transparent 30rem),
-    radial-gradient(circle at 86% 0%, rgba(89,184,167,.13), transparent 28rem),
-    linear-gradient(180deg,#07101F 0%,#0B1220 48%,#0E1728 100%);
-  color:#F8FAFC;
-}
-.theme-dark::before{
-  display:block;
-  background:
-    linear-gradient(rgba(226,232,240,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(226,232,240,.045) 1px,transparent 1px);
-  background-size:56px 56px;
-  mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 72%);
-}
-.theme-dark .landing-page,
-.theme-dark .auth-page,
-.theme-dark .project-home{ color:#F8FAFC; }
-.theme-dark .landing-nav,
-.theme-dark .auth-page-nav{
-  border-bottom-color:#263A57;
-}
-.theme-dark .auth-page-nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-.theme-dark .landing-brand,
-.theme-dark .brand-lockup,
-.theme-dark .landing-copy h1,
-.theme-dark .home-hero h1,
-.theme-dark .project-card h2,
-.theme-dark .empty-projects h2,
-.theme-dark .dossier-card h2,
-.theme-dark .sub-title{ color:#F8FAFC; }
-.theme-dark .landing-brand img,
-.theme-dark .brand-logo,
-.theme-dark .sidebar-logo{
-  box-shadow:0 12px 26px rgba(0,0,0,.24);
-}
-.theme-dark .landing-kicker,
-.theme-dark .home-kicker,
-.theme-dark .eyebrow,
-.theme-dark .field label,
-.theme-dark .home-widget span,
-.theme-dark .portfolio-toolbar span,
-.theme-dark .landing-panel-head span,
-.theme-dark .landing-panel-metrics span{ color:#9FB1C9; }
-.theme-dark .landing-copy p,
-.theme-dark .home-hero p,
-.theme-dark .project-card p,
-.theme-dark .empty-projects p,
-.theme-dark .objectif,
-.theme-dark .livrable,
-.theme-dark .project-progress strong,
-.theme-dark .home-widget small,
-.theme-dark .pdf-hint,
-.theme-dark .save-indicator{ color:#C7D2E1; }
-.theme-dark .landing-copy,
-.theme-dark .home-hero,
-.theme-dark .project-card,
-.theme-dark .empty-projects,
-.theme-dark .dossier-card{
-  border-color:#30435F;
-  border-top-color:#7DA2FF;
-}
-.theme-dark .landing-copy{
-  border-top-color:#7DA2FF;
-}
-.theme-dark .landing-panel,
-.theme-dark .landing-sectors div,
-.theme-dark .home-hero,
-.theme-dark .home-widget,
-.theme-dark .home-search,
-.theme-dark .project-card,
-.theme-dark .empty-projects,
-.theme-dark .dossier-card,
-.theme-dark .auth-shell{
-  background:linear-gradient(180deg,rgba(17,28,46,.96),rgba(12,21,36,.96));
-  border-color:#30435F;
-  box-shadow:0 20px 46px rgba(0,0,0,.26);
-}
-.theme-dark .landing-panel{
-  border-top-color:#59B8A7;
-}
-.theme-dark .landing-panel-metrics div,
-.theme-dark .landing-mini-list div,
-.theme-dark .landing-method-strip span,
-.theme-dark .objectif,
-.theme-dark .livrable,
-.theme-dark .flow-node,
-.theme-dark .pain-callout,
-.theme-dark .fivewhy,
-.theme-dark .vsm-summary div,
-.theme-dark .kpi-card,
-.theme-dark .ledger-table-wrap,
-.theme-dark .bpmn-card,
-.theme-dark .bpmn-toolbar{
-  background:#111C2E;
-  border-color:#30435F;
-  color:#F8FAFC;
-}
-.theme-dark .landing-panel-metrics strong,
-.theme-dark .home-widget strong,
-.theme-dark .landing-mini-list span,
-.theme-dark .auth-copy strong{ color:#F8FAFC; }
-.theme-dark .landing-panel-progress-bar,
-.theme-dark .progress-line,
-.theme-dark .project-progress div{ background:#263A57; }
-.theme-dark .landing-panel-progress-bar span,
-.theme-dark .progress-fill,
-.theme-dark .project-progress span{ background:#59B8A7; }
-.theme-dark .landing-panel-progress small,
-.theme-dark .landing-trust-note{ color:#9FB1C9; }
-.theme-dark .landing-trust-note:before{ border-color:#59B8A7; }
-.theme-dark .theme-toggle,
-.theme-dark .auth-nav-button,
-.theme-dark .landing-secondary,
-.theme-dark .auth-back-button,
-.theme-dark .back-home,
-.theme-dark .collapse-btn,
-.theme-dark .ghost-btn,
-.theme-dark .btn-add,
-.theme-dark .nav-btn{
-  background:#13243C;
-  border-color:#365574;
-  color:#F8FAFC;
-}
-.theme-dark .theme-toggle:hover,
-.theme-dark .auth-nav-button:hover,
-.theme-dark .landing-secondary:hover,
-.theme-dark .auth-back-button:hover,
-.theme-dark .back-home:hover,
-.theme-dark .collapse-btn:hover,
-.theme-dark .ghost-btn:hover,
-.theme-dark .btn-add:hover,
-.theme-dark .nav-btn:not(:disabled):hover{
-  background:#1A3150;
-  border-color:#7DA2FF;
-  color:#FFFFFF;
-}
-.theme-dark .auth-nav-button.primary,
-.theme-dark .landing-primary,
-.theme-dark .home-primary,
-.theme-dark .open-project,
-.theme-dark .validate-btn,
-.theme-dark .auth-page-submit{
-  background:#7DA2FF;
-  border-color:#7DA2FF;
-  color:#07101F;
-}
-.theme-dark .auth-nav-button.primary:hover,
-.theme-dark .landing-primary:hover,
-.theme-dark .home-primary:hover,
-.theme-dark .open-project:hover,
-.theme-dark .validate-btn:hover,
-.theme-dark .auth-page-submit:hover{
-  background:#A7BFFF;
-  border-color:#A7BFFF;
-  color:#07101F;
-}
-.theme-dark .logout-button{
-  background:#13243C;
-  border-color:#365574;
-  color:#F8FAFC;
-}
-.theme-dark .logout-button:hover{
-  background:#1A3150;
-  border-color:#7DA2FF;
-}
-.theme-dark .sidebar{
-  background:#07101F;
-  border-right-color:#263A57;
-  color:#F8FAFC;
-}
-.theme-dark .sidebar-head{ border-bottom-color:#263A57; }
-.theme-dark .sidebar-head h1,
-.theme-dark .step-title{ color:#F8FAFC; }
-.theme-dark .project-name,
-.theme-dark .lean-app input,
-.theme-dark input,
-.theme-dark select,
-.theme-dark textarea,
-.theme-dark .auth-page-card input,
-.theme-dark .auth-panel input{
-  background:#0C1728!important;
-  border-color:#365574!important;
-  color:#F8FAFC!important;
-}
-.theme-dark input::placeholder,
-.theme-dark textarea::placeholder{ color:#7F93AD; }
-.theme-dark select option{
-  background:#0C1728;
-  color:#F8FAFC;
-}
-.theme-dark .step-item{
-  color:#C7D2E1;
-  border-color:transparent;
-}
-.theme-dark .step-item:hover{
-  background:#13243C;
-  border-color:#263A57;
-}
-.theme-dark .step-item.is-active{
-  background:#F8FAFC;
-  border-color:#F8FAFC;
-  color:#0B1220;
-}
-.theme-dark .step-item.is-active .step-title,
-.theme-dark .step-item.is-active .step-icon,
-.theme-dark .step-item.is-active .advanced-step-icon{ color:#0B1220; }
-.theme-dark .step-stamp,
-.theme-dark .step-num{ color:#59B8A7; }
-.theme-dark .sub-title{
-  background:#101D31;
-  border-color:#30435F;
-}
-.theme-dark .objectif,
-.theme-dark .livrable{
-  border-left-color:#7DA2FF;
-}
-.theme-dark .objectif em,
-.theme-dark .livrable em{ color:#7DA2FF; }
-.theme-dark .ledger-table th{
-  background:#17243A;
-  color:#C7D2E1;
-  border-bottom-color:#365574;
-}
-.theme-dark .ledger-table td{
-  color:#F8FAFC;
-  border-bottom-color:#263A57;
-}
-.theme-dark .ledger-table tr:hover td{ background:#13243C; }
-.theme-dark .status-badge{
-  background:#3A2A12;
-  border-color:#7A4B12;
-  color:#F6C47A;
-}
-.theme-dark .status-badge.done{
-  background:#0F2F25;
-  border-color:#2F756A;
-  color:#8DE0C8;
-}
-.theme-dark .auth-panel{
-  background:#111C2E;
-  border-color:#30435F;
-  border-top-color:#59B8A7;
-  color:#F8FAFC;
-}
-.theme-dark .auth-panel span,
-.theme-dark .auth-copy span,
-.theme-dark .auth-page-card label{ color:#9FB1C9; }
-.theme-dark .auth-panel button,
-.theme-dark .auth-connected-card button{
-  background:#7DA2FF;
-  border-color:#7DA2FF;
-  color:#07101F;
-}
-.theme-dark .auth-panel .auth-switch,
-.theme-dark .auth-page-switch{
-  background:transparent;
-  border-color:#59B8A7;
-  color:#8DE0C8;
-}
-.theme-dark .auth-page-divider{ color:#9FB1C9; }
-.theme-dark .auth-page-divider:before{ background:#30435F; }
-.theme-dark .auth-page-divider span{ background:#111C2E; }
-.theme-dark .auth-social-button{
-  background:#111C2E;
-  border-color:#365574;
-  color:#F8FAFC;
-}
-.theme-dark .auth-page-message{
-  background:#3A2A12;
-  color:#F6C47A;
-  border-left-color:#F0A94A;
-}
-.theme-dark .bpmn-workbench,
-.theme-dark .bpmn-canvas{
-  background:#FFFFFF;
-  color:#102033;
-}
-.theme-toggle.compact{
-  width:36px;
-  min-width:36px;
-  height:34px;
-  min-height:34px;
-  padding:0;
-}
-@media (max-width: 640px){
-  .theme-dark.lean-app{ display:block; background:#07101F; }
-  .theme-dark .landing-page,
-  .theme-dark .auth-page,
-  .theme-dark .project-home{
-    width:100%;
-    padding:14px 14px 34px;
-  }
-  .theme-dark .landing-nav{
-    position:sticky;
-    top:0;
-    z-index:30;
-    background:#07101F;
-    padding-top:10px;
-  }
-  .theme-dark .sidebar{
-    position:sticky;
-    top:0;
-    z-index:40;
-    border-right:0;
-    border-bottom:1px solid #263A57;
-  }
-  .theme-dark .steps-nav{
-    display:flex;
-    flex-direction:row;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    gap:7px;
-    padding:8px 10px 9px;
-    background:#07101F;
-  }
-  .theme-dark .step-item,
-  .theme-dark.sidebar-collapsed .step-item{
-    flex:0 0 auto;
-    min-width:86px;
-    max-width:104px;
-    min-height:42px;
-  }
-  .theme-dark .main{
-    width:100%;
-    padding:12px 10px 28px;
-  }
-  .theme-dark .dossier-card{
-    padding:12px;
-    border-radius:0;
-  }
-}
 `;
 
 function PrintField({ label, value }) {
@@ -6497,10 +6154,6 @@ export default function App() {
   const [projectQuery, setProjectQuery] = useState('');
   const [projectView, setProjectView] = useState('cards');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'light';
-    return window.localStorage.getItem('pilotprocess-theme') || 'light';
-  });
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
@@ -6516,11 +6169,6 @@ export default function App() {
   const knownProjectIdsRef = useRef(new Set());
   const deletedProjectIdsRef = useRef(new Set());
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createBlankProject();
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem('pilotprocess-theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const validViews = new Set(['landing', 'auth', 'dashboard', 'project']);
@@ -6794,23 +6442,10 @@ export default function App() {
   const averageProgress = projects.length
     ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
     : 0;
-  const appClass = `lean-app theme-${theme}`;
+  const appClass = 'lean-app theme-light';
   const activeMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : STEPS[active];
   const ActiveIcon = activeMeta.icon || GitBranch;
   const userEmail = authSession?.user?.email;
-  const isDark = theme === 'dark';
-  const themeToggle = (compact = false) => (
-    <button
-      className={`theme-toggle ${compact ? 'compact' : ''}`}
-      type="button"
-      onClick={() => setTheme(current => current === 'dark' ? 'light' : 'dark')}
-      title={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
-      aria-label={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
-    >
-      {isDark ? <Sun size={15} /> : <Moon size={15} />}
-      {!compact && <span>{isDark ? 'Mode clair' : 'Mode sombre'}</span>}
-    </button>
-  );
 
   const authPanel = (compact = false) => (
     <div className={`auth-panel ${compact ? 'compact' : ''} ${userEmail ? 'is-connected' : ''}`}>
@@ -6844,7 +6479,6 @@ export default function App() {
 
   const landingAuthActions = (
     <div className="landing-auth-actions">
-      {themeToggle(true)}
       {userEmail ? (
         <>
           <button className="auth-nav-button" type="button" onClick={() => navigate('dashboard')}>Tableau de bord</button>
@@ -7109,7 +6743,6 @@ export default function App() {
             <button className="auth-back-button" type="button" onClick={() => navigate('landing')}>
               <ArrowLeft size={17} /> Retour
             </button>
-            {themeToggle()}
           </nav>
           <section className="auth-shell" aria-label={authMode === 'signup' ? 'Creation de compte' : 'Connexion'}>
             <div className="auth-brand-block">
@@ -7280,7 +6913,6 @@ export default function App() {
             </div>
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
-              {themeToggle()}
               {logoutButton('header')}
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
             </div>
@@ -7370,7 +7002,6 @@ export default function App() {
         <div className="sidebar-head">
           <div className="sidebar-top-actions">
             <button className="back-home" onClick={() => navigate('dashboard')} title="Retour au tableau de bord"><ArrowLeft size={15} /> <span>Dashboard</span></button>
-            {themeToggle(true)}
             <button className="collapse-btn" onClick={() => setSidebarCollapsed(v => !v)} title={sidebarCollapsed ? 'Afficher la sidebar' : 'Réduire la sidebar'}>
               {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
