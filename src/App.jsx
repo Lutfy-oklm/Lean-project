@@ -488,6 +488,7 @@ function blankData() {
       },
       measure: {
         baseline: '',
+        labels: { y: '', segment: '', x1: '', x2: '' },
         kpis: [],
         collectionPlan: [],
         data: [],
@@ -1221,6 +1222,12 @@ function dmaicComplaintData() {
       },
       measure: {
         baseline: 'Periode observee : 20 dossiers representatifs sur 4 semaines. Moyenne = 17,95 jours ouvres, ecart type eleve, plusieurs dossiers au-dessus de 20 jours. La cible operationnelle est 8 jours, limite haute acceptable 10 jours.',
+        labels: {
+          y: 'Delai de traitement reclamation',
+          segment: 'Canal d entree',
+          x1: 'Score de completude initiale',
+          x2: 'Score complexite / escalade',
+        },
         kpis: [
           { _id: uid(), nom: 'Delai de traitement reclamation', definition: 'Nombre de jours ouvres entre reception et reponse finale', baseline: '18 jours', cible: '8 jours', source: 'CRM Reclamations' },
           { _id: uid(), nom: 'Dossiers complets a reception', definition: 'Dossiers avec motif, pieces et historique disponibles des l entree', baseline: '58%', cible: '85%', source: 'Controle qualite CRM' },
@@ -1995,8 +2002,19 @@ function invertMatrix(matrix) {
   return aug.map(row => row.slice(n));
 }
 
-function automaticRegression(rows) {
+function variableLabels(labels = {}) {
+  return {
+    y: labels.y || 'Y',
+    segment: labels.segment || 'Groupe / categorie',
+    x1: labels.x1 || 'X1',
+    x2: labels.x2 || 'X2',
+  };
+}
+
+function automaticRegression(rows, labels = {}) {
   const factorKeys = ['facteurA', 'facteurB'];
+  const names = variableLabels(labels);
+  const factorNames = { facteurA: names.x1, facteurB: names.x2 };
   const validKeys = factorKeys.filter(key => (rows || []).some(row => asNumber(row[key]) !== null));
   const points = (rows || []).map(row => {
     const y = asNumber(row.valeur);
@@ -2022,21 +2040,56 @@ function automaticRegression(rows) {
   const coefficients = beta.map((coef, i) => {
     const se = Math.sqrt(Math.max(0, mse * inv[i][i]));
     const z = se > 0 ? coef / se : 0;
-    return { name: i === 0 ? 'Intercept' : validKeys[i - 1], coef, se, p: se > 0 ? twoSidedNormalP(z) : null };
+    const key = validKeys[i - 1];
+    return { name: i === 0 ? 'Intercept' : (factorNames[key] || key), key, coef, se, p: se > 0 ? twoSidedNormalP(z) : null };
   });
-  const equation = `Y = ${roundN(beta[0], 3)}${validKeys.map((key, i) => ` ${beta[i + 1] >= 0 ? '+' : '-'} ${Math.abs(roundN(beta[i + 1], 3))}*${key}`).join('')}`;
+  const equation = `${names.y} = ${roundN(beta[0], 3)}${validKeys.map((key, i) => ` ${beta[i + 1] >= 0 ? '+' : '-'} ${Math.abs(roundN(beta[i + 1], 3))}*${factorNames[key] || key}`).join('')}`;
   return { n: y.length, factors: validKeys, beta, coefficients, r2, adjR2, equation };
 }
 
-function AutomaticDmaicInsights({ rows, spec }) {
+function controlChartAnalysis(stats) {
+  if (!stats.n) return null;
+  if (stats.n < 3 || !stats.mrbar) return { stable: null, text: 'Ajoutez au moins 3 valeurs variables pour lire les cartes X/MR.' };
+  const xUcl = stats.mean + 2.66 * stats.mrbar;
+  const xLcl = stats.mean - 2.66 * stats.mrbar;
+  const mrUcl = 3.267 * stats.mrbar;
+  const outX = stats.values.map((v, i) => ({ v, i: i + 1 })).filter(p => p.v > xUcl || p.v < xLcl);
+  const outMr = stats.mr.map((v, i) => ({ v, i: i + 2 })).filter(p => p.v > mrUcl);
+  const stable = outX.length === 0 && outMr.length === 0;
+  const text = stable
+    ? 'Les cartes X/MR ne montrent pas de point hors limites : le processus semble statistiquement stable sur cet echantillon.'
+    : `Les cartes X/MR signalent une instabilite probable : ${outX.length} point(s) hors limites sur la carte X et ${outMr.length} rupture(s) sur la carte MR.`;
+  return { stable, text, outX, outMr, xUcl, xLcl, mrUcl };
+}
+
+function automaticMeasureNarrative(stats, rows, labels = {}) {
+  const names = variableLabels(labels);
+  if (!stats.n) return 'Ajoutez des mesures pour obtenir un constat automatique.';
+  const groups = groupedValues(rows).map(([name, values]) => ({
+    name,
+    mean: values.reduce((s, v) => s + v, 0) / values.length,
+    n: values.length,
+  })).sort((a, b) => b.mean - a.mean);
+  const highGroup = groups[0];
+  const cap = stats.cpk === null || stats.cpk === undefined
+    ? 'la capabilite ne peut pas encore etre conclue sans LSL/USL'
+    : stats.cpk >= 1
+      ? `le processus respecte globalement les limites avec Cpk = ${roundN(stats.cpk, 2)}`
+      : `le processus ne respecte pas suffisamment les limites avec Cpk = ${roundN(stats.cpk, 2)}`;
+  const spread = stats.sd && stats.mean ? (stats.sd / stats.mean) : 0;
+  const variability = spread > 0.35 ? 'La variabilite est forte' : spread > 0.2 ? 'La variabilite est notable' : 'La variabilite est relativement contenue';
+  return `${names.y} : moyenne ${roundN(stats.mean, 2)}, ecart type ${roundN(stats.sd, 2)}, min ${roundN(stats.min, 2)}, max ${roundN(stats.max, 2)}. ${variability}. ${cap}.${highGroup ? ` Le groupe le plus defavorable est "${highGroup.name}" avec une moyenne de ${roundN(highGroup.mean, 2)} sur ${highGroup.n} mesure(s).` : ''}`;
+}
+
+function AutomaticDmaicInsights({ rows, spec, labels }) {
   const stats = dmaicStats(rows, spec);
   const segmentTest = autoSegmentTest(rows);
-  const regression = automaticRegression(rows);
+  const regression = automaticRegression(rows, labels);
   const corrA = correlation((rows || []).map(r => asNumber(r.facteurA)), (rows || []).map(r => asNumber(r.valeur)));
   const corrB = correlation((rows || []).map(r => asNumber(r.facteurB)), (rows || []).map(r => asNumber(r.valeur)));
-  const stable = stats.n > 2 && stats.mrbar > 0
-    ? stats.values.every(v => v <= stats.mean + 2.66 * stats.mrbar && v >= stats.mean - 2.66 * stats.mrbar)
-    : null;
+  const names = variableLabels(labels);
+  const chartRead = controlChartAnalysis(stats);
+  const stable = chartRead?.stable ?? null;
   const capability = stats.cpk === null || stats.cpk === undefined
     ? 'Limites LSL/USL manquantes'
     : stats.cpk >= 2 ? 'Tres capable' : stats.cpk >= 1 ? 'Capable sous surveillance' : 'Incapable';
@@ -2047,19 +2100,21 @@ function AutomaticDmaicInsights({ rows, spec }) {
         <span>calculs depuis vos mesures</span>
       </div>
       <div className="dmaic-auto-grid">
-        <div><span>Capabilite (respect des limites)</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? `Cpk ${roundN(stats.cpk, 2)} - Cp ${roundN(stats.cp, 2)}` : 'Ajoutez LSL et USL'}</small></div>
+        <div><span>Respect des limites</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? 'Conclusion basee sur Cp/Cpk ci-dessus' : 'Ajoutez LSL et USL'}</small></div>
         <div><span>Stabilite X/MR (variation dans le temps)</span><strong>{stable === null ? 'A confirmer' : stable ? 'Stable' : 'Instable'}</strong><small>{stable === false ? 'Point hors limites probable' : 'Lecture automatique des limites'}</small></div>
-        <div><span>Test segment (comparaison des groupes)</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des segments'}</small></div>
+        <div><span>{names.segment} (comparaison)</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des groupes'}</small></div>
         <div><span>Regression (influence des causes X)</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez facteurs X1/X2 numeriques'}</small></div>
       </div>
       <div className="dmaic-auto-details">
         <div className="dmaic-conclusion">
-          <strong>Lecture conseillee.</strong> {stats.cpk !== null && stats.cpk < 1 ? 'Le processus semble incapable : prioriser la reduction de variabilite et le recentrage.' : stats.cpk >= 1 ? 'Le processus semble exploitable : surveiller la stabilite et maintenir le plan de controle.' : 'Completez les specifications pour conclure sur la capabilite.'}
-          {stable === false && ' La carte X/MR suggere une cause speciale : analysez les points atypiques avant de conclure.'}
+          <strong>Constat automatique.</strong> {automaticMeasureNarrative(stats, rows, labels)}
+        </div>
+        <div className={`dmaic-conclusion${stable === false ? ' danger' : ''}`}>
+          <strong>Lecture cartes X/MR.</strong> {chartRead?.text || 'Ajoutez des mesures ordonnees pour analyser la stabilite.'}
         </div>
         <div className="dmaic-pill-row">
-          {corrA && <span className="dmaic-pill">Correlation X1/Y : r={roundN(corrA.r, 2)} ; p={roundN(corrA.p, 4)}</span>}
-          {corrB && <span className="dmaic-pill">Correlation X2/Y : r={roundN(corrB.r, 2)} ; p={roundN(corrB.p, 4)}</span>}
+          {corrA && <span className="dmaic-pill">Correlation {names.x1}/{names.y} : r={roundN(corrA.r, 2)} ; p={roundN(corrA.p, 4)}</span>}
+          {corrB && <span className="dmaic-pill">Correlation {names.x2}/{names.y} : r={roundN(corrB.r, 2)} ; p={roundN(corrB.p, 4)}</span>}
           {regression?.coefficients?.filter(c => c.name !== 'Intercept').map(c => <span className="dmaic-pill" key={c.name}>{c.name} : coef {roundN(c.coef, 3)} ; p {c.p !== null ? roundN(c.p, 4) : '-'}</span>)}
         </div>
       </div>
@@ -2067,11 +2122,12 @@ function AutomaticDmaicInsights({ rows, spec }) {
   );
 }
 
-function AutoRegressionPanel({ rows }) {
-  const regression = automaticRegression(rows);
+function AutoRegressionPanel({ rows, labels }) {
+  const regression = automaticRegression(rows, labels);
   const segmentTest = autoSegmentTest(rows);
+  const names = variableLabels(labels);
   if (!regression && !segmentTest) {
-    return <div className="dmaic-empty-chart">Ajoutez des valeurs Y et des facteurs numeriques X1/X2 dans Measure pour calculer automatiquement les p-values, R2 et equations.</div>;
+    return <div className="dmaic-empty-chart">Ajoutez des valeurs {names.y} et des facteurs numeriques {names.x1}/{names.x2} dans Measure pour calculer automatiquement les p-values, R2 et equations.</div>;
   }
   return (
     <div className="dmaic-auto-panel">
@@ -2237,17 +2293,23 @@ function CapabilitySummary({ stats }) {
   const status = stats.cpk >= 2 ? 'Processus tres capable' : stats.cpk >= 1 ? 'Processus capable sous surveillance' : 'Processus incapable';
   const cls = stats.cpk >= 1 ? '' : ' danger';
   const centered = stats.target !== null ? Math.abs(stats.mean - stats.target) : null;
+  const reason = stats.cpk < 1
+    ? 'La moyenne et/ou la dispersion font sortir une partie du processus des limites attendues.'
+    : stats.cpk < 2
+      ? 'Les limites sont globalement respectees, mais la marge reste limitee.'
+      : 'Les limites sont respectees avec une marge robuste.';
   return (
     <div className={`dmaic-conclusion${cls}`}>
-      <strong>{status}</strong> - Cp = {roundN(stats.cp, 2)} ; Cpk = {roundN(stats.cpk, 2)}.
+      <strong>{status}</strong> - Cp = {roundN(stats.cp, 2)} ; Cpk = {roundN(stats.cpk, 2)}. {reason}
       {stats.target !== null && <> Ecart de centrage vs cible : {roundN(centered, 2)}.</>}
       {' '}Repere : Cpk &gt;= 1 est acceptable, Cpk &gt;= 2 est robuste.
     </div>
   );
 }
 
-function DmaicStatsPanel({ rows, spec }) {
+function DmaicStatsPanel({ rows, spec, labels }) {
   const stats = dmaicStats(rows, spec);
+  const names = variableLabels(labels);
   return (
     <div className="dmaic-tool-block">
       <h3 className="dmaic-tool-title">Analyse statistique de la mesure <small>Calcul automatique</small></h3>
@@ -2255,15 +2317,14 @@ function DmaicStatsPanel({ rows, spec }) {
         <div className="dmaic-stat"><span>Nombre</span><strong>{stats.n || '-'}</strong></div>
         <div className="dmaic-stat"><span>Moyenne</span><strong>{stats.n ? roundN(stats.mean, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Ecart type</span><strong>{stats.n ? roundN(stats.sd, 2) : '-'}</strong></div>
-        <div className="dmaic-stat"><span>Cpk</span><strong>{stats.cpk !== null && stats.cpk !== undefined ? roundN(stats.cpk, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Mesure analysee</span><strong>{names.y}</strong></div>
       </div>
       <CapabilitySummary stats={stats} />
-      <AutomaticDmaicInsights rows={rows} spec={spec} />
+      <AutomaticDmaicInsights rows={rows} spec={spec} labels={labels} />
       <div className="dmaic-chart-grid">
         <div className="dmaic-chart-card"><h4>Histogramme</h4><HistogramChart stats={stats} /></div>
         <div className="dmaic-chart-card"><h4>Boite a moustaches</h4><BoxPlot stats={stats} /></div>
         <div className="dmaic-chart-card"><h4>QQ plot - normalite</h4><QqPlot stats={stats} /></div>
-        <div className="dmaic-chart-card"><h4>Distribution et specifications</h4><HistogramChart stats={stats} /></div>
         <div className="dmaic-chart-card full"><h4>Cartes de controle X et MR</h4><ControlCharts stats={stats} /></div>
       </div>
     </div>
@@ -7676,19 +7737,30 @@ export default function App() {
                 <h3 className="dmaic-tool-title">Donnees mesurees <small>base statistique</small></h3>
                 <DmaicHint>Y est le resultat a ameliorer. X1 et X2 sont des causes possibles a tester. Exemple : Y = delai de traitement, X1 = nombre de pieces manquantes, X2 = charge de travail.</DmaicHint>
                 <div className="dmaic-grid">
+                  <Field label="Nom de Y (resultat a ameliorer)"><input value={dmaicMeasure.labels?.y || ''} onChange={e => updateField('dmaic.measure.labels.y', e.target.value)} placeholder="Ex : Delai de traitement" /></Field>
+                  <Field label="Nom du groupe / categorie"><input value={dmaicMeasure.labels?.segment || ''} onChange={e => updateField('dmaic.measure.labels.segment', e.target.value)} placeholder="Ex : Canal d'entree, equipe, site..." /></Field>
+                  <Field label="Nom de X1 (cause possible numerique)"><input value={dmaicMeasure.labels?.x1 || ''} onChange={e => updateField('dmaic.measure.labels.x1', e.target.value)} placeholder="Ex : Score de completude" /></Field>
+                  <Field label="Nom de X2 (cause possible numerique)"><input value={dmaicMeasure.labels?.x2 || ''} onChange={e => updateField('dmaic.measure.labels.x2', e.target.value)} placeholder="Ex : Score de complexite" /></Field>
                   <Field label="LSL - limite basse (minimum acceptable)"><input type="number" value={dmaicMeasure.spec?.lsl || ''} onChange={e => updateField('dmaic.measure.spec.lsl', e.target.value)} /></Field>
                   <Field label="USL - limite haute (maximum acceptable)"><input type="number" value={dmaicMeasure.spec?.usl || ''} onChange={e => updateField('dmaic.measure.spec.usl', e.target.value)} /></Field>
                   <Field label="Cible / target (valeur ideale visee)"><input type="number" value={dmaicMeasure.spec?.target || ''} onChange={e => updateField('dmaic.measure.spec.target', e.target.value)} /></Field>
                   <Field label="MSA / fiabilite mesure (qualite de la donnee)"><input value={dmaicMeasure.msa || ''} onChange={e => updateField('dmaic.measure.msa', e.target.value)} placeholder="Gage R&R, extraction controlee, source fiable..." /></Field>
                 </div>
                 <EditableTable
-                  columns={[{ key: 'date', label: 'Date / ordre (chronologie)' }, { key: 'valeur', label: 'Resultat mesure Y (a ameliorer)', type: 'number' }, { key: 'segment', label: 'Groupe / categorie (pour comparer)' }, { key: 'facteurA', label: 'Cause possible X1 (numerique)' }, { key: 'facteurB', label: 'Cause possible X2 (numerique)' }, { key: 'commentaire', label: 'Commentaire (contexte)' }]}
+                  columns={[
+                    { key: 'date', label: 'Date / ordre (chronologie)' },
+                    { key: 'valeur', label: `${dmaicMeasure.labels?.y || 'Resultat mesure Y'} (a ameliorer)`, type: 'number' },
+                    { key: 'segment', label: `${dmaicMeasure.labels?.segment || 'Groupe / categorie'} (pour comparer)` },
+                    { key: 'facteurA', label: `${dmaicMeasure.labels?.x1 || 'Cause possible X1'} (numerique)`, type: 'number' },
+                    { key: 'facteurB', label: `${dmaicMeasure.labels?.x2 || 'Cause possible X2'} (numerique)`, type: 'number' },
+                    { key: 'commentaire', label: 'Commentaire (contexte)' },
+                  ]}
                   rows={dmaicMeasure.data || []}
                   onAdd={() => addRow('dmaic.measure.data', { date: '', valeur: '', segment: '', facteurA: '', facteurB: '', commentaire: '' })}
                   onRemove={i => removeRow('dmaic.measure.data', i)}
                   onChange={(i, k, v) => updateField(`dmaic.measure.data[${i}].${k}`, v)}
                   addLabel="Ajouter une mesure observee" />
-                <DmaicStatsPanel rows={dmaicMeasure.data || []} spec={dmaicMeasure.spec || {}} />
+                <DmaicStatsPanel rows={dmaicMeasure.data || []} spec={dmaicMeasure.spec || {}} labels={dmaicMeasure.labels || {}} />
               </div>
               <div className="dmaic-tool-columns">
                 <Field label="Test de normalite / QQ plot (forme de distribution)"><textarea rows={4} value={dmaicMeasure.normality || ''} onChange={e => updateField('dmaic.measure.normality', e.target.value)} placeholder="Normalite plausible ? outliers ? transformation necessaire ?" /></Field>
@@ -7748,7 +7820,7 @@ export default function App() {
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
                 <DmaicHint>La regression cherche quels facteurs X1/X2 expliquent le resultat Y. R2 indique la part expliquee ; les p-values aident a reperer les facteurs probablement significatifs.</DmaicHint>
-                <AutoRegressionPanel rows={dmaicMeasure.data || []} />
+                <AutoRegressionPanel rows={dmaicMeasure.data || []} labels={dmaicMeasure.labels || {}} />
                 <div className="dmaic-grid">
                   <Field label="Equation de regression (modele retenu)"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
                   <Field label="R carre / R carre ajuste (qualite du modele)"><input value={dmaicAnalyze.regression?.r2 || ''} onChange={e => updateField('dmaic.analyze.regression.r2', e.target.value)} placeholder="Ex : R2 = 0,72 ; R2 ajuste = 0,68" /></Field>
