@@ -55,6 +55,14 @@ const ADVANCED_BPMN_TAB = {
   livrable: 'Diagramme BPMN complet exportable au format .bpmn.',
 };
 
+const DMAIC_TAB = {
+  id: 'dmaic',
+  title: 'Six Sigma DMAIC',
+  icon: Target,
+  objectif: 'Structurer un projet Six Sigma avec les phases Define, Measure, Analyze, Improve et Control.',
+  livrable: 'Charte DMAIC, mesures de référence, analyse des causes, solutions priorisées et plan de contrôle.',
+};
+
 const BPMN_ASSET_VERSION = '18.21.0';
 const BPMN_MODEL_SCRIPT = `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/bpmn-modeler.production.min.js`;
 const JSPDF_SCRIPT = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
@@ -459,6 +467,32 @@ function blankData() {
       rituels: [],
       controle: [],
       rex: '',
+    },
+    dmaic: {
+      define: {
+        problem: '',
+        customer: '',
+        ctq: '',
+        goal: '',
+        scope: '',
+        team: '',
+      },
+      measure: {
+        baseline: '',
+        kpis: [],
+      },
+      analyze: {
+        observations: '',
+        causes: [],
+      },
+      improve: {
+        target: '',
+        solutions: [],
+      },
+      control: {
+        standard: '',
+        plan: [],
+      },
     },
   };
 }
@@ -4238,6 +4272,69 @@ const CSS = `
   vertical-align:middle;
   letter-spacing:.04em;
 }
+.theme-light .dmaic-layout{
+  display:grid;
+  gap:16px;
+}
+.theme-light .dmaic-phase{
+  border:1px solid #B9C7D8;
+  background:#FFFFFF;
+  border-left:4px solid #2F756A;
+}
+.theme-light .dmaic-phase-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 16px 10px;
+  border-bottom:1px solid #DDE6F1;
+  background:#F8FAFD;
+}
+.theme-light .dmaic-phase-head span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  height:28px;
+  border:1px solid #C9D8EC;
+  background:#EAF1FA;
+  color:#102033;
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:850;
+}
+.theme-light .dmaic-phase-head h3{
+  margin:0;
+  color:#102033;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+}
+.theme-light .dmaic-phase-head p{
+  margin:4px 0 0;
+  color:#4B5F78;
+  font-size:13px;
+  line-height:1.45;
+}
+.theme-light .dmaic-phase-body{
+  padding:14px 16px 16px;
+}
+.theme-light .dmaic-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px 18px;
+}
+.theme-light .dmaic-grid .field{
+  margin-bottom:0;
+}
+.theme-light .dmaic-wide{
+  grid-column:1/-1;
+}
+@media (max-width: 760px){
+  .theme-light .dmaic-grid{
+    grid-template-columns:1fr;
+  }
+}
 .theme-light .bpmn-workbench{
   border:1px solid #B9C3D2;
   background:#FFFFFF;
@@ -6443,7 +6540,8 @@ export default function App() {
     ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
     : 0;
   const appClass = 'lean-app theme-light';
-  const activeMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : STEPS[active];
+  const activeToolMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : (active === DMAIC_TAB.id ? DMAIC_TAB : null);
+  const activeMeta = activeToolMeta || STEPS[active] || STEPS[0];
   const ActiveIcon = activeMeta.icon || GitBranch;
   const userEmail = authSession?.user?.email;
 
@@ -6506,7 +6604,27 @@ export default function App() {
     ['dateDebut', 'Date de début'], ['dateFin', 'Date de fin cible'], ['gains', 'Gains attendus'],
   ];
 
+  const renderDmaicPhase = (code, title, description, children) => (
+    <section className="dmaic-phase">
+      <div className="dmaic-phase-head">
+        <div>
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </div>
+        <span>{code}</span>
+      </div>
+      <div className="dmaic-phase-body">{children}</div>
+    </section>
+  );
+
   function renderStep() {
+    const dmaic = data.dmaic || {};
+    const dmaicDefine = dmaic.define || {};
+    const dmaicMeasure = dmaic.measure || {};
+    const dmaicAnalyze = dmaic.analyze || {};
+    const dmaicImprove = dmaic.improve || {};
+    const dmaicControl = dmaic.control || {};
+
     switch (active) {
       case 0:
         return (<>
@@ -6718,6 +6836,93 @@ export default function App() {
             onChange={(xml) => updateField('bpmnXml', xml)}
             onViewboxChange={(viewbox) => updateField('bpmnViewbox', viewbox)}
           />
+        );
+      case 'dmaic':
+        return (
+          <div className="dmaic-layout">
+            {renderDmaicPhase('D', 'Define', 'Clarifier le problème, le client, le périmètre et l’objectif Six Sigma.', (
+              <div className="dmaic-grid">
+                <Field label="Problème à résoudre">
+                  <textarea rows={4} value={dmaicDefine.problem || ''} onChange={e => updateField('dmaic.define.problem', e.target.value)} placeholder="Ex : taux d’erreur élevé, délai trop long, variabilité importante..." />
+                </Field>
+                <Field label="Client / bénéficiaire du processus">
+                  <textarea rows={4} value={dmaicDefine.customer || ''} onChange={e => updateField('dmaic.define.customer', e.target.value)} placeholder="Client final, équipe interne, fournisseur, service concerné..." />
+                </Field>
+                <Field label="CTQ - exigences critiques qualité">
+                  <textarea rows={4} value={dmaicDefine.ctq || ''} onChange={e => updateField('dmaic.define.ctq', e.target.value)} placeholder="Ce qui est critique pour le client : délai, conformité, exactitude, simplicité..." />
+                </Field>
+                <Field label="Objectif chiffré DMAIC">
+                  <textarea rows={4} value={dmaicDefine.goal || ''} onChange={e => updateField('dmaic.define.goal', e.target.value)} placeholder="Réduire X de A à B avant telle date..." />
+                </Field>
+                <Field label="Périmètre inclus / exclu">
+                  <textarea rows={4} value={dmaicDefine.scope || ''} onChange={e => updateField('dmaic.define.scope', e.target.value)} />
+                </Field>
+                <Field label="Équipe projet et rôles">
+                  <textarea rows={4} value={dmaicDefine.team || ''} onChange={e => updateField('dmaic.define.team', e.target.value)} placeholder="Sponsor, Black Belt, Green Belt, process owner, contributeurs..." />
+                </Field>
+              </div>
+            ))}
+
+            {renderDmaicPhase('M', 'Measure', 'Mesurer la performance actuelle et sécuriser les données de référence.', (
+              <>
+                <Field label="Baseline / performance actuelle">
+                  <textarea rows={4} value={dmaicMeasure.baseline || ''} onChange={e => updateField('dmaic.measure.baseline', e.target.value)} placeholder="Données actuelles, période mesurée, volume analysé, niveau de sigma si connu..." />
+                </Field>
+                <EditableTable
+                  columns={[{ key: 'nom', label: 'Mesure / KPI' }, { key: 'definition', label: 'Définition' }, { key: 'baseline', label: 'Actuel' }, { key: 'cible', label: 'Cible' }, { key: 'source', label: 'Source' }]}
+                  rows={dmaicMeasure.kpis || []}
+                  onAdd={() => addRow('dmaic.measure.kpis', { nom: '', definition: '', baseline: '', cible: '', source: '' })}
+                  onRemove={i => removeRow('dmaic.measure.kpis', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.measure.kpis[${i}].${k}`, v)}
+                  addLabel="Ajouter une mesure" />
+              </>
+            ))}
+
+            {renderDmaicPhase('A', 'Analyze', 'Identifier les causes racines de la variabilité et des défauts.', (
+              <>
+                <Field label="Constats d’analyse">
+                  <textarea rows={4} value={dmaicAnalyze.observations || ''} onChange={e => updateField('dmaic.analyze.observations', e.target.value)} placeholder="Ce que montrent les données, écarts majeurs, segments les plus touchés..." />
+                </Field>
+                <EditableTable
+                  columns={[{ key: 'cause', label: 'Cause potentielle' }, { key: 'preuve', label: 'Preuve / donnée' }, { key: 'impact', label: 'Impact' }, { key: 'validation', label: 'Validée ?', type: 'select', options: ['À confirmer', 'Oui', 'Non'] }]}
+                  rows={dmaicAnalyze.causes || []}
+                  onAdd={() => addRow('dmaic.analyze.causes', { cause: '', preuve: '', impact: '', validation: 'À confirmer' })}
+                  onRemove={i => removeRow('dmaic.analyze.causes', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.analyze.causes[${i}].${k}`, v)}
+                  addLabel="Ajouter une cause" />
+              </>
+            ))}
+
+            {renderDmaicPhase('I', 'Improve', 'Concevoir, tester et prioriser les solutions d’amélioration.', (
+              <>
+                <Field label="Processus cible / amélioration visée">
+                  <textarea rows={4} value={dmaicImprove.target || ''} onChange={e => updateField('dmaic.improve.target', e.target.value)} placeholder="Décrire le fonctionnement cible, le pilote et le résultat attendu..." />
+                </Field>
+                <EditableTable
+                  columns={[{ key: 'solution', label: 'Solution' }, { key: 'impact', label: 'Impact attendu' }, { key: 'effort', label: 'Effort', type: 'select', options: ['Faible', 'Moyen', 'Élevé'] }, { key: 'responsable', label: 'Responsable' }, { key: 'statut', label: 'Statut', type: 'select', options: ['À faire', 'En cours', 'Testée', 'Déployée'] }]}
+                  rows={dmaicImprove.solutions || []}
+                  onAdd={() => addRow('dmaic.improve.solutions', { solution: '', impact: '', effort: 'Moyen', responsable: '', statut: 'À faire' })}
+                  onRemove={i => removeRow('dmaic.improve.solutions', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.improve.solutions[${i}].${k}`, v)}
+                  addLabel="Ajouter une solution" />
+              </>
+            ))}
+
+            {renderDmaicPhase('C', 'Control', 'Pérenniser les gains et éviter le retour à l’ancien fonctionnement.', (
+              <>
+                <Field label="Standard cible / règles de maintien">
+                  <textarea rows={4} value={dmaicControl.standard || ''} onChange={e => updateField('dmaic.control.standard', e.target.value)} placeholder="Standard opérationnel, gouvernance, formation, documentation, règles d’escalade..." />
+                </Field>
+                <EditableTable
+                  columns={[{ key: 'controle', label: 'Point de contrôle' }, { key: 'frequence', label: 'Fréquence' }, { key: 'responsable', label: 'Responsable' }, { key: 'seuil', label: "Seuil d'alerte" }, { key: 'reaction', label: 'Réaction attendue' }]}
+                  rows={dmaicControl.plan || []}
+                  onAdd={() => addRow('dmaic.control.plan', { controle: '', frequence: '', responsable: '', seuil: '', reaction: '' })}
+                  onRemove={i => removeRow('dmaic.control.plan', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.control.plan[${i}].${k}`, v)}
+                  addLabel="Ajouter un contrôle" />
+              </>
+            ))}
+          </div>
         );
       default: return null;
     }
@@ -7031,6 +7236,10 @@ export default function App() {
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
+          <button className={`step-item advanced-step ${active === DMAIC_TAB.id ? 'is-active' : ''}`} onClick={() => goToStep(DMAIC_TAB.id)}>
+            <Target className="advanced-step-icon" size={16} aria-hidden="true" />
+            <span className="step-title">{DMAIC_TAB.title}</span>
+          </button>
         </nav>
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
@@ -7047,12 +7256,12 @@ export default function App() {
       </aside>
       <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
         <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
-          <div className="eyebrow">{active === ADVANCED_BPMN_TAB.id ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
-          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
+          <div className="eyebrow">{activeToolMeta ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
+          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}{active === DMAIC_TAB.id && <span className="optional-badge">Six Sigma</span>}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
           <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
-          {active !== ADVANCED_BPMN_TAB.id && (
+          {!activeToolMeta && (
             <div className="step-actions">
               <button className="nav-btn" disabled={active === 0} onClick={() => goToStep(Math.max(0, active - 1))}><ChevronLeft size={16} /> Précédent</button>
               <button className={`validate-btn ${data.validated[active] ? 'is-validated' : ''}`} onClick={() => toggleValidated(active)}>
