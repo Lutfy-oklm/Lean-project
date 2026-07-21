@@ -1132,6 +1132,10 @@ function SubTitle({ children }) {
   return <h3 className="sub-title">{children}</h3>;
 }
 
+function DmaicHint({ children }) {
+  return <p className="dmaic-hint">{children}</p>;
+}
+
 function EditableTable({ columns, rows, onAdd, onRemove, onChange, addLabel }) {
   return (
     <div className="ledger-table-wrap">
@@ -1821,10 +1825,10 @@ function AutomaticDmaicInsights({ rows, spec }) {
         <span>calculs depuis vos mesures</span>
       </div>
       <div className="dmaic-auto-grid">
-        <div><span>Capabilite</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? `Cpk ${roundN(stats.cpk, 2)} - Cp ${roundN(stats.cp, 2)}` : 'Ajoutez LSL et USL'}</small></div>
-        <div><span>Stabilite X/MR</span><strong>{stable === null ? 'A confirmer' : stable ? 'Stable' : 'Instable'}</strong><small>{stable === false ? 'Point hors limites probable' : 'Lecture automatique des limites'}</small></div>
-        <div><span>Test segment</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des segments'}</small></div>
-        <div><span>Regression</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez facteurs X1/X2 numeriques'}</small></div>
+        <div><span>Capabilite (respect des limites)</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? `Cpk ${roundN(stats.cpk, 2)} - Cp ${roundN(stats.cp, 2)}` : 'Ajoutez LSL et USL'}</small></div>
+        <div><span>Stabilite X/MR (variation dans le temps)</span><strong>{stable === null ? 'A confirmer' : stable ? 'Stable' : 'Instable'}</strong><small>{stable === false ? 'Point hors limites probable' : 'Lecture automatique des limites'}</small></div>
+        <div><span>Test segment (comparaison des groupes)</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des segments'}</small></div>
+        <div><span>Regression (influence des causes X)</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez facteurs X1/X2 numeriques'}</small></div>
       </div>
       <div className="dmaic-auto-details">
         <div className="dmaic-conclusion">
@@ -1856,14 +1860,14 @@ function AutoRegressionPanel({ rows }) {
       {regression && (
         <>
           <div className="dmaic-auto-grid">
-            <div><span>Equation</span><strong>{regression.equation}</strong><small>{regression.n} observations utilisees</small></div>
-            <div><span>R carre</span><strong>{roundN(regression.r2, 3)}</strong><small>Part de variance expliquee</small></div>
-            <div><span>R carre ajuste</span><strong>{roundN(regression.adjR2, 3)}</strong><small>Corrige du nombre de facteurs</small></div>
-            <div><span>Conclusion</span><strong>{regression.r2 >= 0.7 ? 'Modele explicatif fort' : regression.r2 >= 0.4 ? 'Modele utile' : 'Modele faible'}</strong><small>A confirmer avec le contexte metier</small></div>
+            <div><span>Equation (formule estimee)</span><strong>{regression.equation}</strong><small>{regression.n} observations utilisees</small></div>
+            <div><span>R carre (part expliquee)</span><strong>{roundN(regression.r2, 3)}</strong><small>Plus il est proche de 1, plus le modele explique Y</small></div>
+            <div><span>R carre ajuste (modele corrige)</span><strong>{roundN(regression.adjR2, 3)}</strong><small>Corrige du nombre de facteurs</small></div>
+            <div><span>Conclusion automatique</span><strong>{regression.r2 >= 0.7 ? 'Modele explicatif fort' : regression.r2 >= 0.4 ? 'Modele utile' : 'Modele faible'}</strong><small>A confirmer avec le contexte metier</small></div>
           </div>
           <div className="ledger-table-wrap">
             <table className="ledger-table">
-              <thead><tr><th>Facteur</th><th>Coefficient</th><th>Erreur standard</th><th>p-value approx.</th><th>Decision</th></tr></thead>
+              <thead><tr><th>Facteur (cause testee)</th><th>Coefficient (sens/force)</th><th>Erreur standard</th><th>p-value approx. (seuil 0,05)</th><th>Decision</th></tr></thead>
               <tbody>
                 {regression.coefficients.map(c => (
                   <tr key={c.name}>
@@ -4781,6 +4785,16 @@ const CSS = `
 .theme-light .dmaic-phase-body{
   padding:14px 16px 16px;
 }
+.theme-light .dmaic-hint{
+  margin:0 0 12px;
+  padding:9px 11px;
+  border:1px solid #D5E0EE;
+  border-left:3px solid #2F756A;
+  background:#F8FAFD;
+  color:#536983;
+  font-size:13px;
+  line-height:1.45;
+}
 .theme-light .dmaic-grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -7323,33 +7337,35 @@ export default function App() {
 
           {renderDmaicPhase('D', 'Define', 'Clarifier le probleme, la voix du client, le perimetre et la gouvernance du projet.', (
             <>
+              <DmaicHint>Objectif : formuler clairement le probleme, traduire la voix du client en exigences mesurables et definir qui fait quoi dans le projet.</DmaicHint>
               <div className="dmaic-grid">
-                <Field label="Probleme a resoudre">
+                <Field label="Probleme a resoudre (ecart observe)">
                   <textarea rows={4} value={dmaicDefine.problem || ''} onChange={e => updateField('dmaic.define.problem', e.target.value)} placeholder="Ex : variabilite elevee, delai trop long, taux de defaut important..." />
                 </Field>
-                <Field label="Voix du client / VOC">
+                <Field label="Voix du client / VOC (attentes et irritants)">
                   <textarea rows={4} value={dmaicDefine.customer || ''} onChange={e => updateField('dmaic.define.customer', e.target.value)} placeholder="Attentes, irritants, verbatims, besoins clients internes ou externes..." />
                 </Field>
-                <Field label="CTQ - exigences critiques qualite">
+                <Field label="CTQ - exigences critiques qualite (ce qui doit etre mesure)">
                   <textarea rows={4} value={dmaicDefine.ctq || ''} onChange={e => updateField('dmaic.define.ctq', e.target.value)} placeholder="Delai, conformite, cout, disponibilite, exactitude, experience..." />
                 </Field>
-                <Field label="Objectif SMART / Y du projet">
+                <Field label="Objectif SMART / Y du projet (resultat chiffre vise)">
                   <textarea rows={4} value={dmaicDefine.goal || ''} onChange={e => updateField('dmaic.define.goal', e.target.value)} placeholder="Reduire le delai moyen de X a Y, atteindre Cpk cible, diminuer les defauts..." />
                 </Field>
-                <Field label="Perimetre inclus / exclu">
+                <Field label="Perimetre inclus / exclu (ce que le projet couvre ou non)">
                   <textarea rows={4} value={dmaicDefine.scope || ''} onChange={e => updateField('dmaic.define.scope', e.target.value)} />
                 </Field>
-                <Field label="Equipe projet et roles">
+                <Field label="Equipe projet et roles (sponsor, pilote, contributeurs)">
                   <textarea rows={4} value={dmaicDefine.team || ''} onChange={e => updateField('dmaic.define.team', e.target.value)} placeholder="Sponsor, Black Belt, Green Belt, process owner, metiers, data owner..." />
                 </Field>
-                <Field label="Business case initial">
+                <Field label="Business case initial (gain attendu ou cout de non-qualite)">
                   <textarea rows={4} value={dmaicDefine.businessCase || ''} onChange={e => updateField('dmaic.define.businessCase', e.target.value)} placeholder="Enjeu financier, impact client, risque operationnel, cout de non-qualite..." />
                 </Field>
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">VOC structuree <small>besoin client</small></h3>
+                <DmaicHint>Transformez les phrases clients en besoins concrets, puis en CTQ mesurables. Exemple : "trop long" devient "delai de traitement inferieur a 5 jours".</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'client', label: 'Client / partie prenante' }, { key: 'verbatim', label: 'Voix du client', type: 'textarea' }, { key: 'besoin', label: 'Besoin traduit' }, { key: 'ctq', label: 'CTQ associe' }, { key: 'priorite', label: 'Priorite', type: 'select', options: ['Basse', 'Moyenne', 'Haute', 'Critique'] }]}
+                  columns={[{ key: 'client', label: 'Client / partie prenante (qui exprime le besoin)' }, { key: 'verbatim', label: 'Voix du client (phrase entendue)', type: 'textarea' }, { key: 'besoin', label: 'Besoin traduit (attente reformulee)' }, { key: 'ctq', label: 'CTQ associe (mesure critique)' }, { key: 'priorite', label: 'Priorite (importance)', type: 'select', options: ['Basse', 'Moyenne', 'Haute', 'Critique'] }]}
                   rows={dmaicDefine.voc || []}
                   onAdd={() => addRow('dmaic.define.voc', { client: '', verbatim: '', besoin: '', ctq: '', priorite: 'Moyenne' })}
                   onRemove={i => removeRow('dmaic.define.voc', i)}
@@ -7358,8 +7374,9 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">SIPOC DMAIC <small>macro-processus</small></h3>
+                <DmaicHint>Le SIPOC sert a cadrer le processus a haut niveau : fournisseurs, entrees, grandes etapes, sorties et clients.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'suppliers', label: 'Suppliers' }, { key: 'inputs', label: 'Inputs' }, { key: 'process', label: 'Process' }, { key: 'outputs', label: 'Outputs' }, { key: 'customers', label: 'Customers' }]}
+                  columns={[{ key: 'suppliers', label: 'Suppliers (fournisseurs)' }, { key: 'inputs', label: 'Inputs (entrees)' }, { key: 'process', label: 'Process (etapes macro)' }, { key: 'outputs', label: 'Outputs (sorties)' }, { key: 'customers', label: 'Customers (clients)' }]}
                   rows={dmaicDefine.sipoc || []}
                   onAdd={() => addRow('dmaic.define.sipoc', { suppliers: '', inputs: '', process: '', outputs: '', customers: '' })}
                   onRemove={i => removeRow('dmaic.define.sipoc', i)}
@@ -7369,8 +7386,9 @@ export default function App() {
               <div className="dmaic-tool-columns">
                 <div className="dmaic-tool-block">
                   <h3 className="dmaic-tool-title">SWOT projet <small>cadrage</small></h3>
+                  <DmaicHint>Identifiez ce qui aide ou menace le projet avant de lancer l'analyse detaillee.</DmaicHint>
                   <EditableTable
-                    columns={[{ key: 'type', label: 'Type', type: 'select', options: ['Force', 'Faiblesse', 'Opportunite', 'Menace'] }, { key: 'element', label: 'Element', type: 'textarea' }, { key: 'action', label: 'Action associee' }]}
+                    columns={[{ key: 'type', label: 'Type (force/faiblesse/opportunite/menace)', type: 'select', options: ['Force', 'Faiblesse', 'Opportunite', 'Menace'] }, { key: 'element', label: 'Element observe', type: 'textarea' }, { key: 'action', label: 'Action associee (comment en tenir compte)' }]}
                     rows={dmaicDefine.swot || []}
                     onAdd={() => addRow('dmaic.define.swot', { type: 'Force', element: '', action: '' })}
                     onRemove={i => removeRow('dmaic.define.swot', i)}
@@ -7379,6 +7397,7 @@ export default function App() {
                 </div>
                 <div className="dmaic-tool-block">
                   <h3 className="dmaic-tool-title">RACI DMAIC <small>gouvernance</small></h3>
+                  <DmaicHint>R = realise, A = valide, C = consulte, I = informe. Utilisez-le pour eviter les roles flous.</DmaicHint>
                   <RaciMatrix path="dmaic.define.raci" data={dmaicDefine.raci} updateField={updateField} />
                 </div>
               </div>
@@ -7387,11 +7406,12 @@ export default function App() {
 
           {renderDmaicPhase('M', 'Measure', 'Collecter les donnees, verifier la mesure et evaluer la performance actuelle.', (
             <>
-              <Field label="Baseline / performance actuelle">
+              <DmaicHint>Objectif : construire une base de donnees simple pour mesurer le resultat Y, comparer des groupes et tester les causes possibles X.</DmaicHint>
+              <Field label="Baseline / performance actuelle (situation de depart)">
                 <textarea rows={4} value={dmaicMeasure.baseline || ''} onChange={e => updateField('dmaic.measure.baseline', e.target.value)} placeholder="Periode mesuree, volume analyse, moyenne actuelle, variabilite, niveau sigma si connu..." />
               </Field>
               <EditableTable
-                columns={[{ key: 'nom', label: 'Mesure / KPI' }, { key: 'definition', label: 'Definition' }, { key: 'baseline', label: 'Actuel' }, { key: 'cible', label: 'Cible' }, { key: 'source', label: 'Source' }]}
+                columns={[{ key: 'nom', label: 'Mesure / KPI (ce qu on suit)' }, { key: 'definition', label: 'Definition (mode de calcul)' }, { key: 'baseline', label: 'Actuel (valeur de depart)' }, { key: 'cible', label: 'Cible (valeur visee)' }, { key: 'source', label: 'Source (outil ou fichier)' }]}
                 rows={dmaicMeasure.kpis || []}
                 onAdd={() => addRow('dmaic.measure.kpis', { nom: '', definition: '', baseline: '', cible: '', source: '' })}
                 onRemove={i => removeRow('dmaic.measure.kpis', i)}
@@ -7399,8 +7419,9 @@ export default function App() {
                 addLabel="Ajouter une mesure" />
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Plan de collecte <small>quoi mesurer</small></h3>
+                <DmaicHint>Decrivez avant la collecte quelles donnees seront mesurees, ou les trouver, a quelle frequence et par qui. Cela evite de comparer des donnees non fiables.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'mesure', label: 'Mesure' }, { key: 'definition', label: 'Definition operationnelle', type: 'textarea' }, { key: 'unite', label: 'Unite' }, { key: 'source', label: 'Source' }, { key: 'frequence', label: 'Frequence' }, { key: 'responsable', label: 'Responsable' }]}
+                  columns={[{ key: 'mesure', label: 'Mesure (nom de la donnee)' }, { key: 'definition', label: 'Definition operationnelle (regle exacte)', type: 'textarea' }, { key: 'unite', label: 'Unite (jours, euros, %...)' }, { key: 'source', label: 'Source (SI, Excel, enquete...)' }, { key: 'frequence', label: 'Frequence (jour/semaine/mois)' }, { key: 'responsable', label: 'Responsable (collecte)' }]}
                   rows={dmaicMeasure.collectionPlan || []}
                   onAdd={() => addRow('dmaic.measure.collectionPlan', { mesure: '', definition: '', unite: '', source: '', frequence: '', responsable: '' })}
                   onRemove={i => removeRow('dmaic.measure.collectionPlan', i)}
@@ -7409,14 +7430,15 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Donnees mesurees <small>base statistique</small></h3>
+                <DmaicHint>Y est le resultat a ameliorer. X1 et X2 sont des causes possibles a tester. Exemple : Y = delai de traitement, X1 = nombre de pieces manquantes, X2 = charge de travail.</DmaicHint>
                 <div className="dmaic-grid">
-                  <Field label="LSL - limite basse"><input type="number" value={dmaicMeasure.spec?.lsl || ''} onChange={e => updateField('dmaic.measure.spec.lsl', e.target.value)} /></Field>
-                  <Field label="USL - limite haute"><input type="number" value={dmaicMeasure.spec?.usl || ''} onChange={e => updateField('dmaic.measure.spec.usl', e.target.value)} /></Field>
-                  <Field label="Cible / target"><input type="number" value={dmaicMeasure.spec?.target || ''} onChange={e => updateField('dmaic.measure.spec.target', e.target.value)} /></Field>
-                  <Field label="MSA / fiabilite mesure"><input value={dmaicMeasure.msa || ''} onChange={e => updateField('dmaic.measure.msa', e.target.value)} placeholder="Gage R&R, extraction controlee, source fiable..." /></Field>
+                  <Field label="LSL - limite basse (minimum acceptable)"><input type="number" value={dmaicMeasure.spec?.lsl || ''} onChange={e => updateField('dmaic.measure.spec.lsl', e.target.value)} /></Field>
+                  <Field label="USL - limite haute (maximum acceptable)"><input type="number" value={dmaicMeasure.spec?.usl || ''} onChange={e => updateField('dmaic.measure.spec.usl', e.target.value)} /></Field>
+                  <Field label="Cible / target (valeur ideale visee)"><input type="number" value={dmaicMeasure.spec?.target || ''} onChange={e => updateField('dmaic.measure.spec.target', e.target.value)} /></Field>
+                  <Field label="MSA / fiabilite mesure (qualite de la donnee)"><input value={dmaicMeasure.msa || ''} onChange={e => updateField('dmaic.measure.msa', e.target.value)} placeholder="Gage R&R, extraction controlee, source fiable..." /></Field>
                 </div>
                 <EditableTable
-                  columns={[{ key: 'date', label: 'Date / ordre' }, { key: 'valeur', label: 'Valeur Y', type: 'number' }, { key: 'segment', label: 'Segment' }, { key: 'facteurA', label: 'Facteur X1' }, { key: 'facteurB', label: 'Facteur X2' }, { key: 'commentaire', label: 'Commentaire' }]}
+                  columns={[{ key: 'date', label: 'Date / ordre (chronologie)' }, { key: 'valeur', label: 'Resultat mesure Y (a ameliorer)', type: 'number' }, { key: 'segment', label: 'Groupe / categorie (pour comparer)' }, { key: 'facteurA', label: 'Cause possible X1 (numerique)' }, { key: 'facteurB', label: 'Cause possible X2 (numerique)' }, { key: 'commentaire', label: 'Commentaire (contexte)' }]}
                   rows={dmaicMeasure.data || []}
                   onAdd={() => addRow('dmaic.measure.data', { date: '', valeur: '', segment: '', facteurA: '', facteurB: '', commentaire: '' })}
                   onRemove={i => removeRow('dmaic.measure.data', i)}
@@ -7425,19 +7447,20 @@ export default function App() {
                 <DmaicStatsPanel rows={dmaicMeasure.data || []} spec={dmaicMeasure.spec || {}} />
               </div>
               <div className="dmaic-tool-columns">
-                <Field label="Test de normalite / QQ plot"><textarea rows={4} value={dmaicMeasure.normality || ''} onChange={e => updateField('dmaic.measure.normality', e.target.value)} placeholder="Normalite plausible ? outliers ? transformation necessaire ?" /></Field>
-                <Field label="Conclusion capabilite et cartes X/MR"><textarea rows={4} value={dmaicMeasure.capabilityConclusion || ''} onChange={e => updateField('dmaic.measure.capabilityConclusion', e.target.value)} placeholder="Process capable/incapable, centre/decentre, stable/instable..." /></Field>
+                <Field label="Test de normalite / QQ plot (forme de distribution)"><textarea rows={4} value={dmaicMeasure.normality || ''} onChange={e => updateField('dmaic.measure.normality', e.target.value)} placeholder="Normalite plausible ? outliers ? transformation necessaire ?" /></Field>
+                <Field label="Conclusion capabilite et cartes X/MR (decision mesure)"><textarea rows={4} value={dmaicMeasure.capabilityConclusion || ''} onChange={e => updateField('dmaic.measure.capabilityConclusion', e.target.value)} placeholder="Process capable/incapable, centre/decentre, stable/instable..." /></Field>
               </div>
             </>
           ))}
 
           {renderDmaicPhase('A', 'Analyze', 'Identifier, prioriser et valider statistiquement les causes racines.', (
             <>
-              <Field label="Constats d'analyse">
+              <DmaicHint>Objectif : passer des hypotheses aux causes validees. Les graphiques aident a prioriser, les tests statistiques a confirmer si une cause a un effet probable.</DmaicHint>
+              <Field label="Constats d'analyse (ce que les donnees montrent)">
                 <textarea rows={4} value={dmaicAnalyze.observations || ''} onChange={e => updateField('dmaic.analyze.observations', e.target.value)} placeholder="Ce que montrent les donnees, segments touches, ruptures, facteurs suspects..." />
               </Field>
               <EditableTable
-                columns={[{ key: 'cause', label: 'Cause potentielle' }, { key: 'preuve', label: 'Preuve / donnee' }, { key: 'impact', label: 'Impact' }, { key: 'validation', label: 'Validee ?', type: 'select', options: ['A confirmer', 'Oui', 'Non'] }]}
+                columns={[{ key: 'cause', label: 'Cause potentielle (hypothese)' }, { key: 'preuve', label: 'Preuve / donnee (fait observe)' }, { key: 'impact', label: 'Impact (effet estime)' }, { key: 'validation', label: 'Validee ? (decision)', type: 'select', options: ['A confirmer', 'Oui', 'Non'] }]}
                 rows={dmaicAnalyze.causes || []}
                 onAdd={() => addRow('dmaic.analyze.causes', { cause: '', preuve: '', impact: '', validation: 'A confirmer' })}
                 onRemove={i => removeRow('dmaic.analyze.causes', i)}
@@ -7446,8 +7469,9 @@ export default function App() {
               <div className="dmaic-tool-columns">
                 <div className="dmaic-tool-block">
                   <h3 className="dmaic-tool-title">Pareto des causes <small>priorisation</small></h3>
+                  <DmaicHint>Classez les causes par nombre d'occurrences pour identifier les quelques causes qui expliquent la majorite du probleme.</DmaicHint>
                   <EditableTable
-                    columns={[{ key: 'cause', label: 'Cause' }, { key: 'occurrences', label: 'Occurrences', type: 'number' }]}
+                    columns={[{ key: 'cause', label: 'Cause / motif' }, { key: 'occurrences', label: 'Occurrences (nombre de cas)' , type: 'number' }]}
                     rows={dmaicAnalyze.pareto || []}
                     onAdd={() => addRow('dmaic.analyze.pareto', { cause: '', occurrences: '' })}
                     onRemove={i => removeRow('dmaic.analyze.pareto', i)}
@@ -7457,17 +7481,20 @@ export default function App() {
                 </div>
                 <div className="dmaic-tool-block">
                   <h3 className="dmaic-tool-title">Ishikawa 5M <small>causes possibles</small></h3>
+                  <DmaicHint>Structurez les causes possibles par familles : main d'oeuvre, methode, materiel, milieu, matiere.</DmaicHint>
                   <Ishikawa path="dmaic.analyze.ishikawa" data={dmaicAnalyze.ishikawa} updateField={updateField} />
                 </div>
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">5 pourquoi <small>cause racine</small></h3>
+                <DmaicHint>Partez du probleme observe et demandez "pourquoi ?" plusieurs fois pour remonter vers une cause actionnable.</DmaicHint>
                 <FiveWhys path="dmaic.analyze.fivewhy" data={dmaicAnalyze.fivewhy} updateField={updateField} />
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Tests statistiques <small>ANOVA / T test / Chi2</small></h3>
+                <DmaicHint>Utilisez cette zone pour documenter les tests que l'outil ne peut pas encore calculer automatiquement. Une p-value inferieure a 0,05 indique souvent un effet significatif.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'hypothese', label: 'Hypothese / cause testee', type: 'textarea' }, { key: 'test', label: 'Test', type: 'select', options: ['T test', 'ANOVA', 'Chi2', 'Correlation', 'Mann-Whitney', 'Kruskal-Wallis', 'Autre'] }, { key: 'pvalue', label: 'p-value' }, { key: 'decision', label: 'Decision', type: 'select', options: ['Effet significatif', 'Non significatif', 'A confirmer'] }, { key: 'commentaire', label: 'Commentaire', type: 'textarea' }]}
+                  columns={[{ key: 'hypothese', label: 'Hypothese / cause testee (X influence Y ?)', type: 'textarea' }, { key: 'test', label: 'Test utilise', type: 'select', options: ['T test', 'ANOVA', 'Chi2', 'Correlation', 'Mann-Whitney', 'Kruskal-Wallis', 'Autre'] }, { key: 'pvalue', label: 'p-value (seuil 0,05)' }, { key: 'decision', label: 'Decision (effet ou non)', type: 'select', options: ['Effet significatif', 'Non significatif', 'A confirmer'] }, { key: 'commentaire', label: 'Commentaire / interpretation', type: 'textarea' }]}
                   rows={dmaicAnalyze.statTests || []}
                   onAdd={() => addRow('dmaic.analyze.statTests', { hypothese: '', test: 'T test', pvalue: '', decision: 'A confirmer', commentaire: '' })}
                   onRemove={i => removeRow('dmaic.analyze.statTests', i)}
@@ -7476,11 +7503,12 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
+                <DmaicHint>La regression cherche quels facteurs X1/X2 expliquent le resultat Y. R2 indique la part expliquee ; les p-values aident a reperer les facteurs probablement significatifs.</DmaicHint>
                 <AutoRegressionPanel rows={dmaicMeasure.data || []} />
                 <div className="dmaic-grid">
-                  <Field label="Equation de regression"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
-                  <Field label="R carre / R carre ajuste"><input value={dmaicAnalyze.regression?.r2 || ''} onChange={e => updateField('dmaic.analyze.regression.r2', e.target.value)} placeholder="Ex : R2 = 0,72 ; R2 ajuste = 0,68" /></Field>
-                  <Field label="Conclusion regression"><textarea rows={4} value={dmaicAnalyze.regression?.conclusion || ''} onChange={e => updateField('dmaic.analyze.regression.conclusion', e.target.value)} placeholder="Facteurs les plus influents, sens de l'effet, limites du modele..." /></Field>
+                  <Field label="Equation de regression (modele retenu)"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
+                  <Field label="R carre / R carre ajuste (qualite du modele)"><input value={dmaicAnalyze.regression?.r2 || ''} onChange={e => updateField('dmaic.analyze.regression.r2', e.target.value)} placeholder="Ex : R2 = 0,72 ; R2 ajuste = 0,68" /></Field>
+                  <Field label="Conclusion regression (facteurs a piloter)"><textarea rows={4} value={dmaicAnalyze.regression?.conclusion || ''} onChange={e => updateField('dmaic.analyze.regression.conclusion', e.target.value)} placeholder="Facteurs les plus influents, sens de l'effet, limites du modele..." /></Field>
                 </div>
               </div>
             </>
@@ -7488,11 +7516,12 @@ export default function App() {
 
           {renderDmaicPhase('I', 'Improve', 'Concevoir, prioriser, tester et securiser les solutions.', (
             <>
-              <Field label="Processus cible / amelioration visee">
+              <DmaicHint>Objectif : transformer les causes validees en solutions, prioriser les actions puis tester avant de generaliser.</DmaicHint>
+              <Field label="Processus cible / amelioration visee (solution globale)">
                 <textarea rows={4} value={dmaicImprove.target || ''} onChange={e => updateField('dmaic.improve.target', e.target.value)} placeholder="Decrire le fonctionnement cible, le pilote, le standard et le resultat attendu..." />
               </Field>
               <EditableTable
-                columns={[{ key: 'solution', label: 'Solution' }, { key: 'impact', label: 'Impact attendu' }, { key: 'effort', label: 'Effort', type: 'select', options: ['Faible', 'Moyen', 'Eleve'] }, { key: 'responsable', label: 'Responsable' }, { key: 'statut', label: 'Statut', type: 'select', options: ['A faire', 'En cours', 'Testee', 'Deployee'] }]}
+                columns={[{ key: 'solution', label: 'Solution proposee' }, { key: 'impact', label: 'Impact attendu (gain)' }, { key: 'effort', label: 'Effort (complexite)', type: 'select', options: ['Faible', 'Moyen', 'Eleve'] }, { key: 'responsable', label: 'Responsable' }, { key: 'statut', label: 'Statut (avancement)', type: 'select', options: ['A faire', 'En cours', 'Testee', 'Deployee'] }]}
                 rows={dmaicImprove.solutions || []}
                 onAdd={() => addRow('dmaic.improve.solutions', { solution: '', impact: '', effort: 'Moyen', responsable: '', statut: 'A faire' })}
                 onRemove={i => removeRow('dmaic.improve.solutions', i)}
@@ -7500,8 +7529,9 @@ export default function App() {
                 addLabel="Ajouter une solution" />
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Matrice impact / effort <small>priorisation</small></h3>
+                <DmaicHint>Notez impact et effort de 0 a 10. Les actions a fort impact et faible effort sont les quick wins.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'action', label: 'Action' }, { key: 'impact', label: 'Impact 0-10', type: 'number', min: 0, max: 10 }, { key: 'effort', label: 'Effort 0-10', type: 'number', min: 0, max: 10 }, { key: 'gain', label: 'Gain attendu' }, { key: 'risque', label: 'Risque' }]}
+                  columns={[{ key: 'action', label: 'Action a evaluer' }, { key: 'impact', label: 'Impact 0-10 (benefice)' , type: 'number', min: 0, max: 10 }, { key: 'effort', label: 'Effort 0-10 (difficulte)' , type: 'number', min: 0, max: 10 }, { key: 'gain', label: 'Gain attendu' }, { key: 'risque', label: 'Risque / contrainte' }]}
                   rows={dmaicImprove.impactEffort || []}
                   onAdd={() => addRow('dmaic.improve.impactEffort', { action: '', impact: '', effort: '', gain: '', risque: '' })}
                   onRemove={i => removeRow('dmaic.improve.impactEffort', i)}
@@ -7511,8 +7541,9 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Plan d'action DMAIC <small>execution</small></h3>
+                <DmaicHint>Listez les actions retenues, leur responsable, leur date cible et la preuve attendue de realisation.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'action', label: 'Action' }, { key: 'responsable', label: 'Responsable' }, { key: 'debut', label: 'Debut' }, { key: 'fin', label: 'Fin' }, { key: 'statut', label: 'Statut', type: 'select', options: ['A faire', 'En cours', 'Bloque', 'Termine'] }, { key: 'preuve', label: 'Preuve / livrable' }]}
+                  columns={[{ key: 'action', label: 'Action retenue' }, { key: 'responsable', label: 'Responsable' }, { key: 'debut', label: 'Debut prevu' }, { key: 'fin', label: 'Fin cible' }, { key: 'statut', label: 'Statut', type: 'select', options: ['A faire', 'En cours', 'Bloque', 'Termine'] }, { key: 'preuve', label: 'Preuve / livrable attendu' }]}
                   rows={dmaicImprove.actionPlan || []}
                   onAdd={() => addRow('dmaic.improve.actionPlan', { action: '', responsable: '', debut: '', fin: '', statut: 'A faire', preuve: '' })}
                   onRemove={i => removeRow('dmaic.improve.actionPlan', i)}
@@ -7520,19 +7551,20 @@ export default function App() {
                   addLabel="Ajouter une action" />
               </div>
               <div className="dmaic-tool-columns">
-                <Field label="Resultats du pilote / test solution"><textarea rows={4} value={dmaicImprove.pilot || ''} onChange={e => updateField('dmaic.improve.pilot', e.target.value)} placeholder="Population pilote, gains observes, feedback terrain, ecarts residuels..." /></Field>
-                <Field label="Risques de deploiement et parades"><textarea rows={4} value={dmaicImprove.riskMitigation || ''} onChange={e => updateField('dmaic.improve.riskMitigation', e.target.value)} placeholder="Risques, contraintes, conduite du changement, rollback, communication..." /></Field>
+                <Field label="Resultats du pilote / test solution (preuve avant deploiement)"><textarea rows={4} value={dmaicImprove.pilot || ''} onChange={e => updateField('dmaic.improve.pilot', e.target.value)} placeholder="Population pilote, gains observes, feedback terrain, ecarts residuels..." /></Field>
+                <Field label="Risques de deploiement et parades (securisation)"><textarea rows={4} value={dmaicImprove.riskMitigation || ''} onChange={e => updateField('dmaic.improve.riskMitigation', e.target.value)} placeholder="Risques, contraintes, conduite du changement, rollback, communication..." /></Field>
               </div>
             </>
           ))}
 
           {renderDmaicPhase('C', 'Control', 'Perenniser les gains, surveiller les KPI et installer le plan de reaction.', (
             <>
-              <Field label="Standard cible / regles de maintien">
+              <DmaicHint>Objectif : eviter le retour a l'ancien fonctionnement avec des standards, des KPI, des seuils d'alerte et des reactions prevues.</DmaicHint>
+              <Field label="Standard cible / regles de maintien (nouvelle facon de travailler)">
                 <textarea rows={4} value={dmaicControl.standard || ''} onChange={e => updateField('dmaic.control.standard', e.target.value)} placeholder="Standard operationnel, gouvernance, formation, documentation, regles d'escalade..." />
               </Field>
               <EditableTable
-                columns={[{ key: 'controle', label: 'Point de controle' }, { key: 'frequence', label: 'Frequence' }, { key: 'responsable', label: 'Responsable' }, { key: 'seuil', label: "Seuil d'alerte" }, { key: 'reaction', label: 'Reaction attendue' }]}
+                columns={[{ key: 'controle', label: 'Point de controle (ce qu on surveille)' }, { key: 'frequence', label: 'Frequence (quand)' }, { key: 'responsable', label: 'Responsable (qui surveille)' }, { key: 'seuil', label: "Seuil d'alerte (limite a ne pas depasser)" }, { key: 'reaction', label: 'Reaction attendue (quoi faire)' }]}
                 rows={dmaicControl.plan || []}
                 onAdd={() => addRow('dmaic.control.plan', { controle: '', frequence: '', responsable: '', seuil: '', reaction: '' })}
                 onRemove={i => removeRow('dmaic.control.plan', i)}
@@ -7540,8 +7572,9 @@ export default function App() {
                 addLabel="Ajouter un controle" />
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">KPI de controle <small>surveillance</small></h3>
+                <DmaicHint>Suivez peu de KPI, mais utiles : resultat Y, stabilite du processus, respect du standard et gains obtenus.</DmaicHint>
                 <EditableTable
-                  columns={[{ key: 'nom', label: 'KPI' }, { key: 'unite', label: 'Unite' }, { key: 'cible', label: 'Cible' }, { key: 'actuel', label: 'Actuel' }, { key: 'frequence', label: 'Frequence' }, { key: 'owner', label: 'Owner' }]}
+                  columns={[{ key: 'nom', label: 'KPI (indicateur)' }, { key: 'unite', label: 'Unite' }, { key: 'cible', label: 'Cible' }, { key: 'actuel', label: 'Actuel' }, { key: 'frequence', label: 'Frequence de suivi' }, { key: 'owner', label: 'Owner (responsable)' }]}
                   rows={dmaicControl.kpis || []}
                   onAdd={() => addRow('dmaic.control.kpis', { nom: '', unite: '', cible: '', actuel: '', frequence: '', owner: '' })}
                   onRemove={i => removeRow('dmaic.control.kpis', i)}
@@ -7550,10 +7583,10 @@ export default function App() {
                 <div className="kpi-grid">{(dmaicControl.kpis || []).map(k => <KpiCard key={k._id} k={k} />)}</div>
               </div>
               <div className="dmaic-tool-columns">
-                <Field label="Plan de reaction"><textarea rows={4} value={dmaicControl.reactionPlan || ''} onChange={e => updateField('dmaic.control.reactionPlan', e.target.value)} placeholder="Que fait-on si le KPI sort du seuil ? Qui decide ? Sous quel delai ?" /></Field>
-                <Field label="Business impact"><textarea rows={4} value={dmaicControl.businessImpact || ''} onChange={e => updateField('dmaic.control.businessImpact', e.target.value)} placeholder="Gains financiers, reduction defauts, satisfaction client, temps gagne, risque reduit..." /></Field>
+                <Field label="Plan de reaction (si derive ou alerte)"><textarea rows={4} value={dmaicControl.reactionPlan || ''} onChange={e => updateField('dmaic.control.reactionPlan', e.target.value)} placeholder="Que fait-on si le KPI sort du seuil ? Qui decide ? Sous quel delai ?" /></Field>
+                <Field label="Business impact (gains constates)"><textarea rows={4} value={dmaicControl.businessImpact || ''} onChange={e => updateField('dmaic.control.businessImpact', e.target.value)} placeholder="Gains financiers, reduction defauts, satisfaction client, temps gagne, risque reduit..." /></Field>
               </div>
-              <Field label="Conclusion DMAIC">
+              <Field label="Conclusion DMAIC (bilan final et suite)">
                 <textarea rows={5} value={dmaicControl.conclusion || ''} onChange={e => updateField('dmaic.control.conclusion', e.target.value)} placeholder="Conclusion finale, gains obtenus, limites, prochaines opportunites d'amelioration..." />
               </Field>
             </>
