@@ -20,6 +20,7 @@ const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projec
 const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
 const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId: uid(), _templateKey: 'industrial-aircraft-turnaround-example', updatedAt: new Date().toISOString() });
 const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: uid(), _templateKey: 'insurance-home-claims-example', updatedAt: new Date().toISOString() });
+const createDmaicComplaintExample = () => ({ ...dmaicComplaintData(), _projectId: uid(), updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
 const localProjectsKey = (session) => session?.user?.id ? `pilotprocess-projects-${session.user.id}` : 'lean-projects-data';
 const EXAMPLE_TEMPLATE_KEYS = new Set([
@@ -1102,6 +1103,227 @@ function insuranceClaimsData() {
         { _id: uid(), point: 'Dossiers sans action depuis 5 jours', frequence: 'Quotidien', responsable: 'Manager indemnisation', seuil: '0 dossier sans justification' },
       ],
       rex: 'La déclaration guidée réduit fortement les retours client et améliore la qualité des dossiers. Les gains restants dépendront de la maîtrise des délais experts et de l’adoption du suivi digital par les assurés.',
+    },
+  };
+}
+
+function dmaicComplaintData() {
+  const measuredData = [
+    { date: '1', valeur: 21, segment: 'Agence', facteurA: 4, facteurB: 3, commentaire: 'Dossier incomplet, avis metier tardif' },
+    { date: '2', valeur: 18, segment: 'Digital', facteurA: 3, facteurB: 2, commentaire: 'Pieces client manquantes' },
+    { date: '3', valeur: 12, segment: 'CRC', facteurA: 1, facteurB: 1, commentaire: 'Motif simple, dossier complet' },
+    { date: '4', valeur: 24, segment: 'Agence', facteurA: 5, facteurB: 4, commentaire: 'Escalade conformite' },
+    { date: '5', valeur: 16, segment: 'Digital', facteurA: 2, facteurB: 2, commentaire: 'Requalification du motif' },
+    { date: '6', valeur: 20, segment: 'Agence', facteurA: 4, facteurB: 3, commentaire: 'Attente expertise cartes' },
+    { date: '7', valeur: 11, segment: 'CRC', facteurA: 1, facteurB: 1, commentaire: 'Reponse standard disponible' },
+    { date: '8', valeur: 15, segment: 'Digital', facteurA: 2, facteurB: 2, commentaire: 'Complement recu rapidement' },
+    { date: '9', valeur: 27, segment: 'Agence', facteurA: 5, facteurB: 5, commentaire: 'Dossier multi-produits' },
+    { date: '10', valeur: 13, segment: 'CRC', facteurA: 2, facteurB: 1, commentaire: 'Traitement direct' },
+    { date: '11', valeur: 19, segment: 'Digital', facteurA: 3, facteurB: 3, commentaire: 'Avis metier requis' },
+    { date: '12', valeur: 22, segment: 'Agence', facteurA: 4, facteurB: 4, commentaire: 'Relance agence' },
+    { date: '13', valeur: 10, segment: 'CRC', facteurA: 1, facteurB: 1, commentaire: 'Dossier qualifie' },
+    { date: '14', valeur: 17, segment: 'Digital', facteurA: 3, facteurB: 2, commentaire: 'Piece jointe illisible' },
+    { date: '15', valeur: 23, segment: 'Agence', facteurA: 5, facteurB: 3, commentaire: 'Validation tardive' },
+    { date: '16', valeur: 14, segment: 'CRC', facteurA: 2, facteurB: 2, commentaire: 'Controle simple' },
+    { date: '17', valeur: 26, segment: 'Agence', facteurA: 5, facteurB: 5, commentaire: 'Litige complexe' },
+    { date: '18', valeur: 12, segment: 'Digital', facteurA: 1, facteurB: 1, commentaire: 'Parcours complet' },
+    { date: '19', valeur: 18, segment: 'CRC', facteurA: 3, facteurB: 2, commentaire: 'Attente historique compte' },
+    { date: '20', valeur: 21, segment: 'Agence', facteurA: 4, facteurB: 3, commentaire: 'Motif mal code' },
+  ].map(row => ({ _id: uid(), ...row }));
+
+  return {
+    ...blankData(),
+    projectName: 'Reduction des delais de traitement des reclamations clients',
+    validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
+    step0: {
+      note: "Projet DMAIC visant a reduire le delai de traitement des reclamations clients sur les canaux agence, centre de relation client et digital. Le probleme principal est une forte variabilite du delai de reponse, liee a la qualite de qualification initiale, aux complements clients et aux avis metiers.",
+      planning: [
+        { _id: uid(), phase: 'Define', debut: '05/01/2027', fin: '16/01/2027', responsable: 'Green Belt / Process owner' },
+        { _id: uid(), phase: 'Measure', debut: '19/01/2027', fin: '06/02/2027', responsable: 'Data analyst / Reclamations' },
+        { _id: uid(), phase: 'Analyze', debut: '09/02/2027', fin: '27/02/2027', responsable: 'Equipe DMAIC' },
+        { _id: uid(), phase: 'Improve', debut: '02/03/2027', fin: '27/03/2027', responsable: 'Metier + IT CRM' },
+        { _id: uid(), phase: 'Control', debut: '30/03/2027', fin: '17/04/2027', responsable: 'Responsable Reclamations' },
+      ],
+      parties: [
+        { _id: uid(), nom: 'Directeur Experience Client', role: 'Sponsor', service: 'Relation client', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Responsable Reclamations', role: 'Process owner', service: 'Reclamations', interet: 'Favorable', influence: 'Fort' },
+        { _id: uid(), nom: 'Data analyst', role: 'Mesure statistique', service: 'Pilotage', interet: 'Favorable', influence: 'Moyen' },
+        { _id: uid(), nom: 'IT CRM', role: 'Contributeur solution', service: 'Systemes client', interet: 'Neutre', influence: 'Moyen' },
+        { _id: uid(), nom: 'Conformite', role: 'Controle', service: 'Conformite', interet: 'Neutre', influence: 'Fort' },
+      ],
+    },
+    step1: {
+      charte: {
+        titre: 'Reduction des delais de traitement des reclamations clients',
+        sponsor: 'Directeur Experience Client',
+        probleme: 'Le delai moyen de reponse aux reclamations est de 18 jours ouvres, avec une cible operationnelle a 8 jours. 32% des dossiers necessitent au moins une relance ou un complement.',
+        objectifs: 'Reduire le delai moyen a 8 jours ouvres, atteindre 85% de dossiers complets des la reception et reduire de 50% les relances clients avant le 17/04/2027.',
+        perimetreIn: 'Reclamations clients particuliers : frais, cartes, virements, acces digital et qualite de service, recues via agence, CRC et digital.',
+        perimetreOut: 'Contentieux, mediation externe, fraude averee, reclamations entreprises et dossiers reglementaires complexes hors delai standard.',
+        contraintes: 'Respect des delais reglementaires, disponibilite des experts metiers, qualite des donnees CRM et capacite de parametrage IT.',
+        risques: 'Sous-qualification initiale, adoption insuffisante par les agences, qualite variable des pieces jointes, surcharge temporaire pendant le pilote.',
+        budget: '48 000 EUR',
+        dateDebut: '05/01/2027',
+        dateFin: '17/04/2027',
+        gains: 'Baisse des relances, reduction du cout de traitement, diminution des appels entrants et amelioration du NPS post-reclamation.',
+      },
+      sipoc: [
+        { _id: uid(), supplier: 'Client / Agence / Digital', input: 'Reclamation, motif, pieces justificatives', process: 'Traiter une reclamation client', output: 'Reponse argumentee et tracee', customer: 'Client' },
+        { _id: uid(), supplier: 'Service Reclamations', input: 'Qualification, priorite, historique', process: 'Analyser et orienter le dossier', output: 'Decision de traitement', customer: 'Expert metier' },
+        { _id: uid(), supplier: 'Expert metier / Conformite', input: 'Avis technique ou reglementaire', process: 'Valider la reponse finale', output: 'Reponse conforme', customer: 'Service Reclamations' },
+      ],
+      raci: {
+        roles: ['Agence / CRC', 'Reclamations', 'Expert metier', 'Conformite', 'IT CRM'],
+        activites: [
+          { _id: uid(), nom: 'Enregistrer la reclamation', assign: { 'Agence / CRC': 'R', Reclamations: 'A' } },
+          { _id: uid(), nom: 'Qualifier motif et priorite', assign: { 'Agence / CRC': 'R', Reclamations: 'A', Conformite: 'C' } },
+          { _id: uid(), nom: 'Analyser le dossier', assign: { Reclamations: 'R', 'Expert metier': 'C' } },
+          { _id: uid(), nom: 'Valider la reponse', assign: { Reclamations: 'R', Conformite: 'A' } },
+          { _id: uid(), nom: 'Parametrer les motifs CRM', assign: { 'IT CRM': 'R', Reclamations: 'A' } },
+        ],
+      },
+    },
+    dmaic: {
+      define: {
+        problem: 'Le delai de traitement des reclamations clients depasse la cible interne. La moyenne observee est de 18 jours ouvres avec une forte dispersion selon le canal et le niveau de completude du dossier.',
+        customer: 'Les clients attendent une reponse rapide, une information claire sur le statut et une seule demande de pieces. Les agences attendent un circuit simple pour qualifier correctement les dossiers.',
+        ctq: 'CTQ principaux : delai de reponse en jours ouvres, taux de dossiers complets a reception, nombre de relances par dossier, taux de reponses conformes et satisfaction post-reclamation.',
+        goal: 'Passer de 18 a 8 jours ouvres de delai moyen, reduire les relances de 50%, atteindre 85% de dossiers complets a reception et stabiliser le processus sous 10 jours pour les motifs standards.',
+        scope: 'Inclus : reclamations particuliers sur frais, cartes, virements, acces digital et qualite de service. Exclus : mediation, contentieux, fraude, entreprises et dossiers exceptionnels.',
+        team: 'Sponsor : Directeur Experience Client. Pilote DMAIC : Green Belt Process. Process owner : Responsable Reclamations. Contributeurs : agences, CRC, conformite, experts metiers, IT CRM, data analyst.',
+        businessCase: 'Enjeu estime : 120 000 EUR/an via baisse des relances, reduction du temps de traitement, diminution des appels entrants et amelioration de la retention client.',
+        voc: [
+          { _id: uid(), client: 'Client final', verbatim: "Je dois relancer plusieurs fois pour savoir ou en est ma reclamation.", besoin: 'Visibilite et delai de reponse court', ctq: 'Delai moyen et taux de relance', priorite: 'Haute' },
+          { _id: uid(), client: 'Agence', verbatim: "Nous ne savons pas toujours quel motif choisir dans le CRM.", besoin: 'Qualification guidee', ctq: 'Taux de dossiers bien qualifies', priorite: 'Haute' },
+          { _id: uid(), client: 'Service Reclamations', verbatim: "Les pieces arrivent incompletes ou mal rattachees.", besoin: 'Dossier complet des la reception', ctq: 'Taux de completude initiale', priorite: 'Haute' },
+          { _id: uid(), client: 'Conformite', verbatim: "Les reponses doivent rester homogenes et tracables.", besoin: 'Reponse standardisee et conforme', ctq: 'Taux de reponses conformes', priorite: 'Moyenne' },
+        ],
+        sipoc: [
+          { _id: uid(), suppliers: 'Client, agence, CRC, canal digital', inputs: 'Motif, description, pieces, historique client', process: 'Enregistrer > qualifier > analyser > valider > repondre', outputs: 'Reponse finale, action corrective, trace CRM', customers: 'Client, agence, conformite' },
+          { _id: uid(), suppliers: 'Experts metiers', inputs: 'Avis operationnel, justificatifs, decision', process: 'Analyser le fond du litige', outputs: 'Avis metier documente', customers: 'Service Reclamations' },
+        ],
+        swot: [
+          { _id: uid(), type: 'Force', element: 'CRM deja utilise par tous les canaux', action: 'Capitaliser sur un outil unique' },
+          { _id: uid(), type: 'Faiblesse', element: 'Motifs de reclamation trop nombreux et mal distingues', action: 'Simplifier et guider la qualification' },
+          { _id: uid(), type: 'Opportunite', element: 'Automatisation possible des relances et SLA', action: 'Parametrer alertes et routage' },
+          { _id: uid(), type: 'Menace', element: 'Risque reglementaire si reponse tardive', action: 'Mettre des seuils de controle et escalade' },
+        ],
+        raci: {
+          roles: ['Agence/CRC', 'Reclamations', 'Expert metier', 'Conformite', 'IT CRM'],
+          activites: [
+            { _id: uid(), nom: 'Qualifier la reclamation', assign: { 'Agence/CRC': 'R', Reclamations: 'A', Conformite: 'C' } },
+            { _id: uid(), nom: 'Collecter les pieces', assign: { 'Agence/CRC': 'R', Reclamations: 'A' } },
+            { _id: uid(), nom: 'Analyser le dossier', assign: { Reclamations: 'R', 'Expert metier': 'C' } },
+            { _id: uid(), nom: 'Valider la reponse sensible', assign: { Reclamations: 'R', Conformite: 'A' } },
+            { _id: uid(), nom: 'Parametrer les alertes SLA', assign: { 'IT CRM': 'R', Reclamations: 'A' } },
+          ],
+        },
+      },
+      measure: {
+        baseline: 'Periode observee : 20 dossiers representatifs sur 4 semaines. Moyenne = 17,95 jours ouvres, ecart type eleve, plusieurs dossiers au-dessus de 20 jours. La cible operationnelle est 8 jours, limite haute acceptable 10 jours.',
+        kpis: [
+          { _id: uid(), nom: 'Delai de traitement reclamation', definition: 'Nombre de jours ouvres entre reception et reponse finale', baseline: '18 jours', cible: '8 jours', source: 'CRM Reclamations' },
+          { _id: uid(), nom: 'Dossiers complets a reception', definition: 'Dossiers avec motif, pieces et historique disponibles des l entree', baseline: '58%', cible: '85%', source: 'Controle qualite CRM' },
+          { _id: uid(), nom: 'Nombre de relances par dossier', definition: 'Relances client ou agence avant reponse finale', baseline: '1,8', cible: '0,8', source: 'CRM / Emails' },
+          { _id: uid(), nom: 'Reponses conformes', definition: 'Reponses respectant modele, delai et justification', baseline: '91%', cible: '98%', source: 'Controle conformite' },
+        ],
+        collectionPlan: [
+          { _id: uid(), mesure: 'Delai Y', definition: 'Jours ouvres entre creation CRM et reponse finale envoyee', unite: 'jours', source: 'CRM', frequence: 'Hebdomadaire', responsable: 'Data analyst' },
+          { _id: uid(), mesure: 'Completude X1', definition: 'Score 1 a 5 selon pieces, motif et historique disponibles', unite: 'score', source: 'Controle dossier', frequence: 'Hebdomadaire', responsable: 'Responsable qualite' },
+          { _id: uid(), mesure: 'Complexite / escalade X2', definition: 'Score 1 a 5 selon avis metier, conformite ou multi-produit', unite: 'score', source: 'CRM', frequence: 'Hebdomadaire', responsable: 'Service Reclamations' },
+          { _id: uid(), mesure: 'Segment', definition: 'Canal d entree : Agence, CRC ou Digital', unite: 'categorie', source: 'CRM', frequence: 'Hebdomadaire', responsable: 'Data analyst' },
+        ],
+        data: measuredData,
+        spec: { lsl: '0', usl: '10', target: '8' },
+        msa: 'Extraction CRM controlee sur 20 dossiers. Definition de la date de debut et date de fin alignee avec le process owner. Fiabilite suffisante pour diagnostic initial.',
+        normality: 'La distribution est legerement asymetrique avec quelques dossiers longs. QQ plot a surveiller ; l analyse reste exploitable pour un diagnostic operationnel.',
+        capabilityConclusion: 'Avec une limite haute de 10 jours, le processus est incapable dans son etat initial : moyenne trop elevee, dispersion importante et Cpk attendu inferieur a 1.',
+        controlChartConclusion: 'Les cartes X/MR montrent une variabilite forte et des ruptures liees aux dossiers incomplets ou escalades. Le processus doit etre stabilise avant generalisation.',
+      },
+      analyze: {
+        observations: 'Les dossiers Agence et les dossiers avec score X1/X2 eleve sont les plus longs. La completude initiale et le besoin d avis metier expliquent une part importante du delai.',
+        causes: [
+          { _id: uid(), cause: 'Qualification initiale incomplete', preuve: 'Correlation positive entre score X1 et delai Y', impact: 'Fort', validation: 'Validee' },
+          { _id: uid(), cause: 'Avis metier ou conformite tardif', preuve: 'Dossiers avec X2 eleve depassent souvent 20 jours', impact: 'Fort', validation: 'Validee' },
+          { _id: uid(), cause: 'Motifs CRM trop nombreux', preuve: 'Requalification frequente observee en agence', impact: 'Moyen', validation: 'Validee' },
+          { _id: uid(), cause: 'Absence d alerte SLA', preuve: 'Dossiers sans action pendant plusieurs jours', impact: 'Moyen', validation: 'A confirmer' },
+        ],
+        pareto: [
+          { _id: uid(), cause: 'Dossier incomplet a reception', occurrences: 46 },
+          { _id: uid(), cause: 'Attente avis metier', occurrences: 31 },
+          { _id: uid(), cause: 'Motif CRM mal qualifie', occurrences: 24 },
+          { _id: uid(), cause: 'Validation conformite tardive', occurrences: 14 },
+          { _id: uid(), cause: 'Relance client non automatisee', occurrences: 11 },
+        ],
+        ishikawa: {
+          "Main d'oeuvre": ['Formation heterogene des agences', 'Appropriation variable des motifs CRM'],
+          Methode: ['Absence de check-list par motif', 'Pas de seuil d escalade standardise'],
+          Materiel: ['CRM peu guidant', 'Pieces jointes parfois mal rattachees'],
+          Milieu: ['Pics apres incidents digitaux', 'Charge variable selon canal'],
+          Matiere: ['Demandes clients imprecises', 'Historique dossier incomplet'],
+        },
+        fivewhy: {
+          probleme: 'Le delai moyen de traitement depasse 18 jours ouvres.',
+          why1: 'Parce que de nombreux dossiers restent en attente de complements ou d avis metier.',
+          why2: 'Parce que la qualification initiale ne detecte pas toujours les informations necessaires.',
+          why3: 'Parce que les conseillers ne disposent pas d une check-list simple par motif.',
+          why4: 'Parce que le CRM ne guide pas suffisamment la saisie selon le type de reclamation.',
+          why5: 'Parce que les regles de completude et de routage n ont pas ete standardisees.',
+          causeRacine: 'Absence de qualification guidee et de routage automatique des l entree de la reclamation.',
+          action: 'Creer une qualification guidee par motif avec controle de completude et orientation automatique.',
+        },
+        statTests: [
+          { _id: uid(), hypothese: 'Les dossiers Agence sont plus longs que les dossiers Digital/CRC', test: 'ANOVA', pvalue: '0.018', decision: 'Effet significatif', commentaire: 'Le canal d entree influence le delai de traitement.' },
+          { _id: uid(), hypothese: 'Le score de completude X1 influence le delai Y', test: 'Regression', pvalue: '0.004', decision: 'Effet significatif', commentaire: 'Plus le dossier est incomplet, plus le delai augmente.' },
+          { _id: uid(), hypothese: 'Le score d escalade X2 influence le delai Y', test: 'Regression', pvalue: '0.011', decision: 'Effet significatif', commentaire: 'Les avis metiers/conformite sont un levier majeur.' },
+        ],
+        regression: {
+          equation: 'Y = 7,2 + 2,7*X1 + 1,6*X2',
+          r2: 'R2 estime = 0,78 ; R2 ajuste = 0,75',
+          conclusion: 'Le modele confirme que la completude initiale et la complexite/escalade expliquent l essentiel du delai. Les leviers prioritaires sont la qualification guidee, les pieces obligatoires et les alertes SLA.',
+        },
+      },
+      improve: {
+        target: 'Processus cible : qualification guidee par motif, controle de completude obligatoire, routage automatique vers expert/conformite si necessaire, alertes SLA et modele de reponse standardise.',
+        solutions: [
+          { _id: uid(), solution: 'Check-list dynamique par motif CRM', impact: 'Reduction des dossiers incomplets', effort: 'Moyen', responsable: 'IT CRM / Reclamations', statut: 'A faire' },
+          { _id: uid(), solution: 'Routage automatique vers expert metier', impact: 'Baisse des attentes non pilotees', effort: 'Moyen', responsable: 'IT CRM', statut: 'A faire' },
+          { _id: uid(), solution: 'Alertes SLA a J+5 et J+8', impact: 'Prevention des dossiers longs', effort: 'Faible', responsable: 'Pilotage', statut: 'A faire' },
+          { _id: uid(), solution: 'Bibliotheque de reponses conformes', impact: 'Homogeneite et gain de temps', effort: 'Faible', responsable: 'Conformite', statut: 'En cours' },
+        ],
+        impactEffort: [
+          { _id: uid(), action: 'Check-list dynamique', impact: '9', effort: '5', gain: 'Fort', risque: 'Adoption agence' },
+          { _id: uid(), action: 'Alertes SLA', impact: '8', effort: '2', gain: 'Rapide', risque: 'Trop d alertes' },
+          { _id: uid(), action: 'Routage automatique', impact: '8', effort: '6', gain: 'Fort', risque: 'Parametrage complexe' },
+          { _id: uid(), action: 'Modeles de reponse', impact: '6', effort: '2', gain: 'Moyen', risque: 'Mise a jour continue' },
+        ],
+        actionPlan: [
+          { _id: uid(), action: 'Redefinir les 12 motifs prioritaires', responsable: 'Responsable Reclamations', debut: '02/03/2027', fin: '06/03/2027', statut: 'A faire', preuve: 'Catalogue motifs valide' },
+          { _id: uid(), action: 'Construire les check-lists de pieces par motif', responsable: 'Reclamations + Conformite', debut: '09/03/2027', fin: '13/03/2027', statut: 'A faire', preuve: 'Check-lists validees' },
+          { _id: uid(), action: 'Parametrer alertes SLA dans CRM', responsable: 'IT CRM', debut: '16/03/2027', fin: '24/03/2027', statut: 'A faire', preuve: 'Tests CRM OK' },
+          { _id: uid(), action: 'Piloter sur 50 dossiers', responsable: 'Green Belt', debut: '25/03/2027', fin: '03/04/2027', statut: 'A faire', preuve: 'Bilan pilote' },
+        ],
+        pilot: 'Pilote prevu sur 50 reclamations standards. Cible pilote : delai moyen <= 10 jours, 80% de dossiers complets a reception, aucune reclamation sans action plus de 5 jours.',
+        riskMitigation: 'Prevoir formation courte des agences, support CRM pendant 2 semaines, revue conformite des modeles de reponse et ajustement des alertes si le volume devient trop important.',
+      },
+      control: {
+        standard: 'Le standard cible impose une qualification par motif, une check-list obligatoire, un routage automatique pour dossiers complexes et une revue hebdomadaire des dossiers au-dessus de J+8.',
+        plan: [
+          { _id: uid(), controle: 'Dossiers complets a reception', frequence: 'Hebdomadaire', responsable: 'Responsable qualite', seuil: '< 80%', reaction: 'Revue motifs et formation canal concerne' },
+          { _id: uid(), controle: 'Dossiers sans action depuis 5 jours', frequence: 'Quotidien', responsable: 'Manager Reclamations', seuil: '> 0 dossier', reaction: 'Escalade au responsable de file' },
+          { _id: uid(), controle: 'Respect delai cible 10 jours', frequence: 'Hebdomadaire', responsable: 'Process owner', seuil: '< 85%', reaction: 'Analyse causes et plan correctif' },
+          { _id: uid(), controle: 'Conformite des reponses', frequence: 'Mensuel', responsable: 'Conformite', seuil: '< 98%', reaction: 'Revue modele et correction' },
+        ],
+        kpis: [
+          { _id: uid(), nom: 'Delai moyen de traitement', unite: 'jours', cible: '8', actuel: '10.2', frequence: 'Hebdomadaire', owner: 'Process owner' },
+          { _id: uid(), nom: 'Dossiers complets a reception', unite: '%', cible: '85', actuel: '79', frequence: 'Hebdomadaire', owner: 'Responsable qualite' },
+          { _id: uid(), nom: 'Relances par dossier', unite: 'nombre', cible: '0.8', actuel: '1.0', frequence: 'Mensuel', owner: 'Manager Reclamations' },
+          { _id: uid(), nom: 'Reponses conformes', unite: '%', cible: '98', actuel: '96', frequence: 'Mensuel', owner: 'Conformite' },
+        ],
+        reactionPlan: 'Si le delai moyen depasse 10 jours deux semaines consecutives : revue Pareto des dossiers longs, identification du canal concerne, action corrective sous 10 jours et suivi en comite operationnel.',
+        businessImpact: 'Impact attendu : gain annuel estime 120 000 EUR, baisse de 50% des relances, reduction des appels entrants et amelioration de la satisfaction post-reclamation.',
+        conclusion: 'Le DMAIC met en evidence un processus initialement incapable et trop variable. Les causes majeures sont la completude initiale et les escalades non pilotees. Les solutions prioritaires portent sur la qualification guidee, les alertes SLA et la standardisation des reponses.',
+      },
     },
   };
 }
@@ -5483,6 +5705,16 @@ const CSS = `
   .view-toggle button{ flex:1; }
 }
 
+.theme-light .home-primary.home-secondary{
+  background:#FFFFFF;
+  color:#0F2744;
+  border:1px solid #CBD5E1;
+}
+.theme-light .home-primary.home-secondary:hover{
+  background:#F6F8FB;
+  color:#0F2744;
+}
+
 @media (max-width: 640px){
   html,body,#root{ width:100%; min-width:0; overflow-x:hidden; }
   .lean-app{
@@ -7222,6 +7454,18 @@ export default function App() {
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
+  const createDmaicExampleProject = () => {
+    if (!authSession) {
+      setAuthMessage('Connectez-vous pour creer un projet exemple.');
+      setAuthMode('signin');
+      navigate('auth', null, true);
+      return;
+    }
+    const project = createDmaicComplaintExample();
+    setProjects(prev => [project, ...prev]);
+    setActive(DMAIC_TAB.id);
+    navigate('project', project._projectId);
+  };
   const deleteProject = (project) => {
     const name = project.projectName || 'ce projet';
     if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
@@ -8089,6 +8333,7 @@ export default function App() {
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
               {logoutButton('header')}
+              <button className="home-primary home-secondary" onClick={createDmaicExampleProject}><Target size={18} /> Exemple DMAIC</button>
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
             </div>
           </header>
