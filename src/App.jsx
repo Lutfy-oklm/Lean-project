@@ -1964,6 +1964,14 @@ function dmaicStats(rows, spec = {}) {
   const q1 = percentile(sorted, 0.25);
   const median = percentile(sorted, 0.5);
   const q3 = percentile(sorted, 0.75);
+  const range = max - min;
+  const iqr = (q3 ?? 0) - (q1 ?? 0);
+  const cv = mean !== 0 ? sd / Math.abs(mean) : null;
+  const lowerFence = q1 !== null && iqr !== null ? q1 - 1.5 * iqr : null;
+  const upperFence = q3 !== null && iqr !== null ? q3 + 1.5 * iqr : null;
+  const outliers = lowerFence !== null && upperFence !== null
+    ? values.map((v, i) => ({ value: v, index: i + 1 })).filter(point => point.value < lowerFence || point.value > upperFence)
+    : [];
   const mr = values.slice(1).map((v, i) => Math.abs(v - values[i]));
   const mrbar = mr.length ? mr.reduce((s, v) => s + v, 0) / mr.length : 0;
   const lsl = asNumber(spec.lsl);
@@ -1971,7 +1979,7 @@ function dmaicStats(rows, spec = {}) {
   const target = asNumber(spec.target);
   const cp = (lsl !== null && usl !== null && sd > 0) ? (usl - lsl) / (6 * sd) : null;
   const cpk = (lsl !== null && usl !== null && sd > 0) ? Math.min((usl - mean) / (3 * sd), (mean - lsl) / (3 * sd)) : null;
-  return { values, sorted, n, mean, sd, min, max, q1, median, q3, mr, mrbar, lsl, usl, target, cp, cpk };
+  return { values, sorted, n, mean, variance, sd, min, max, range, q1, median, q3, iqr, cv, outliers, mr, mrbar, lsl, usl, target, cp, cpk };
 }
 
 function correlation(xs, ys) {
@@ -2044,6 +2052,9 @@ function invertMatrix(matrix) {
 function variableLabels(labels = {}) {
   return {
     y: labels.y || 'Y',
+    unit: labels.unit || '',
+    direction: labels.direction || 'Reduire',
+    objective: labels.objective || '',
     segment: labels.segment || 'Groupe / categorie',
     x1: labels.x1 || 'X1',
     x2: labels.x2 || 'X2',
@@ -2128,6 +2139,7 @@ function buildDmaicImport(text, currentLabels = {}, currentFactors = []) {
 function dmaicDataQuality(rows, labels = {}, factors = []) {
   const list = Array.isArray(rows) ? rows : [];
   const names = variableLabels(labels);
+  const stats = dmaicStats(list, {});
   const activeFactors = getDmaicFactors(labels, factors).filter(factor => {
     if (factor.legacyKey && !factors?.length) return list.some(row => String(row[factor.legacyKey] || '').trim());
     return list.some(row => String(getFactorValue(row, factor) || '').trim());
@@ -2148,6 +2160,7 @@ function dmaicDataQuality(rows, labels = {}, factors = []) {
   if (!list.length) warnings.push('Aucune donnee mesuree : importez un CSV ou ajoutez des lignes.');
   if (validY < 8) warnings.push(`Echantillon faible : ${validY} valeur(s) numeriques pour ${names.y}. Visez au moins 20 a 30 mesures si possible.`);
   if (missingY) warnings.push(`${missingY} ligne(s) sans valeur Y numerique exploitable.`);
+  if (stats.outliers?.length) warnings.push(`${stats.outliers.length} valeur(s) atypique(s) detectee(s) sur ${names.y} : controlez si elles sont reelles ou dues a une erreur de saisie.`);
   if (missingSegment && list.length) warnings.push(`${missingSegment} ligne(s) sans groupe/categorie : les comparaisons par groupe seront limitees.`);
   if (duplicateDates > 0) warnings.push('Certaines dates/ordres sont vides ou dupliques : verifiez la chronologie avant les cartes X/MR.');
   factorIssues.forEach(issue => {
@@ -2156,7 +2169,9 @@ function dmaicDataQuality(rows, labels = {}, factors = []) {
   });
   const score = Math.max(0, 100 - warnings.length * 12 - Math.max(0, 20 - validY));
   const status = !list.length ? 'A construire' : score >= 80 ? 'Exploitable' : score >= 55 ? 'A fiabiliser' : 'Insuffisant';
-  return { rows: list.length, validY, missingY, missingSegment, duplicateDates, factors: activeFactors, factorIssues, warnings, score, status };
+  const numericColumns = activeFactors.filter(f => (f.type || '').toLowerCase().startsWith('num')).length + 1;
+  const categoricalColumns = activeFactors.filter(f => (f.type || '').toLowerCase().startsWith('cat')).length + (missingSegment < list.length ? 1 : 0);
+  return { rows: list.length, validY, missingY, missingSegment, duplicateDates, factors: activeFactors, factorIssues, warnings, score, status, numericColumns, categoricalColumns, outliers: stats.outliers || [] };
 }
 
 function normalityAnalysis(stats) {
@@ -2691,6 +2706,206 @@ function DmaicFactorDecisionTable({ rows, labels, factors }) {
   );
 }
 
+function DmaicYProfile({ labels = {}, spec = {} }) {
+  const names = variableLabels(labels);
+  const directionText = names.direction === 'Augmenter'
+    ? 'plus la valeur est haute, meilleur est le resultat'
+    : names.direction === 'Respecter une cible'
+      ? 'la performance est jugee par l ecart a la cible'
+      : 'plus la valeur est basse, meilleur est le resultat';
+  return (
+    <div className="dmaic-y-profile">
+      <div>
+        <span>Variable Y</span>
+        <strong>{names.y}</strong>
+        <p>{names.unit ? `Unite : ${names.unit}. ` : ''}{directionText}.</p>
+      </div>
+      <div>
+        <span>Objectif</span>
+        <strong>{names.objective || 'A definir'}</strong>
+        <p>Cible {spec.target || '-'} ; LSL {spec.lsl || '-'} ; USL {spec.usl || '-'}.</p>
+      </div>
+      <div>
+        <span>Lecture attendue</span>
+        <strong>{names.direction}</strong>
+        <p>L outil utilise cette orientation pour formuler les conclusions metier.</p>
+      </div>
+    </div>
+  );
+}
+
+function DmaicDataProfile({ rows, labels, factors }) {
+  const quality = dmaicDataQuality(rows, labels, factors);
+  return (
+    <div className="dmaic-profile-grid">
+      <div><span>Lignes importees</span><strong>{quality.rows}</strong><small>Nombre total de mesures saisies ou importees</small></div>
+      <div><span>Y exploitables</span><strong>{quality.validY}</strong><small>Valeurs numeriques utilisables pour les calculs</small></div>
+      <div><span>Colonnes numeriques</span><strong>{quality.numericColumns}</strong><small>Y + facteurs X numeriques</small></div>
+      <div><span>Colonnes categories</span><strong>{quality.categoricalColumns}</strong><small>Groupes, segments ou facteurs qualitatifs</small></div>
+      <div><span>Valeurs atypiques</span><strong>{quality.outliers.length}</strong><small>Points en dehors des bornes IQR</small></div>
+    </div>
+  );
+}
+
+function DmaicTestLogic({ rows, labels, factors }) {
+  const stats = dmaicStats(rows, {});
+  const normality = normalityAnalysis(stats);
+  const active = getDmaicFactors(labels, factors);
+  const lines = active.map(factor => {
+    const values = (rows || []).map(row => getFactorValue(row, factor)).filter(value => String(value || '').trim());
+    const groups = (factor.type || '').toLowerCase().startsWith('cat') ? new Set(values.map(String)).size : 0;
+    return {
+      name: factor.name,
+      type: factor.type,
+      groups,
+      recommendation: testRecommendationForFactor(factor, groups, normality),
+    };
+  });
+  return (
+    <div className="dmaic-test-logic">
+      <div className="dmaic-test-rule">
+        <span>Regle de choix</span>
+        <strong>{normality.normal === false ? 'Normalite non confirmee' : normality.normal === true ? 'Normalite acceptable' : 'Normalite a confirmer'}</strong>
+        <p>Si Y est normal, l outil privilegie les tests parametriques. Sinon, il bascule vers les tests non parametriques.</p>
+      </div>
+      <div className="ledger-table-wrap">
+        <table className="ledger-table">
+          <thead><tr><th>Facteur X</th><th>Type</th><th>Groupes detectes</th><th>Test choisi automatiquement</th></tr></thead>
+          <tbody>
+            {lines.length ? lines.map(line => (
+              <tr key={line.name}>
+                <td>{line.name}</td>
+                <td>{line.type}</td>
+                <td>{line.groups || '-'}</td>
+                <td>{line.recommendation}</td>
+              </tr>
+            )) : (
+              <tr><td colSpan="4">Ajoutez au moins un facteur X pour obtenir le choix automatique des tests.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function TrendChart({ rows, labels }) {
+  const names = variableLabels(labels);
+  const data = (rows || [])
+    .map((row, index) => ({ index: index + 1, date: row.date || String(index + 1), value: asNumber(row.valeur) }))
+    .filter(point => point.value !== null);
+  if (!data.length) return <div className="dmaic-empty-chart">Ajoutez des mesures chronologiques pour visualiser l'evolution de Y.</div>;
+  return (
+    <div style={{ width: '100%', height: 260 }}>
+      <ResponsiveContainer>
+        <ComposedChart data={data} margin={{ top: 12, right: 20, left: -10, bottom: 35 }}>
+          <CartesianGrid stroke="#DDE6F1" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" interval="preserveStartEnd" />
+          <YAxis />
+          <Tooltip />
+          <Line type="monotone" dataKey="value" name={names.y} stroke="#10233F" strokeWidth={2.5} dot={{ r: 3, fill: '#2F756A' }} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function DmaicCausePrioritization({ rows, labels, factors, pareto = [], ishikawa = {}, fivewhy = {} }) {
+  const stats = dmaicStats(rows, {});
+  const normality = normalityAnalysis(stats);
+  const analyses = factorAnalyses(rows, labels, factors, normality);
+  const significant = analyses.filter(a => a.p !== null && a.p < 0.05).map(a => ({
+    cause: a.name,
+    source: 'Test statistique',
+    proof: `${a.test} ; p=${roundN(a.p, 4)}`,
+    score: 4,
+  }));
+  const paretoTop = [...(pareto || [])]
+    .filter(row => row.cause)
+    .sort((a, b) => (Number(b.occurrences) || 0) - (Number(a.occurrences) || 0))
+    .slice(0, 3)
+    .map(row => ({ cause: row.cause, source: 'Pareto', proof: `${row.occurrences || 0} occurrence(s)`, score: 3 }));
+  const ishikawaItems = Object.entries(ishikawa || {})
+    .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
+      .filter(cause => String(cause || '').trim())
+      .map(cause => ({ cause, source: `Ishikawa ${key}`, proof: 'Cause structuree en 5M', score: 2 })))
+    .slice(0, 3);
+  const root = fivewhy?.rootCause || fivewhy?.action || '';
+  const rootItems = root ? [{ cause: root, source: '5 pourquoi', proof: 'Cause racine formulee', score: 4 }] : [];
+  const combined = [...significant, ...paretoTop, ...ishikawaItems, ...rootItems]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6);
+  return (
+    <div className="dmaic-priority-panel">
+      <div className="dmaic-auto-head">
+        <h3>Priorisation automatique des causes</h3>
+        <span>statistique + pareto + terrain</span>
+      </div>
+      {combined.length ? (
+        <div className="dmaic-priority-list">
+          {combined.map((item, index) => (
+            <div className="dmaic-priority-item" key={`${item.source}-${index}`}>
+              <strong>{index + 1}. {item.cause}</strong>
+              <span>{item.source}</span>
+              <p>{item.proof}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="dmaic-empty-chart">Ajoutez des tests, un Pareto, un Ishikawa ou un 5 pourquoi pour obtenir une priorisation automatique des causes.</div>
+      )}
+    </div>
+  );
+}
+
+function DmaicNextActionPanel({ rows, spec, labels, factors }) {
+  const stats = dmaicStats(rows, spec);
+  const quality = dmaicDataQuality(rows, labels, factors);
+  const normality = normalityAnalysis(stats);
+  const chart = controlChartAnalysis(stats);
+  const analyses = factorAnalyses(rows, labels, factors, normality);
+  const regression = automaticRegression(rows, labels, factors);
+  let action = 'Completez la definition de Y, importez les mesures puis ajoutez les facteurs X a tester.';
+  if (quality.validY >= 8 && quality.warnings.length) action = 'Nettoyez les donnees avant decision : valeurs manquantes, outliers ou chronologie a verifier.';
+  if (stats.cpk !== null && stats.cpk < 1) action = 'Priorisez la reduction de dispersion et le recentrage : le processus est incapable au regard des limites renseignees.';
+  if (chart?.stable === false) action = 'Cherchez la cause de rupture temporelle avant d agir sur la moyenne : les cartes X/MR signalent une instabilite.';
+  const bestFactor = analyses.find(a => a.p !== null && a.p < 0.05);
+  if (bestFactor) action = `Passez en Improve sur le facteur "${bestFactor.name}" : l effet est significatif probable (${bestFactor.test}).`;
+  if (regression?.r2 >= 0.6) action = `Construisez le plan d action autour du modele de regression : ${regression.equation}.`;
+  return (
+    <div className="dmaic-next-action">
+      <span>Prochaine action recommandee</span>
+      <strong>{action}</strong>
+      <p>Cette recommandation est recalculee a partir de la qualite des donnees, de la normalite, de la capabilite, des cartes X/MR, des tests X et de la regression.</p>
+    </div>
+  );
+}
+
+function DmaicReportReadiness({ define, measure, analyze, improve, control }) {
+  const items = [
+    ['Performance actuelle', (measure?.data || []).some(row => asNumber(row.valeur) !== null)],
+    ['Stabilite et capabilite', Boolean(measure?.spec?.lsl && measure?.spec?.usl)],
+    ['Causes principales', Boolean((analyze?.causes || []).length || (analyze?.pareto || []).length)],
+    ['Facteurs significatifs', Boolean((measure?.factors || []).length)],
+    ['Solutions et plan action', Boolean((improve?.actionPlan || []).length || (improve?.solutions || []).length)],
+    ['Plan de controle', Boolean((control?.plan || []).length || (control?.kpis || []).length)],
+    ['Impact business', Boolean(control?.businessImpact || define?.businessCase)],
+  ];
+  const ready = items.filter(([, ok]) => ok).length;
+  return (
+    <div className="dmaic-report-panel">
+      <div>
+        <span>Rapport DMAIC automatique</span>
+        <strong>{ready}/{items.length} blocs prets</strong>
+        <p>Le dossier final pourra reprendre ces blocs : performance, stabilite, capabilite, causes, recommandations, actions et gains.</p>
+      </div>
+      <div className="dmaic-report-list">
+        {items.map(([label, ok]) => <span key={label} className={ok ? 'ready' : ''}>{ok ? 'OK' : 'A completer'} - {label}</span>)}
+      </div>
+    </div>
+  );
+}
+
 function DmaicStatsPanel({ rows, spec, labels, factors }) {
   const stats = dmaicStats(rows, spec);
   const names = variableLabels(labels);
@@ -2703,7 +2918,9 @@ function DmaicStatsPanel({ rows, spec, labels, factors }) {
         </div>
         <span>DMAIC stats</span>
       </div>
+      <DmaicYProfile labels={labels} spec={spec} />
       <DmaicQualityPanel rows={rows} labels={labels} factors={factors} />
+      <DmaicDataProfile rows={rows} labels={labels} factors={factors} />
       <DmaicAnalysisRoadmap rows={rows} spec={spec} labels={labels} factors={factors} />
       <DmaicExecutiveDecision rows={rows} spec={spec} labels={labels} factors={factors} />
       <div className="dmaic-stats-grid">
@@ -2711,6 +2928,10 @@ function DmaicStatsPanel({ rows, spec, labels, factors }) {
         <div className="dmaic-stat"><span>Moyenne</span><strong>{stats.n ? roundN(stats.mean, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Mediane</span><strong>{stats.n ? roundN(stats.median, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Ecart type</span><strong>{stats.n ? roundN(stats.sd, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Variance</span><strong>{stats.n ? roundN(stats.variance, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Etendue</span><strong>{stats.n ? roundN(stats.range, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>IQR</span><strong>{stats.n ? roundN(stats.iqr, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Coeff. variation</span><strong>{stats.cv !== null && stats.cv !== undefined ? `${roundN(stats.cv * 100, 1)}%` : '-'}</strong></div>
         <div className="dmaic-stat"><span>Minimum</span><strong>{stats.n ? roundN(stats.min, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Maximum</span><strong>{stats.n ? roundN(stats.max, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Cp / Cpk</span><strong>{stats.cp !== null && stats.cp !== undefined ? `${roundN(stats.cp, 2)} / ${roundN(stats.cpk, 2)}` : '-'}</strong></div>
@@ -2722,9 +2943,11 @@ function DmaicStatsPanel({ rows, spec, labels, factors }) {
       <div className="dmaic-chart-grid">
         <div className="dmaic-chart-card"><h4>Histogramme</h4><HistogramChart stats={stats} /></div>
         <div className="dmaic-chart-card"><h4>Boite a moustaches</h4><BoxPlot stats={stats} /></div>
+        <div className="dmaic-chart-card"><h4>Evolution dans le temps</h4><TrendChart rows={rows} labels={labels} /></div>
         <div className="dmaic-chart-card"><h4>QQ plot - normalite</h4><QqPlot stats={stats} /></div>
         <div className="dmaic-chart-card full"><h4>Cartes de controle X et MR</h4><ControlCharts stats={stats} /></div>
       </div>
+      <DmaicNextActionPanel rows={rows} spec={spec} labels={labels} factors={factors} />
     </div>
   );
 }
@@ -5698,6 +5921,54 @@ const CSS = `
   border-left-color:#2F756A;
   background:#F7FBFA;
 }
+.theme-light .dmaic-y-profile,
+.theme-light .dmaic-profile-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  border-bottom:1px solid #DDE6F1;
+}
+.theme-light .dmaic-y-profile div,
+.theme-light .dmaic-profile-grid div{
+  padding:14px 16px;
+  border-right:1px solid #DDE6F1;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-y-profile div:last-child,
+.theme-light .dmaic-profile-grid div:last-child{
+  border-right:0;
+}
+.theme-light .dmaic-profile-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+}
+.theme-light .dmaic-y-profile span,
+.theme-light .dmaic-profile-grid span,
+.theme-light .dmaic-next-action span,
+.theme-light .dmaic-report-panel span,
+.theme-light .dmaic-test-rule span{
+  display:block;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-y-profile strong,
+.theme-light .dmaic-profile-grid strong{
+  display:block;
+  margin-top:7px;
+  color:#102033;
+  font-size:18px;
+  line-height:1.2;
+}
+.theme-light .dmaic-y-profile p,
+.theme-light .dmaic-profile-grid small{
+  display:block;
+  margin:6px 0 0;
+  color:#667891;
+  font-size:12px;
+  line-height:1.35;
+}
 .theme-light .dmaic-roadmap{
   display:grid;
   grid-template-columns:repeat(6,minmax(0,1fr));
@@ -5826,6 +6097,122 @@ const CSS = `
   font-size:13px;
   font-weight:700;
 }
+.theme-light .dmaic-next-action{
+  margin:14px 16px 16px;
+  padding:14px 16px;
+  border:1px solid #C9D8EC;
+  border-top:3px solid #2F756A;
+  background:#F7FBFA;
+}
+.theme-light .dmaic-next-action strong{
+  display:block;
+  margin-top:8px;
+  color:#102033;
+  font-size:19px;
+  line-height:1.35;
+}
+.theme-light .dmaic-next-action p{
+  margin:8px 0 0;
+  color:#536983;
+  font-size:13px;
+  line-height:1.45;
+}
+.theme-light .dmaic-test-logic,
+.theme-light .dmaic-priority-panel,
+.theme-light .dmaic-report-panel{
+  margin-top:16px;
+  border:1px solid #C9D8EC;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-test-rule{
+  padding:12px 14px;
+  border-bottom:1px solid #DDE6F1;
+  background:#F8FAFD;
+}
+.theme-light .dmaic-test-rule strong{
+  display:block;
+  margin-top:6px;
+  color:#102033;
+  font-size:18px;
+}
+.theme-light .dmaic-test-rule p{
+  margin:6px 0 0;
+  color:#536983;
+  font-size:13px;
+  line-height:1.4;
+}
+.theme-light .dmaic-priority-list{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding:12px 14px 14px;
+}
+.theme-light .dmaic-priority-item{
+  border:1px solid #D5E0EE;
+  border-left:4px solid #2F756A;
+  background:#F8FAFD;
+  padding:11px 12px;
+}
+.theme-light .dmaic-priority-item strong{
+  display:block;
+  color:#102033;
+  font-size:15px;
+  line-height:1.25;
+}
+.theme-light .dmaic-priority-item span{
+  display:block;
+  margin-top:7px;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-priority-item p{
+  margin:7px 0 0;
+  color:#536983;
+  font-size:12px;
+  line-height:1.35;
+}
+.theme-light .dmaic-report-panel{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:0;
+  border-top:3px solid #10233F;
+}
+.theme-light .dmaic-report-panel > div:first-child{
+  padding:14px 16px;
+  border-right:1px solid #DDE6F1;
+  background:#F8FAFD;
+}
+.theme-light .dmaic-report-panel strong{
+  display:block;
+  margin-top:8px;
+  color:#102033;
+  font-size:22px;
+}
+.theme-light .dmaic-report-panel p{
+  margin:8px 0 0;
+  color:#536983;
+  font-size:13px;
+  line-height:1.4;
+}
+.theme-light .dmaic-report-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  padding:14px 16px;
+}
+.theme-light .dmaic-report-list span{
+  padding:8px 10px;
+  border:1px solid #D5E0EE;
+  background:#FFF9EF;
+  color:#8A5A1C;
+}
+.theme-light .dmaic-report-list span.ready{
+  background:#F7FBFA;
+  color:#2F756A;
+}
 .theme-light .dmaic-auto-panel{
   margin:14px 0;
   border:1px solid #C9D8EC;
@@ -5900,6 +6287,11 @@ const CSS = `
   .theme-light .dmaic-chart-grid,
   .theme-light .dmaic-tool-columns,
   .theme-light .dmaic-auto-grid,
+  .theme-light .dmaic-y-profile,
+  .theme-light .dmaic-profile-grid,
+  .theme-light .dmaic-priority-list,
+  .theme-light .dmaic-report-panel,
+  .theme-light .dmaic-report-list,
   .theme-light .dmaic-quality-panel,
   .theme-light .dmaic-roadmap{
     grid-template-columns:1fr;
@@ -5910,6 +6302,9 @@ const CSS = `
     flex-direction:column;
   }
   .theme-light .dmaic-quality-score,
+  .theme-light .dmaic-y-profile div,
+  .theme-light .dmaic-profile-grid div,
+  .theme-light .dmaic-report-panel > div:first-child,
   .theme-light .dmaic-roadmap-step{
     border-right:0;
     border-bottom:1px solid #DDE6F1;
@@ -8394,6 +8789,15 @@ export default function App() {
                 </div>
                 <div className="dmaic-grid">
                   <Field label="Nom de Y (resultat a ameliorer)"><input value={dmaicMeasure.labels?.y || ''} onChange={e => updateField('dmaic.measure.labels.y', e.target.value)} placeholder="Ex : Delai de traitement" /></Field>
+                  <Field label="Unite de Y (comment la mesure s'exprime)"><input value={dmaicMeasure.labels?.unit || ''} onChange={e => updateField('dmaic.measure.labels.unit', e.target.value)} placeholder="Ex : jours, minutes, euros, %, defauts..." /></Field>
+                  <Field label="Sens souhaite (comment juger l'amelioration)">
+                    <select value={dmaicMeasure.labels?.direction || 'Reduire'} onChange={e => updateField('dmaic.measure.labels.direction', e.target.value)}>
+                      <option>Reduire</option>
+                      <option>Augmenter</option>
+                      <option>Respecter une cible</option>
+                    </select>
+                  </Field>
+                  <Field label="Objectif cible (phrase claire pour le projet)"><input value={dmaicMeasure.labels?.objective || ''} onChange={e => updateField('dmaic.measure.labels.objective', e.target.value)} placeholder="Ex : passer de 18 jours a moins de 8 jours en 3 mois" /></Field>
                   <Field label="Nom du groupe / categorie"><input value={dmaicMeasure.labels?.segment || ''} onChange={e => updateField('dmaic.measure.labels.segment', e.target.value)} placeholder="Ex : Canal d'entree, equipe, site..." /></Field>
                   <Field label="LSL - limite basse (minimum acceptable)"><input type="number" value={dmaicMeasure.spec?.lsl || ''} onChange={e => updateField('dmaic.measure.spec.lsl', e.target.value)} /></Field>
                   <Field label="USL - limite haute (maximum acceptable)"><input type="number" value={dmaicMeasure.spec?.usl || ''} onChange={e => updateField('dmaic.measure.spec.usl', e.target.value)} /></Field>
@@ -8423,6 +8827,7 @@ export default function App() {
                   onChange={updateMeasureDataCell}
                   addLabel="Ajouter une mesure observee" />
                 <DmaicStatsPanel rows={dmaicMeasure.data || []} spec={dmaicMeasure.spec || {}} labels={dmaicMeasure.labels || {}} factors={dmaicMeasure.factors || []} />
+                <DmaicTestLogic rows={dmaicMeasure.data || []} labels={dmaicMeasure.labels || {}} factors={dmaicMeasure.factors || []} />
               </div>
               <div className="dmaic-tool-columns">
                 <Field label="Test de normalite / QQ plot (forme de distribution)"><textarea rows={4} value={dmaicMeasure.normality || ''} onChange={e => updateField('dmaic.measure.normality', e.target.value)} placeholder="Normalite plausible ? outliers ? transformation necessaire ?" /></Field>
@@ -8480,6 +8885,14 @@ export default function App() {
                   onChange={(i, k, v) => updateField(`dmaic.analyze.statTests[${i}].${k}`, v)}
                   addLabel="Ajouter un test statistique" />
               </div>
+              <DmaicCausePrioritization
+                rows={dmaicMeasure.data || []}
+                labels={dmaicMeasure.labels || {}}
+                factors={dmaicMeasure.factors || []}
+                pareto={dmaicAnalyze.pareto || []}
+                ishikawa={dmaicAnalyze.ishikawa || {}}
+                fivewhy={dmaicAnalyze.fivewhy || {}}
+              />
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
                 <DmaicHint>La regression cherche quels facteurs X expliquent le resultat Y. R2 indique la part expliquee ; les p-values aident a reperer les facteurs probablement significatifs.</DmaicHint>
@@ -8568,6 +8981,7 @@ export default function App() {
               <Field label="Conclusion DMAIC (bilan final et suite)">
                 <textarea rows={5} value={dmaicControl.conclusion || ''} onChange={e => updateField('dmaic.control.conclusion', e.target.value)} placeholder="Conclusion finale, gains obtenus, limites, prochaines opportunites d'amelioration..." />
               </Field>
+              <DmaicReportReadiness define={dmaicDefine} measure={dmaicMeasure} analyze={dmaicAnalyze} improve={dmaicImprove} control={dmaicControl} />
             </>
           ))}
         </div>
