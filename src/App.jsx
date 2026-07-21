@@ -476,22 +476,65 @@ function blankData() {
         goal: '',
         scope: '',
         team: '',
+        businessCase: '',
+        voc: [],
+        swot: [],
+        sipoc: [],
+        raci: {
+          roles: [],
+          activites: [],
+        },
       },
       measure: {
         baseline: '',
         kpis: [],
+        collectionPlan: [],
+        data: [],
+        spec: { lsl: '', usl: '', target: '' },
+        msa: '',
+        normality: '',
+        capabilityConclusion: '',
+        controlChartConclusion: '',
       },
       analyze: {
         observations: '',
         causes: [],
+        pareto: [],
+        ishikawa: {
+          "Main d'oeuvre": [],
+          'Methode': [],
+          'Materiel': [],
+          'Milieu': [],
+          'Matiere': [],
+        },
+        fivewhy: {
+          probleme: '',
+          why1: '',
+          why2: '',
+          why3: '',
+          why4: '',
+          why5: '',
+          causeRacine: '',
+          action: '',
+        },
+        statTests: [],
+        regression: { equation: '', r2: '', conclusion: '' },
       },
       improve: {
         target: '',
         solutions: [],
+        impactEffort: [],
+        actionPlan: [],
+        pilot: '',
+        riskMitigation: '',
       },
       control: {
         standard: '',
         plan: [],
+        kpis: [],
+        reactionPlan: '',
+        businessImpact: '',
+        conclusion: '',
       },
     },
   };
@@ -1578,6 +1621,222 @@ function ParetoChart({ rows }) {
           <Line yAxisId="right" type="monotone" dataKey="cumule" name="Cumul %" stroke="#10233F" strokeWidth={2} dot={{ r: 3 }} />
         </ComposedChart>
       </ResponsiveContainer>
+    </div>
+  );
+}
+
+const asNumber = (value) => {
+  if (value === null || value === undefined) return null;
+  const n = Number(String(value).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+};
+
+const roundN = (value, digits = 2) => Number.isFinite(value) ? Math.round(value * (10 ** digits)) / (10 ** digits) : null;
+
+function percentile(sortedValues, p) {
+  if (!sortedValues.length) return null;
+  const pos = (sortedValues.length - 1) * p;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  if (sortedValues[base + 1] !== undefined) return sortedValues[base] + rest * (sortedValues[base + 1] - sortedValues[base]);
+  return sortedValues[base];
+}
+
+function normalQuantile(p) {
+  if (p <= 0 || p >= 1) return 0;
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  const plow = 0.02425;
+  const phigh = 1 - plow;
+  if (p < plow) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > phigh) {
+    const q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  const q = p - 0.5;
+  const r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+function dmaicStats(rows, spec = {}) {
+  const values = (rows || []).map(r => asNumber(r.valeur)).filter(v => v !== null);
+  const n = values.length;
+  if (!n) return { values: [], sorted: [], n: 0 };
+  const sorted = [...values].sort((a, b) => a - b);
+  const mean = values.reduce((s, v) => s + v, 0) / n;
+  const variance = n > 1 ? values.reduce((s, v) => s + ((v - mean) ** 2), 0) / (n - 1) : 0;
+  const sd = Math.sqrt(variance);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  const q1 = percentile(sorted, 0.25);
+  const median = percentile(sorted, 0.5);
+  const q3 = percentile(sorted, 0.75);
+  const mr = values.slice(1).map((v, i) => Math.abs(v - values[i]));
+  const mrbar = mr.length ? mr.reduce((s, v) => s + v, 0) / mr.length : 0;
+  const lsl = asNumber(spec.lsl);
+  const usl = asNumber(spec.usl);
+  const target = asNumber(spec.target);
+  const cp = (lsl !== null && usl !== null && sd > 0) ? (usl - lsl) / (6 * sd) : null;
+  const cpk = (lsl !== null && usl !== null && sd > 0) ? Math.min((usl - mean) / (3 * sd), (mean - lsl) / (3 * sd)) : null;
+  return { values, sorted, n, mean, sd, min, max, q1, median, q3, mr, mrbar, lsl, usl, target, cp, cpk };
+}
+
+function HistogramChart({ stats }) {
+  if (!stats.n) return <div className="dmaic-empty-chart">Ajoutez des valeurs numeriques pour afficher l'histogramme.</div>;
+  const binCount = Math.min(8, Math.max(4, Math.ceil(Math.sqrt(stats.n))));
+  const span = stats.max - stats.min || 1;
+  const width = span / binCount;
+  const bins = Array.from({ length: binCount }, (_v, i) => {
+    const start = stats.min + i * width;
+    const end = i === binCount - 1 ? stats.max : start + width;
+    return { label: `${roundN(start, 1)}-${roundN(end, 1)}`, count: 0 };
+  });
+  stats.values.forEach(v => {
+    const idx = Math.min(binCount - 1, Math.floor((v - stats.min) / width));
+    bins[idx].count += 1;
+  });
+  return (
+    <div style={{ width: '100%', height: 260 }}>
+      <ResponsiveContainer>
+        <ComposedChart data={bins} margin={{ top: 10, right: 15, left: -20, bottom: 45 }}>
+          <CartesianGrid stroke="#DDE6F1" />
+          <XAxis dataKey="label" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" interval={0} />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Bar dataKey="count" name="Frequence" fill="#2F756A" />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function ControlCharts({ stats }) {
+  if (!stats.n) return <div className="dmaic-empty-chart">Ajoutez des mesures ordonnees dans le temps pour tracer les cartes X et MR.</div>;
+  const xData = stats.values.map((v, i) => ({ index: i + 1, value: v }));
+  const mrData = stats.mr.map((v, i) => ({ index: i + 2, value: v }));
+  const xUcl = stats.mean + 2.66 * stats.mrbar;
+  const xLcl = stats.mean - 2.66 * stats.mrbar;
+  const mrUcl = 3.267 * stats.mrbar;
+  return (
+    <div className="dmaic-chart-grid">
+      <div className="dmaic-chart-card">
+        <h4>Carte X - individus</h4>
+        <div style={{ width: '100%', height: 240 }}>
+          <ResponsiveContainer>
+            <ComposedChart data={xData} margin={{ top: 10, right: 15, left: -20, bottom: 10 }}>
+              <CartesianGrid stroke="#DDE6F1" />
+              <XAxis dataKey="index" />
+              <YAxis />
+              <Tooltip />
+              <ReferenceLine y={stats.mean} stroke="#10233F" label="Moyenne" />
+              {stats.mrbar > 0 && <ReferenceLine y={xUcl} stroke="#A23B2E" strokeDasharray="4 4" label="UCL" />}
+              {stats.mrbar > 0 && <ReferenceLine y={xLcl} stroke="#A23B2E" strokeDasharray="4 4" label="LCL" />}
+              <Line type="monotone" dataKey="value" stroke="#2F756A" strokeWidth={2} dot={{ r: 3 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="dmaic-chart-card">
+        <h4>Carte MR - moving range</h4>
+        <div style={{ width: '100%', height: 240 }}>
+          <ResponsiveContainer>
+            <ComposedChart data={mrData} margin={{ top: 10, right: 15, left: -20, bottom: 10 }}>
+              <CartesianGrid stroke="#DDE6F1" />
+              <XAxis dataKey="index" />
+              <YAxis />
+              <Tooltip />
+              <ReferenceLine y={stats.mrbar} stroke="#10233F" label="MR moyen" />
+              {stats.mrbar > 0 && <ReferenceLine y={mrUcl} stroke="#A23B2E" strokeDasharray="4 4" label="UCL" />}
+              <Line type="monotone" dataKey="value" stroke="#C97D2E" strokeWidth={2} dot={{ r: 3 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QqPlot({ stats }) {
+  if (stats.n < 3 || !stats.sd) return <div className="dmaic-empty-chart">Au moins 3 valeurs sont necessaires pour visualiser le QQ plot.</div>;
+  const points = stats.sorted.map((v, i) => {
+    const p = (i + 0.5) / stats.n;
+    return { theoretical: stats.mean + stats.sd * normalQuantile(p), observed: v };
+  });
+  return (
+    <div style={{ width: '100%', height: 260 }}>
+      <ResponsiveContainer>
+        <ScatterChart margin={{ top: 15, right: 20, left: -10, bottom: 20 }}>
+          <CartesianGrid stroke="#DDE6F1" />
+          <XAxis type="number" dataKey="theoretical" name="Theorique" />
+          <YAxis type="number" dataKey="observed" name="Observe" />
+          <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+          <Scatter data={points} fill="#2F756A" />
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function BoxPlot({ stats }) {
+  if (!stats.n) return <div className="dmaic-empty-chart">Ajoutez des valeurs pour afficher la boite a moustaches.</div>;
+  const left = 80, right = 760, y = 120;
+  const scale = (v) => left + ((v - stats.min) / ((stats.max - stats.min) || 1)) * (right - left);
+  const minX = scale(stats.min), q1X = scale(stats.q1), medX = scale(stats.median), q3X = scale(stats.q3), maxX = scale(stats.max);
+  return (
+    <svg className="dmaic-boxplot" viewBox="0 0 840 250" role="img" aria-label="Boite a moustaches">
+      <line x1={minX} y1={y} x2={maxX} y2={y} stroke="#2F756A" strokeWidth="4" />
+      <line x1={minX} y1={y - 35} x2={minX} y2={y + 35} stroke="#2F756A" strokeWidth="4" />
+      <line x1={maxX} y1={y - 35} x2={maxX} y2={y + 35} stroke="#2F756A" strokeWidth="4" />
+      <rect x={q1X} y={y - 48} width={Math.max(8, q3X - q1X)} height="96" rx="6" fill="#F8FAFD" stroke="#C9D8EC" strokeWidth="3" />
+      <line x1={medX} y1={y - 48} x2={medX} y2={y + 48} stroke="#10233F" strokeWidth="4" />
+      {[['Min', minX, stats.min], ['Q1', q1X, stats.q1], ['Mediane', medX, stats.median], ['Q3', q3X, stats.q3], ['Max', maxX, stats.max]].map(([label, x, v]) => (
+        <g key={label}>
+          <text x={x} y="205" textAnchor="middle" fill="#536983" fontSize="16" fontWeight="700">{label}</text>
+          <text x={x} y="228" textAnchor="middle" fill="#10233F" fontSize="16">{roundN(v, 2)}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function CapabilitySummary({ stats }) {
+  if (!stats.n || stats.cp === null || stats.cpk === null) return <div className="dmaic-conclusion warning">Renseignez les limites de specification LSL et USL, puis ajoutez des mesures pour calculer Cp et Cpk.</div>;
+  const status = stats.cpk >= 2 ? 'Processus tres capable' : stats.cpk >= 1 ? 'Processus capable sous surveillance' : 'Processus incapable';
+  const cls = stats.cpk >= 1 ? '' : ' danger';
+  const centered = stats.target !== null ? Math.abs(stats.mean - stats.target) : null;
+  return (
+    <div className={`dmaic-conclusion${cls}`}>
+      <strong>{status}</strong> - Cp = {roundN(stats.cp, 2)} ; Cpk = {roundN(stats.cpk, 2)}.
+      {stats.target !== null && <> Ecart de centrage vs cible : {roundN(centered, 2)}.</>}
+      {' '}Repere : Cpk &gt;= 1 est acceptable, Cpk &gt;= 2 est robuste.
+    </div>
+  );
+}
+
+function DmaicStatsPanel({ rows, spec }) {
+  const stats = dmaicStats(rows, spec);
+  return (
+    <div className="dmaic-tool-block">
+      <h3 className="dmaic-tool-title">Analyse statistique de la mesure <small>Calcul automatique</small></h3>
+      <div className="dmaic-stats-grid">
+        <div className="dmaic-stat"><span>Nombre</span><strong>{stats.n || '-'}</strong></div>
+        <div className="dmaic-stat"><span>Moyenne</span><strong>{stats.n ? roundN(stats.mean, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Ecart type</span><strong>{stats.n ? roundN(stats.sd, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Cpk</span><strong>{stats.cpk !== null && stats.cpk !== undefined ? roundN(stats.cpk, 2) : '-'}</strong></div>
+      </div>
+      <CapabilitySummary stats={stats} />
+      <div className="dmaic-chart-grid">
+        <div className="dmaic-chart-card"><h4>Histogramme</h4><HistogramChart stats={stats} /></div>
+        <div className="dmaic-chart-card"><h4>Boite a moustaches</h4><BoxPlot stats={stats} /></div>
+        <div className="dmaic-chart-card"><h4>QQ plot - normalite</h4><QqPlot stats={stats} /></div>
+        <div className="dmaic-chart-card"><h4>Distribution et specifications</h4><HistogramChart stats={stats} /></div>
+        <div className="dmaic-chart-card full"><h4>Cartes de controle X et MR</h4><ControlCharts stats={stats} /></div>
+      </div>
     </div>
   );
 }
@@ -4330,8 +4589,160 @@ const CSS = `
 .theme-light .dmaic-wide{
   grid-column:1/-1;
 }
+.theme-light .dmaic-summary{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;
+}
+.theme-light .dmaic-summary-card{
+  border:1px solid #C9D8EC;
+  background:#F8FAFD;
+  padding:12px;
+}
+.theme-light .dmaic-summary-card span{
+  display:block;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-summary-card strong{
+  display:block;
+  margin-top:8px;
+  color:#102033;
+  font-size:24px;
+  line-height:1;
+}
+.theme-light .dmaic-tool-block{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid #DDE6F1;
+}
+.theme-light .dmaic-tool-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 10px;
+  color:#102033;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:20px;
+  font-weight:500;
+}
+.theme-light .dmaic-tool-title small{
+  color:#667891;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:10px 0 12px;
+}
+.theme-light .dmaic-stat{
+  border:1px solid #D5E0EE;
+  background:#FFFFFF;
+  padding:10px 12px;
+}
+.theme-light .dmaic-stat span{
+  display:block;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-stat strong{
+  display:block;
+  margin-top:7px;
+  color:#102033;
+  font-size:22px;
+}
+.theme-light .dmaic-chart-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.theme-light .dmaic-chart-card{
+  min-height:320px;
+  border:1px solid #D5E0EE;
+  background:#FFFFFF;
+  padding:12px;
+}
+.theme-light .dmaic-chart-card h4{
+  margin:0 0 10px;
+  color:#445B76;
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-chart-card.full{
+  grid-column:1/-1;
+}
+.theme-light .dmaic-conclusion{
+  border:1px solid #D5E0EE;
+  border-left:4px solid #2F756A;
+  background:#F7FBFA;
+  padding:10px 12px;
+  color:#102033;
+  font-size:14px;
+  line-height:1.45;
+}
+.theme-light .dmaic-conclusion.warning{
+  border-left-color:#C97D2E;
+  background:#FFF9EF;
+}
+.theme-light .dmaic-conclusion.danger{
+  border-left-color:#A23B2E;
+  background:#FFF6F4;
+}
+.theme-light .dmaic-tool-columns{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.theme-light .dmaic-empty-chart{
+  display:flex;
+  min-height:220px;
+  align-items:center;
+  justify-content:center;
+  border:1px dashed #C9D8EC;
+  background:#F8FAFD;
+  color:#667891;
+  text-align:center;
+  padding:20px;
+}
+.theme-light .dmaic-boxplot{
+  width:100%;
+  height:250px;
+}
+.theme-light .dmaic-pill-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.theme-light .dmaic-pill{
+  border:1px solid #D5E0EE;
+  background:#F8FAFD;
+  padding:8px 10px;
+  color:#102033;
+  font-size:13px;
+  font-weight:700;
+}
 @media (max-width: 760px){
   .theme-light .dmaic-grid{
+    grid-template-columns:1fr;
+  }
+  .theme-light .dmaic-summary,
+  .theme-light .dmaic-stats-grid,
+  .theme-light .dmaic-chart-grid,
+  .theme-light .dmaic-tool-columns{
     grid-template-columns:1fr;
   }
 }
@@ -6624,6 +7035,258 @@ export default function App() {
     const dmaicAnalyze = dmaic.analyze || {};
     const dmaicImprove = dmaic.improve || {};
     const dmaicControl = dmaic.control || {};
+
+    if (active === 'dmaic') {
+      return (
+        <div className="dmaic-layout">
+          <section className="dmaic-summary">
+            {['Define', 'Measure', 'Analyze', 'Improve', 'Control'].map((phase, index) => (
+              <div className="dmaic-summary-card" key={phase}>
+                <span>{phase}</span>
+                <strong>{index + 1}</strong>
+              </div>
+            ))}
+          </section>
+
+          {renderDmaicPhase('D', 'Define', 'Clarifier le probleme, la voix du client, le perimetre et la gouvernance du projet.', (
+            <>
+              <div className="dmaic-grid">
+                <Field label="Probleme a resoudre">
+                  <textarea rows={4} value={dmaicDefine.problem || ''} onChange={e => updateField('dmaic.define.problem', e.target.value)} placeholder="Ex : variabilite elevee, delai trop long, taux de defaut important..." />
+                </Field>
+                <Field label="Voix du client / VOC">
+                  <textarea rows={4} value={dmaicDefine.customer || ''} onChange={e => updateField('dmaic.define.customer', e.target.value)} placeholder="Attentes, irritants, verbatims, besoins clients internes ou externes..." />
+                </Field>
+                <Field label="CTQ - exigences critiques qualite">
+                  <textarea rows={4} value={dmaicDefine.ctq || ''} onChange={e => updateField('dmaic.define.ctq', e.target.value)} placeholder="Delai, conformite, cout, disponibilite, exactitude, experience..." />
+                </Field>
+                <Field label="Objectif SMART / Y du projet">
+                  <textarea rows={4} value={dmaicDefine.goal || ''} onChange={e => updateField('dmaic.define.goal', e.target.value)} placeholder="Reduire le delai moyen de X a Y, atteindre Cpk cible, diminuer les defauts..." />
+                </Field>
+                <Field label="Perimetre inclus / exclu">
+                  <textarea rows={4} value={dmaicDefine.scope || ''} onChange={e => updateField('dmaic.define.scope', e.target.value)} />
+                </Field>
+                <Field label="Equipe projet et roles">
+                  <textarea rows={4} value={dmaicDefine.team || ''} onChange={e => updateField('dmaic.define.team', e.target.value)} placeholder="Sponsor, Black Belt, Green Belt, process owner, metiers, data owner..." />
+                </Field>
+                <Field label="Business case initial">
+                  <textarea rows={4} value={dmaicDefine.businessCase || ''} onChange={e => updateField('dmaic.define.businessCase', e.target.value)} placeholder="Enjeu financier, impact client, risque operationnel, cout de non-qualite..." />
+                </Field>
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">VOC structuree <small>besoin client</small></h3>
+                <EditableTable
+                  columns={[{ key: 'client', label: 'Client / partie prenante' }, { key: 'verbatim', label: 'Voix du client', type: 'textarea' }, { key: 'besoin', label: 'Besoin traduit' }, { key: 'ctq', label: 'CTQ associe' }, { key: 'priorite', label: 'Priorite', type: 'select', options: ['Basse', 'Moyenne', 'Haute', 'Critique'] }]}
+                  rows={dmaicDefine.voc || []}
+                  onAdd={() => addRow('dmaic.define.voc', { client: '', verbatim: '', besoin: '', ctq: '', priorite: 'Moyenne' })}
+                  onRemove={i => removeRow('dmaic.define.voc', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.define.voc[${i}].${k}`, v)}
+                  addLabel="Ajouter une voix client" />
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">SIPOC DMAIC <small>macro-processus</small></h3>
+                <EditableTable
+                  columns={[{ key: 'suppliers', label: 'Suppliers' }, { key: 'inputs', label: 'Inputs' }, { key: 'process', label: 'Process' }, { key: 'outputs', label: 'Outputs' }, { key: 'customers', label: 'Customers' }]}
+                  rows={dmaicDefine.sipoc || []}
+                  onAdd={() => addRow('dmaic.define.sipoc', { suppliers: '', inputs: '', process: '', outputs: '', customers: '' })}
+                  onRemove={i => removeRow('dmaic.define.sipoc', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.define.sipoc[${i}].${k}`, v)}
+                  addLabel="Ajouter une ligne SIPOC" />
+              </div>
+              <div className="dmaic-tool-columns">
+                <div className="dmaic-tool-block">
+                  <h3 className="dmaic-tool-title">SWOT projet <small>cadrage</small></h3>
+                  <EditableTable
+                    columns={[{ key: 'type', label: 'Type', type: 'select', options: ['Force', 'Faiblesse', 'Opportunite', 'Menace'] }, { key: 'element', label: 'Element', type: 'textarea' }, { key: 'action', label: 'Action associee' }]}
+                    rows={dmaicDefine.swot || []}
+                    onAdd={() => addRow('dmaic.define.swot', { type: 'Force', element: '', action: '' })}
+                    onRemove={i => removeRow('dmaic.define.swot', i)}
+                    onChange={(i, k, v) => updateField(`dmaic.define.swot[${i}].${k}`, v)}
+                    addLabel="Ajouter un element SWOT" />
+                </div>
+                <div className="dmaic-tool-block">
+                  <h3 className="dmaic-tool-title">RACI DMAIC <small>gouvernance</small></h3>
+                  <RaciMatrix path="dmaic.define.raci" data={dmaicDefine.raci} updateField={updateField} />
+                </div>
+              </div>
+            </>
+          ))}
+
+          {renderDmaicPhase('M', 'Measure', 'Collecter les donnees, verifier la mesure et evaluer la performance actuelle.', (
+            <>
+              <Field label="Baseline / performance actuelle">
+                <textarea rows={4} value={dmaicMeasure.baseline || ''} onChange={e => updateField('dmaic.measure.baseline', e.target.value)} placeholder="Periode mesuree, volume analyse, moyenne actuelle, variabilite, niveau sigma si connu..." />
+              </Field>
+              <EditableTable
+                columns={[{ key: 'nom', label: 'Mesure / KPI' }, { key: 'definition', label: 'Definition' }, { key: 'baseline', label: 'Actuel' }, { key: 'cible', label: 'Cible' }, { key: 'source', label: 'Source' }]}
+                rows={dmaicMeasure.kpis || []}
+                onAdd={() => addRow('dmaic.measure.kpis', { nom: '', definition: '', baseline: '', cible: '', source: '' })}
+                onRemove={i => removeRow('dmaic.measure.kpis', i)}
+                onChange={(i, k, v) => updateField(`dmaic.measure.kpis[${i}].${k}`, v)}
+                addLabel="Ajouter une mesure" />
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Plan de collecte <small>quoi mesurer</small></h3>
+                <EditableTable
+                  columns={[{ key: 'mesure', label: 'Mesure' }, { key: 'definition', label: 'Definition operationnelle', type: 'textarea' }, { key: 'unite', label: 'Unite' }, { key: 'source', label: 'Source' }, { key: 'frequence', label: 'Frequence' }, { key: 'responsable', label: 'Responsable' }]}
+                  rows={dmaicMeasure.collectionPlan || []}
+                  onAdd={() => addRow('dmaic.measure.collectionPlan', { mesure: '', definition: '', unite: '', source: '', frequence: '', responsable: '' })}
+                  onRemove={i => removeRow('dmaic.measure.collectionPlan', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.measure.collectionPlan[${i}].${k}`, v)}
+                  addLabel="Ajouter une collecte" />
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Donnees mesurees <small>base statistique</small></h3>
+                <div className="dmaic-grid">
+                  <Field label="LSL - limite basse"><input type="number" value={dmaicMeasure.spec?.lsl || ''} onChange={e => updateField('dmaic.measure.spec.lsl', e.target.value)} /></Field>
+                  <Field label="USL - limite haute"><input type="number" value={dmaicMeasure.spec?.usl || ''} onChange={e => updateField('dmaic.measure.spec.usl', e.target.value)} /></Field>
+                  <Field label="Cible / target"><input type="number" value={dmaicMeasure.spec?.target || ''} onChange={e => updateField('dmaic.measure.spec.target', e.target.value)} /></Field>
+                  <Field label="MSA / fiabilite mesure"><input value={dmaicMeasure.msa || ''} onChange={e => updateField('dmaic.measure.msa', e.target.value)} placeholder="Gage R&R, extraction controlee, source fiable..." /></Field>
+                </div>
+                <EditableTable
+                  columns={[{ key: 'date', label: 'Date / ordre' }, { key: 'valeur', label: 'Valeur Y', type: 'number' }, { key: 'segment', label: 'Segment' }, { key: 'facteurA', label: 'Facteur X1' }, { key: 'facteurB', label: 'Facteur X2' }, { key: 'commentaire', label: 'Commentaire' }]}
+                  rows={dmaicMeasure.data || []}
+                  onAdd={() => addRow('dmaic.measure.data', { date: '', valeur: '', segment: '', facteurA: '', facteurB: '', commentaire: '' })}
+                  onRemove={i => removeRow('dmaic.measure.data', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.measure.data[${i}].${k}`, v)}
+                  addLabel="Ajouter une mesure observee" />
+                <DmaicStatsPanel rows={dmaicMeasure.data || []} spec={dmaicMeasure.spec || {}} />
+              </div>
+              <div className="dmaic-tool-columns">
+                <Field label="Test de normalite / QQ plot"><textarea rows={4} value={dmaicMeasure.normality || ''} onChange={e => updateField('dmaic.measure.normality', e.target.value)} placeholder="Normalite plausible ? outliers ? transformation necessaire ?" /></Field>
+                <Field label="Conclusion capabilite et cartes X/MR"><textarea rows={4} value={dmaicMeasure.capabilityConclusion || ''} onChange={e => updateField('dmaic.measure.capabilityConclusion', e.target.value)} placeholder="Process capable/incapable, centre/decentre, stable/instable..." /></Field>
+              </div>
+            </>
+          ))}
+
+          {renderDmaicPhase('A', 'Analyze', 'Identifier, prioriser et valider statistiquement les causes racines.', (
+            <>
+              <Field label="Constats d'analyse">
+                <textarea rows={4} value={dmaicAnalyze.observations || ''} onChange={e => updateField('dmaic.analyze.observations', e.target.value)} placeholder="Ce que montrent les donnees, segments touches, ruptures, facteurs suspects..." />
+              </Field>
+              <EditableTable
+                columns={[{ key: 'cause', label: 'Cause potentielle' }, { key: 'preuve', label: 'Preuve / donnee' }, { key: 'impact', label: 'Impact' }, { key: 'validation', label: 'Validee ?', type: 'select', options: ['A confirmer', 'Oui', 'Non'] }]}
+                rows={dmaicAnalyze.causes || []}
+                onAdd={() => addRow('dmaic.analyze.causes', { cause: '', preuve: '', impact: '', validation: 'A confirmer' })}
+                onRemove={i => removeRow('dmaic.analyze.causes', i)}
+                onChange={(i, k, v) => updateField(`dmaic.analyze.causes[${i}].${k}`, v)}
+                addLabel="Ajouter une cause" />
+              <div className="dmaic-tool-columns">
+                <div className="dmaic-tool-block">
+                  <h3 className="dmaic-tool-title">Pareto des causes <small>priorisation</small></h3>
+                  <EditableTable
+                    columns={[{ key: 'cause', label: 'Cause' }, { key: 'occurrences', label: 'Occurrences', type: 'number' }]}
+                    rows={dmaicAnalyze.pareto || []}
+                    onAdd={() => addRow('dmaic.analyze.pareto', { cause: '', occurrences: '' })}
+                    onRemove={i => removeRow('dmaic.analyze.pareto', i)}
+                    onChange={(i, k, v) => updateField(`dmaic.analyze.pareto[${i}].${k}`, v)}
+                    addLabel="Ajouter une cause Pareto" />
+                  <ParetoChart rows={dmaicAnalyze.pareto || []} />
+                </div>
+                <div className="dmaic-tool-block">
+                  <h3 className="dmaic-tool-title">Ishikawa 5M <small>causes possibles</small></h3>
+                  <Ishikawa path="dmaic.analyze.ishikawa" data={dmaicAnalyze.ishikawa} updateField={updateField} />
+                </div>
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">5 pourquoi <small>cause racine</small></h3>
+                <FiveWhys path="dmaic.analyze.fivewhy" data={dmaicAnalyze.fivewhy} updateField={updateField} />
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Tests statistiques <small>ANOVA / T test / Chi2</small></h3>
+                <EditableTable
+                  columns={[{ key: 'hypothese', label: 'Hypothese / cause testee', type: 'textarea' }, { key: 'test', label: 'Test', type: 'select', options: ['T test', 'ANOVA', 'Chi2', 'Correlation', 'Mann-Whitney', 'Kruskal-Wallis', 'Autre'] }, { key: 'pvalue', label: 'p-value' }, { key: 'decision', label: 'Decision', type: 'select', options: ['Effet significatif', 'Non significatif', 'A confirmer'] }, { key: 'commentaire', label: 'Commentaire', type: 'textarea' }]}
+                  rows={dmaicAnalyze.statTests || []}
+                  onAdd={() => addRow('dmaic.analyze.statTests', { hypothese: '', test: 'T test', pvalue: '', decision: 'A confirmer', commentaire: '' })}
+                  onRemove={i => removeRow('dmaic.analyze.statTests', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.analyze.statTests[${i}].${k}`, v)}
+                  addLabel="Ajouter un test statistique" />
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
+                <div className="dmaic-grid">
+                  <Field label="Equation de regression"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
+                  <Field label="R carre / R carre ajuste"><input value={dmaicAnalyze.regression?.r2 || ''} onChange={e => updateField('dmaic.analyze.regression.r2', e.target.value)} placeholder="Ex : R2 = 0,72 ; R2 ajuste = 0,68" /></Field>
+                  <Field label="Conclusion regression"><textarea rows={4} value={dmaicAnalyze.regression?.conclusion || ''} onChange={e => updateField('dmaic.analyze.regression.conclusion', e.target.value)} placeholder="Facteurs les plus influents, sens de l'effet, limites du modele..." /></Field>
+                </div>
+              </div>
+            </>
+          ))}
+
+          {renderDmaicPhase('I', 'Improve', 'Concevoir, prioriser, tester et securiser les solutions.', (
+            <>
+              <Field label="Processus cible / amelioration visee">
+                <textarea rows={4} value={dmaicImprove.target || ''} onChange={e => updateField('dmaic.improve.target', e.target.value)} placeholder="Decrire le fonctionnement cible, le pilote, le standard et le resultat attendu..." />
+              </Field>
+              <EditableTable
+                columns={[{ key: 'solution', label: 'Solution' }, { key: 'impact', label: 'Impact attendu' }, { key: 'effort', label: 'Effort', type: 'select', options: ['Faible', 'Moyen', 'Eleve'] }, { key: 'responsable', label: 'Responsable' }, { key: 'statut', label: 'Statut', type: 'select', options: ['A faire', 'En cours', 'Testee', 'Deployee'] }]}
+                rows={dmaicImprove.solutions || []}
+                onAdd={() => addRow('dmaic.improve.solutions', { solution: '', impact: '', effort: 'Moyen', responsable: '', statut: 'A faire' })}
+                onRemove={i => removeRow('dmaic.improve.solutions', i)}
+                onChange={(i, k, v) => updateField(`dmaic.improve.solutions[${i}].${k}`, v)}
+                addLabel="Ajouter une solution" />
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Matrice impact / effort <small>priorisation</small></h3>
+                <EditableTable
+                  columns={[{ key: 'action', label: 'Action' }, { key: 'impact', label: 'Impact 0-10', type: 'number', min: 0, max: 10 }, { key: 'effort', label: 'Effort 0-10', type: 'number', min: 0, max: 10 }, { key: 'gain', label: 'Gain attendu' }, { key: 'risque', label: 'Risque' }]}
+                  rows={dmaicImprove.impactEffort || []}
+                  onAdd={() => addRow('dmaic.improve.impactEffort', { action: '', impact: '', effort: '', gain: '', risque: '' })}
+                  onRemove={i => removeRow('dmaic.improve.impactEffort', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.improve.impactEffort[${i}].${k}`, v)}
+                  addLabel="Ajouter une action a prioriser" />
+                <ImpactEffortChart rows={dmaicImprove.impactEffort || []} />
+              </div>
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">Plan d'action DMAIC <small>execution</small></h3>
+                <EditableTable
+                  columns={[{ key: 'action', label: 'Action' }, { key: 'responsable', label: 'Responsable' }, { key: 'debut', label: 'Debut' }, { key: 'fin', label: 'Fin' }, { key: 'statut', label: 'Statut', type: 'select', options: ['A faire', 'En cours', 'Bloque', 'Termine'] }, { key: 'preuve', label: 'Preuve / livrable' }]}
+                  rows={dmaicImprove.actionPlan || []}
+                  onAdd={() => addRow('dmaic.improve.actionPlan', { action: '', responsable: '', debut: '', fin: '', statut: 'A faire', preuve: '' })}
+                  onRemove={i => removeRow('dmaic.improve.actionPlan', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.improve.actionPlan[${i}].${k}`, v)}
+                  addLabel="Ajouter une action" />
+              </div>
+              <div className="dmaic-tool-columns">
+                <Field label="Resultats du pilote / test solution"><textarea rows={4} value={dmaicImprove.pilot || ''} onChange={e => updateField('dmaic.improve.pilot', e.target.value)} placeholder="Population pilote, gains observes, feedback terrain, ecarts residuels..." /></Field>
+                <Field label="Risques de deploiement et parades"><textarea rows={4} value={dmaicImprove.riskMitigation || ''} onChange={e => updateField('dmaic.improve.riskMitigation', e.target.value)} placeholder="Risques, contraintes, conduite du changement, rollback, communication..." /></Field>
+              </div>
+            </>
+          ))}
+
+          {renderDmaicPhase('C', 'Control', 'Perenniser les gains, surveiller les KPI et installer le plan de reaction.', (
+            <>
+              <Field label="Standard cible / regles de maintien">
+                <textarea rows={4} value={dmaicControl.standard || ''} onChange={e => updateField('dmaic.control.standard', e.target.value)} placeholder="Standard operationnel, gouvernance, formation, documentation, regles d'escalade..." />
+              </Field>
+              <EditableTable
+                columns={[{ key: 'controle', label: 'Point de controle' }, { key: 'frequence', label: 'Frequence' }, { key: 'responsable', label: 'Responsable' }, { key: 'seuil', label: "Seuil d'alerte" }, { key: 'reaction', label: 'Reaction attendue' }]}
+                rows={dmaicControl.plan || []}
+                onAdd={() => addRow('dmaic.control.plan', { controle: '', frequence: '', responsable: '', seuil: '', reaction: '' })}
+                onRemove={i => removeRow('dmaic.control.plan', i)}
+                onChange={(i, k, v) => updateField(`dmaic.control.plan[${i}].${k}`, v)}
+                addLabel="Ajouter un controle" />
+              <div className="dmaic-tool-block">
+                <h3 className="dmaic-tool-title">KPI de controle <small>surveillance</small></h3>
+                <EditableTable
+                  columns={[{ key: 'nom', label: 'KPI' }, { key: 'unite', label: 'Unite' }, { key: 'cible', label: 'Cible' }, { key: 'actuel', label: 'Actuel' }, { key: 'frequence', label: 'Frequence' }, { key: 'owner', label: 'Owner' }]}
+                  rows={dmaicControl.kpis || []}
+                  onAdd={() => addRow('dmaic.control.kpis', { nom: '', unite: '', cible: '', actuel: '', frequence: '', owner: '' })}
+                  onRemove={i => removeRow('dmaic.control.kpis', i)}
+                  onChange={(i, k, v) => updateField(`dmaic.control.kpis[${i}].${k}`, v)}
+                  addLabel="Ajouter un KPI" />
+                <div className="kpi-grid">{(dmaicControl.kpis || []).map(k => <KpiCard key={k._id} k={k} />)}</div>
+              </div>
+              <div className="dmaic-tool-columns">
+                <Field label="Plan de reaction"><textarea rows={4} value={dmaicControl.reactionPlan || ''} onChange={e => updateField('dmaic.control.reactionPlan', e.target.value)} placeholder="Que fait-on si le KPI sort du seuil ? Qui decide ? Sous quel delai ?" /></Field>
+                <Field label="Business impact"><textarea rows={4} value={dmaicControl.businessImpact || ''} onChange={e => updateField('dmaic.control.businessImpact', e.target.value)} placeholder="Gains financiers, reduction defauts, satisfaction client, temps gagne, risque reduit..." /></Field>
+              </div>
+              <Field label="Conclusion DMAIC">
+                <textarea rows={5} value={dmaicControl.conclusion || ''} onChange={e => updateField('dmaic.control.conclusion', e.target.value)} placeholder="Conclusion finale, gains obtenus, limites, prochaines opportunites d'amelioration..." />
+              </Field>
+            </>
+          ))}
+        </div>
+      );
+    }
 
     switch (active) {
       case 0:
