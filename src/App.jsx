@@ -1872,6 +1872,39 @@ const asNumber = (value) => {
 
 const roundN = (value, digits = 2) => Number.isFinite(value) ? Math.round(value * (10 ** digits)) / (10 ** digits) : null;
 
+function parseDelimitedText(text) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n').filter(line => line.trim());
+  if (lines.length < 2) return { headers: [], records: [] };
+  const candidates = [';', ',', '\t'];
+  const delimiter = candidates
+    .map(d => ({ d, count: (lines[0].match(new RegExp(d === '\t' ? '\\t' : `\\${d}`, 'g')) || []).length }))
+    .sort((a, b) => b.count - a.count)[0].d;
+  const split = (line) => {
+    const values = [];
+    let current = '';
+    let quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      if (char === '"') {
+        quoted = !quoted;
+      } else if (char === delimiter && !quoted) {
+        values.push(current.trim().replace(/^"|"$/g, ''));
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim().replace(/^"|"$/g, ''));
+    return values;
+  };
+  const headers = split(lines[0]).map(h => h.trim());
+  const records = lines.slice(1).map(line => {
+    const values = split(line);
+    return headers.reduce((acc, header, index) => ({ ...acc, [header]: values[index] ?? '' }), {});
+  });
+  return { headers, records };
+}
+
 function erf(x) {
   const sign = x >= 0 ? 1 : -1;
   const ax = Math.abs(x);
@@ -2044,6 +2077,88 @@ function getFactorValue(row, factor) {
   return '';
 }
 
+function buildDmaicImport(text, currentLabels = {}, currentFactors = []) {
+  const { headers, records } = parseDelimitedText(text);
+  const normalized = (value) => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const findHeader = (patterns) => headers.find(header => patterns.some(pattern => normalized(header).includes(pattern)));
+  const dateHeader = findHeader(['date', 'ordre', 'index']);
+  const yHeader = findHeader(['valeur y', 'resultat', 'mesure', 'delai', 'temps', 'cout', 'defaut', 'satisfaction', 'y']);
+  const segmentHeader = findHeader(['segment', 'groupe', 'categorie', 'canal', 'equipe', 'site', 'type']);
+  const reserved = new Set([dateHeader, yHeader, segmentHeader].filter(Boolean));
+  const sourceFactorHeaders = headers.filter(header => !reserved.has(header));
+  const importedFactors = sourceFactorHeaders.map((header) => {
+    const values = records.map(record => record[header]).filter(value => String(value || '').trim());
+    const numericCount = values.filter(value => asNumber(value) !== null).length;
+    const numericRatio = values.length ? numericCount / values.length : 0;
+    const existing = (currentFactors || []).find(f => normalized(f.name) === normalized(header));
+    return {
+      _id: existing?._id || uid(),
+      name: header,
+      type: numericRatio >= 0.75 ? 'Numerique' : 'Categorie',
+      description: existing?.description || 'Facteur importe depuis un fichier CSV.',
+    };
+  });
+  const rows = records.map((record, index) => {
+    const factorValues = {};
+    importedFactors.forEach((factor, factorIndex) => {
+      factorValues[factor._id] = record[sourceFactorHeaders[factorIndex]] ?? '';
+    });
+    return {
+      _id: uid(),
+      date: record[dateHeader] || String(index + 1),
+      valeur: record[yHeader] || '',
+      segment: record[segmentHeader] || '',
+      facteurA: importedFactors[0] ? factorValues[importedFactors[0]._id] : '',
+      facteurB: importedFactors[1] ? factorValues[importedFactors[1]._id] : '',
+      factorValues,
+      commentaire: '',
+    };
+  });
+  return {
+    labels: {
+      ...currentLabels,
+      y: currentLabels.y || yHeader || 'Y',
+      segment: currentLabels.segment || segmentHeader || 'Groupe / categorie',
+    },
+    factors: importedFactors.length ? importedFactors : currentFactors,
+    rows,
+  };
+}
+
+function dmaicDataQuality(rows, labels = {}, factors = []) {
+  const list = Array.isArray(rows) ? rows : [];
+  const names = variableLabels(labels);
+  const activeFactors = getDmaicFactors(labels, factors).filter(factor => {
+    if (factor.legacyKey && !factors?.length) return list.some(row => String(row[factor.legacyKey] || '').trim());
+    return list.some(row => String(getFactorValue(row, factor) || '').trim());
+  });
+  const missingY = list.filter(row => asNumber(row.valeur) === null).length;
+  const validY = list.length - missingY;
+  const missingSegment = list.filter(row => !String(row.segment || '').trim()).length;
+  const duplicateDates = list.length - new Set(list.map(row => String(row.date || '').trim()).filter(Boolean)).size;
+  const factorIssues = activeFactors.map(factor => {
+    const values = list.map(row => getFactorValue(row, factor));
+    const missing = values.filter(value => !String(value || '').trim()).length;
+    const numericInvalid = (factor.type || '').toLowerCase().startsWith('num')
+      ? values.filter(value => String(value || '').trim() && asNumber(value) === null).length
+      : 0;
+    return { factor, missing, numericInvalid };
+  });
+  const warnings = [];
+  if (!list.length) warnings.push('Aucune donnee mesuree : importez un CSV ou ajoutez des lignes.');
+  if (validY < 8) warnings.push(`Echantillon faible : ${validY} valeur(s) numeriques pour ${names.y}. Visez au moins 20 a 30 mesures si possible.`);
+  if (missingY) warnings.push(`${missingY} ligne(s) sans valeur Y numerique exploitable.`);
+  if (missingSegment && list.length) warnings.push(`${missingSegment} ligne(s) sans groupe/categorie : les comparaisons par groupe seront limitees.`);
+  if (duplicateDates > 0) warnings.push('Certaines dates/ordres sont vides ou dupliques : verifiez la chronologie avant les cartes X/MR.');
+  factorIssues.forEach(issue => {
+    if (issue.missing) warnings.push(`${issue.factor.name} : ${issue.missing} valeur(s) manquante(s).`);
+    if (issue.numericInvalid) warnings.push(`${issue.factor.name} : ${issue.numericInvalid} valeur(s) non numerique(s) alors que le facteur est numerique.`);
+  });
+  const score = Math.max(0, 100 - warnings.length * 12 - Math.max(0, 20 - validY));
+  const status = !list.length ? 'A construire' : score >= 80 ? 'Exploitable' : score >= 55 ? 'A fiabiliser' : 'Insuffisant';
+  return { rows: list.length, validY, missingY, missingSegment, duplicateDates, factors: activeFactors, factorIssues, warnings, score, status };
+}
+
 function normalityAnalysis(stats) {
   if (!stats.n || stats.n < 8 || !stats.sd) {
     return { status: 'A confirmer', p: null, normal: null, text: 'Ajoutez au moins 8 valeurs variables pour obtenir une lecture de normalite plus fiable.' };
@@ -2206,7 +2321,7 @@ function AutomaticDmaicInsights({ rows, spec, labels, factors }) {
         <div><span>Respect des limites</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? 'Conclusion basee sur Cp/Cpk ci-dessus' : 'Ajoutez LSL et USL'}</small></div>
         <div><span>Stabilite X/MR (variation dans le temps)</span><strong>{stable === null ? 'A confirmer' : stable ? 'Stable' : 'Instable'}</strong><small>{stable === false ? 'Point hors limites probable' : 'Lecture automatique des limites'}</small></div>
         <div><span>{names.segment} (comparaison)</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des groupes'}</small></div>
-        <div><span>Regression (influence des causes X)</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez facteurs X1/X2 numeriques'}</small></div>
+        <div><span>Regression (influence des causes X)</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez des facteurs X numeriques'}</small></div>
       </div>
       <div className="dmaic-auto-details">
         <div className="dmaic-conclusion">
@@ -2231,7 +2346,7 @@ function AutoRegressionPanel({ rows, labels, factors }) {
   const analyses = factorAnalyses(rows, labels, factors, normality);
   const names = variableLabels(labels);
   if (!regression && !segmentTest) {
-    return <div className="dmaic-empty-chart">Ajoutez des valeurs {names.y} et des facteurs numeriques {names.x1}/{names.x2} dans Measure pour calculer automatiquement les p-values, R2 et equations.</div>;
+    return <div className="dmaic-empty-chart">Ajoutez des valeurs {names.y} et des facteurs X dans Measure pour calculer automatiquement les p-values, R2 et equations.</div>;
   }
   return (
     <div className="dmaic-auto-panel">
@@ -2439,16 +2554,166 @@ function NormalitySummary({ stats }) {
   );
 }
 
+function DmaicQualityPanel({ rows, labels, factors }) {
+  const quality = dmaicDataQuality(rows, labels, factors);
+  const cls = quality.status === 'Exploitable' ? '' : quality.status === 'A fiabiliser' ? ' warning' : ' danger';
+  return (
+    <div className={`dmaic-quality-panel${cls}`}>
+      <div className="dmaic-quality-score">
+        <span>Qualite donnees</span>
+        <strong>{quality.status}</strong>
+        <small>{quality.validY}/{quality.rows || 0} mesures Y exploitables</small>
+      </div>
+      <div className="dmaic-quality-list">
+        {quality.warnings.length ? quality.warnings.slice(0, 5).map((warning, index) => (
+          <div key={index} className="dmaic-quality-item">{warning}</div>
+        )) : (
+          <div className="dmaic-quality-item success">Base prete pour les calculs automatiques : normalite, capabilite, cartes X/MR, tests et regression.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DmaicAnalysisRoadmap({ rows, spec, labels, factors }) {
+  const stats = dmaicStats(rows, spec);
+  const quality = dmaicDataQuality(rows, labels, factors);
+  const normality = normalityAnalysis(stats);
+  const chart = controlChartAnalysis(stats);
+  const regression = automaticRegression(rows, labels, factors);
+  const analyses = factorAnalyses(rows, labels, factors, normality);
+  const hasSpecs = stats.cp !== null && stats.cpk !== null;
+  const steps = [
+    {
+      title: '1. Donnees',
+      status: quality.status,
+      text: quality.status === 'Exploitable' ? 'La base est suffisante pour analyser le processus.' : 'Completez ou nettoyez les mesures avant de conclure.',
+    },
+    {
+      title: '2. Normalite',
+      status: normality.normal === null ? 'A confirmer' : normality.normal ? 'Acceptable' : 'Non normale',
+      text: normality.p !== null ? `p approx. ${roundN(normality.p, 4)}. ${normality.normal ? 'Tests parametriques possibles.' : 'Tests non parametriques privilegies.'}` : normality.text,
+    },
+    {
+      title: '3. Capabilite',
+      status: hasSpecs ? (stats.cpk >= 1 ? 'Capable' : 'Incapable') : 'Limites manquantes',
+      text: hasSpecs ? `Cp ${roundN(stats.cp, 2)} ; Cpk ${roundN(stats.cpk, 2)}.` : 'Ajoutez LSL et USL pour savoir si le processus respecte les limites.',
+    },
+    {
+      title: '4. Stabilite',
+      status: chart?.stable === null || chart?.stable === undefined ? 'A confirmer' : chart.stable ? 'Stable' : 'Instable',
+      text: chart?.text || 'Ajoutez une chronologie de mesures pour lire les cartes X/MR.',
+    },
+    {
+      title: '5. Causes X',
+      status: analyses.some(a => a.p !== null && a.p < 0.05) ? 'Cause probable' : analyses.length ? 'A confirmer' : 'Non disponible',
+      text: analyses.length ? `${analyses.length} facteur(s) teste(s). ${analyses.filter(a => a.p !== null && a.p < 0.05).length} effet(s) significatif(s) probable(s).` : 'Ajoutez des facteurs X numeriques ou categoriels.',
+    },
+    {
+      title: '6. Modele',
+      status: regression ? (regression.r2 >= 0.7 ? 'Fort' : regression.r2 >= 0.4 ? 'Utile' : 'Faible') : 'Non disponible',
+      text: regression ? `R2 ${roundN(regression.r2, 3)} ; equation calculee automatiquement.` : 'Ajoutez assez de mesures et de facteurs numeriques pour calculer la regression.',
+    },
+  ];
+  return (
+    <div className="dmaic-roadmap">
+      {steps.map(step => (
+        <div className="dmaic-roadmap-step" key={step.title}>
+          <span>{step.title}</span>
+          <strong>{step.status}</strong>
+          <p>{step.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DmaicExecutiveDecision({ rows, spec, labels, factors }) {
+  const stats = dmaicStats(rows, spec);
+  const quality = dmaicDataQuality(rows, labels, factors);
+  const normality = normalityAnalysis(stats);
+  const chart = controlChartAnalysis(stats);
+  const analyses = factorAnalyses(rows, labels, factors, normality);
+  const regression = automaticRegression(rows, labels, factors);
+  const significant = analyses.filter(a => a.p !== null && a.p < 0.05);
+  const names = variableLabels(labels);
+  const capability = stats.cpk === null || stats.cpk === undefined
+    ? 'la capabilite reste a calculer car les limites LSL/USL sont absentes'
+    : stats.cpk >= 1
+      ? `le processus est globalement capable au regard des limites renseignees (Cpk ${roundN(stats.cpk, 2)})`
+      : `le processus est incapable au regard des limites renseignees (Cpk ${roundN(stats.cpk, 2)})`;
+  const stability = chart?.stable === false
+    ? 'Il presente aussi des signaux d instabilite sur les cartes X/MR.'
+    : chart?.stable === true
+      ? 'Les cartes X/MR ne montrent pas de rupture majeure sur l echantillon.'
+      : 'La stabilite reste a confirmer avec plus de donnees chronologiques.';
+  const causes = significant.length
+    ? `Les facteurs les plus probables sont : ${significant.map(a => a.name).join(', ')}.`
+    : 'Aucun facteur X significatif n est encore demontre : completez les donnees ou testez d autres causes.';
+  const regressionText = regression
+    ? `La regression explique environ ${roundN((regression.r2 || 0) * 100, 0)}% de la variation de ${names.y}.`
+    : 'La regression n est pas encore disponible.';
+  const incapable = stats.cpk !== null && stats.cpk !== undefined && stats.cpk < 1;
+  const cls = quality.status === 'Insuffisant' || incapable || chart?.stable === false ? ' danger' : quality.status === 'A fiabiliser' ? ' warning' : '';
+  return (
+    <div className={`dmaic-executive${cls}`}>
+      <span>Conclusion automatique</span>
+      <strong>{quality.status === 'Insuffisant' ? 'Donnees insuffisantes pour conclure proprement' : `${names.y} : diagnostic calcule`}</strong>
+      <p>{automaticMeasureNarrative(stats, rows, labels)} {capability}. {stability} {causes} {regressionText}</p>
+    </div>
+  );
+}
+
+function DmaicFactorDecisionTable({ rows, labels, factors }) {
+  const stats = dmaicStats(rows, {});
+  const normality = normalityAnalysis(stats);
+  const analyses = factorAnalyses(rows, labels, factors, normality);
+  if (!analyses.length) {
+    return <div className="dmaic-empty-chart">Ajoutez des facteurs X a tester pour obtenir automatiquement le bon test statistique et la conclusion associee.</div>;
+  }
+  return (
+    <div className="ledger-table-wrap">
+      <table className="ledger-table">
+        <thead><tr><th>Facteur X</th><th>Type</th><th>Test choisi par l outil</th><th>Resultat</th><th>Decision</th></tr></thead>
+        <tbody>
+          {analyses.map(a => (
+            <tr key={a.name}>
+              <td>{a.name}</td>
+              <td>{a.type}</td>
+              <td>{a.test}</td>
+              <td>{a.p !== null ? `p approx. ${roundN(a.p, 4)} - ${a.detail}` : a.detail}</td>
+              <td>{a.decision}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function DmaicStatsPanel({ rows, spec, labels, factors }) {
   const stats = dmaicStats(rows, spec);
   const names = variableLabels(labels);
   return (
-    <div className="dmaic-tool-block">
-      <h3 className="dmaic-tool-title">Analyse statistique de la mesure <small>Calcul automatique</small></h3>
+    <div className="dmaic-analysis-shell">
+      <div className="dmaic-analysis-head">
+        <div>
+          <h3>Moteur d'analyse automatique</h3>
+          <p>Le module part de vos mesures, controle la qualite des donnees, choisit les tests et produit une conclusion exploitable.</p>
+        </div>
+        <span>DMAIC stats</span>
+      </div>
+      <DmaicQualityPanel rows={rows} labels={labels} factors={factors} />
+      <DmaicAnalysisRoadmap rows={rows} spec={spec} labels={labels} factors={factors} />
+      <DmaicExecutiveDecision rows={rows} spec={spec} labels={labels} factors={factors} />
       <div className="dmaic-stats-grid">
         <div className="dmaic-stat"><span>Nombre</span><strong>{stats.n || '-'}</strong></div>
         <div className="dmaic-stat"><span>Moyenne</span><strong>{stats.n ? roundN(stats.mean, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Mediane</span><strong>{stats.n ? roundN(stats.median, 2) : '-'}</strong></div>
         <div className="dmaic-stat"><span>Ecart type</span><strong>{stats.n ? roundN(stats.sd, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Minimum</span><strong>{stats.n ? roundN(stats.min, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Maximum</span><strong>{stats.n ? roundN(stats.max, 2) : '-'}</strong></div>
+        <div className="dmaic-stat"><span>Cp / Cpk</span><strong>{stats.cp !== null && stats.cp !== undefined ? `${roundN(stats.cp, 2)} / ${roundN(stats.cpk, 2)}` : '-'}</strong></div>
         <div className="dmaic-stat"><span>Mesure analysee</span><strong>{names.y}</strong></div>
       </div>
       <NormalitySummary stats={stats} />
@@ -5252,6 +5517,44 @@ const CSS = `
   padding-top:14px;
   border-top:1px solid #DDE6F1;
 }
+.theme-light .dmaic-import-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin:12px 0 16px;
+  padding:14px 16px;
+  border:1px solid #C9D8EC;
+  border-top:3px solid #10233F;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-import-card strong{
+  display:block;
+  color:#102033;
+  font-size:16px;
+}
+.theme-light .dmaic-import-card p{
+  margin:4px 0 0;
+  color:#536983;
+  font-size:13px;
+  line-height:1.35;
+}
+.theme-light .dmaic-import-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:132px;
+  height:42px;
+  border:1px solid #10233F;
+  background:#10233F;
+  color:#FFFFFF;
+  font-size:13px;
+  font-weight:850;
+  cursor:pointer;
+}
+.theme-light .dmaic-import-button input{
+  display:none;
+}
 .theme-light .dmaic-tool-title{
   display:flex;
   align-items:center;
@@ -5294,6 +5597,161 @@ const CSS = `
   margin-top:7px;
   color:#102033;
   font-size:22px;
+}
+.theme-light .dmaic-analysis-shell{
+  margin-top:16px;
+  border:1px solid #B9C7D8;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-analysis-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 18px;
+  border-bottom:1px solid #DDE6F1;
+  background:linear-gradient(180deg,#F8FAFD 0%,#FFFFFF 100%);
+}
+.theme-light .dmaic-analysis-head h3{
+  margin:0;
+  color:#102033;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+}
+.theme-light .dmaic-analysis-head p{
+  max-width:780px;
+  margin:5px 0 0;
+  color:#536983;
+  font-size:13px;
+  line-height:1.45;
+}
+.theme-light .dmaic-analysis-head span{
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-analysis-shell > .dmaic-stats-grid,
+.theme-light .dmaic-analysis-shell > .dmaic-conclusion,
+.theme-light .dmaic-analysis-shell > .dmaic-auto-panel,
+.theme-light .dmaic-analysis-shell > .dmaic-chart-grid{
+  margin-left:16px;
+  margin-right:16px;
+}
+.theme-light .dmaic-analysis-shell > .dmaic-chart-grid{
+  margin-bottom:16px;
+}
+.theme-light .dmaic-quality-panel{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  border-bottom:1px solid #DDE6F1;
+}
+.theme-light .dmaic-quality-score{
+  padding:16px 18px;
+  border-right:1px solid #DDE6F1;
+  background:#F7FBFA;
+}
+.theme-light .dmaic-quality-panel.warning .dmaic-quality-score{
+  background:#FFF9EF;
+}
+.theme-light .dmaic-quality-panel.danger .dmaic-quality-score{
+  background:#FFF6F4;
+}
+.theme-light .dmaic-quality-score span,
+.theme-light .dmaic-roadmap-step span,
+.theme-light .dmaic-executive span{
+  display:block;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-quality-score strong{
+  display:block;
+  margin-top:8px;
+  color:#102033;
+  font-size:22px;
+}
+.theme-light .dmaic-quality-score small{
+  display:block;
+  margin-top:6px;
+  color:#667891;
+  font-size:12px;
+}
+.theme-light .dmaic-quality-list{
+  display:grid;
+  gap:8px;
+  padding:14px 16px;
+}
+.theme-light .dmaic-quality-item{
+  border-left:3px solid #C97D2E;
+  background:#F8FAFD;
+  padding:8px 10px;
+  color:#102033;
+  font-size:13px;
+  line-height:1.35;
+}
+.theme-light .dmaic-quality-item.success{
+  border-left-color:#2F756A;
+  background:#F7FBFA;
+}
+.theme-light .dmaic-roadmap{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:0;
+  border-bottom:1px solid #DDE6F1;
+}
+.theme-light .dmaic-roadmap-step{
+  min-height:122px;
+  padding:14px;
+  border-right:1px solid #DDE6F1;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-roadmap-step:last-child{
+  border-right:0;
+}
+.theme-light .dmaic-roadmap-step strong{
+  display:block;
+  margin-top:8px;
+  color:#102033;
+  font-size:18px;
+  line-height:1.15;
+}
+.theme-light .dmaic-roadmap-step p{
+  margin:7px 0 0;
+  color:#536983;
+  font-size:12px;
+  line-height:1.35;
+}
+.theme-light .dmaic-executive{
+  margin:16px;
+  padding:14px 16px;
+  border:1px solid #C9D8EC;
+  border-left:5px solid #2F756A;
+  background:#F7FBFA;
+}
+.theme-light .dmaic-executive.warning{
+  border-left-color:#C97D2E;
+  background:#FFF9EF;
+}
+.theme-light .dmaic-executive.danger{
+  border-left-color:#A23B2E;
+  background:#FFF6F4;
+}
+.theme-light .dmaic-executive strong{
+  display:block;
+  margin-top:7px;
+  color:#102033;
+  font-size:20px;
+}
+.theme-light .dmaic-executive p{
+  margin:8px 0 0;
+  color:#102033;
+  font-size:14px;
+  line-height:1.5;
 }
 .theme-light .dmaic-chart-grid{
   display:grid;
@@ -5441,8 +5899,20 @@ const CSS = `
   .theme-light .dmaic-stats-grid,
   .theme-light .dmaic-chart-grid,
   .theme-light .dmaic-tool-columns,
-  .theme-light .dmaic-auto-grid{
+  .theme-light .dmaic-auto-grid,
+  .theme-light .dmaic-quality-panel,
+  .theme-light .dmaic-roadmap{
     grid-template-columns:1fr;
+  }
+  .theme-light .dmaic-import-card,
+  .theme-light .dmaic-analysis-head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .theme-light .dmaic-quality-score,
+  .theme-light .dmaic-roadmap-step{
+    border-right:0;
+    border-bottom:1px solid #DDE6F1;
   }
   .theme-light .dmaic-auto-grid div{
     border-right:0;
@@ -7778,6 +8248,31 @@ export default function App() {
       }
       updateField(`dmaic.measure.data[${rowIndex}].${key}`, value);
     };
+    const importDmaicCsv = async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = buildDmaicImport(text, dmaicMeasure.labels || {}, dmaicMeasure.factors || []);
+        if (!imported.rows.length) {
+          window.alert("Le fichier ne contient pas assez de lignes exploitables.");
+          return;
+        }
+        setProjects(prev => prev.map(project => {
+          if (project._projectId !== activeProjectId) return project;
+          const next = _.cloneDeep(project);
+          _.set(next, 'dmaic.measure.labels', imported.labels);
+          _.set(next, 'dmaic.measure.factors', imported.factors);
+          _.set(next, 'dmaic.measure.data', imported.rows);
+          next.updatedAt = new Date().toISOString();
+          return next;
+        }));
+      } catch (error) {
+        console.error('Import DMAIC CSV impossible', error);
+        window.alert("Import impossible. Verifiez que le fichier est un CSV simple avec une ligne d'en-tete.");
+      }
+    };
 
     if (active === 'dmaic') {
       return (
@@ -7886,7 +8381,17 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Donnees mesurees <small>base statistique</small></h3>
-                <DmaicHint>Y est le resultat a ameliorer. X1 et X2 sont des causes possibles a tester. Exemple : Y = delai de traitement, X1 = nombre de pieces manquantes, X2 = charge de travail.</DmaicHint>
+                <DmaicHint>Y est le resultat a ameliorer. Les facteurs X sont les causes possibles a tester. Vous pouvez saisir les lignes a la main ou importer un CSV avec une ligne d'en-tete.</DmaicHint>
+                <div className="dmaic-import-card">
+                  <div>
+                    <strong>Importer une base de mesures</strong>
+                    <p>Colonnes conseillees : date, Y ou delai, groupe, puis autant de facteurs X que necessaire.</p>
+                  </div>
+                  <label className="dmaic-import-button">
+                    Importer CSV
+                    <input type="file" accept=".csv,text/csv" onChange={importDmaicCsv} />
+                  </label>
+                </div>
                 <div className="dmaic-grid">
                   <Field label="Nom de Y (resultat a ameliorer)"><input value={dmaicMeasure.labels?.y || ''} onChange={e => updateField('dmaic.measure.labels.y', e.target.value)} placeholder="Ex : Delai de traitement" /></Field>
                   <Field label="Nom du groupe / categorie"><input value={dmaicMeasure.labels?.segment || ''} onChange={e => updateField('dmaic.measure.labels.segment', e.target.value)} placeholder="Ex : Canal d'entree, equipe, site..." /></Field>
@@ -7965,7 +8470,8 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Tests statistiques <small>ANOVA / T test / Chi2</small></h3>
-                <DmaicHint>Utilisez cette zone pour documenter les tests que l'outil ne peut pas encore calculer automatiquement. Une p-value inferieure a 0,05 indique souvent un effet significatif.</DmaicHint>
+                <DmaicHint>L'outil choisit deja automatiquement le test selon le type de facteur X, le nombre de groupes et la normalite. Cette zone sert surtout a conserver une decision metier ou un test externe.</DmaicHint>
+                <DmaicFactorDecisionTable rows={dmaicMeasure.data || []} labels={dmaicMeasure.labels || {}} factors={dmaicMeasure.factors || []} />
                 <EditableTable
                   columns={[{ key: 'hypothese', label: 'Hypothese / cause testee (X influence Y ?)', type: 'textarea' }, { key: 'test', label: 'Test utilise', type: 'select', options: ['T test', 'ANOVA', 'Chi2', 'Correlation', 'Mann-Whitney', 'Kruskal-Wallis', 'Autre'] }, { key: 'pvalue', label: 'p-value (seuil 0,05)' }, { key: 'decision', label: 'Decision (effet ou non)', type: 'select', options: ['Effet significatif', 'Non significatif', 'A confirmer'] }, { key: 'commentaire', label: 'Commentaire / interpretation', type: 'textarea' }]}
                   rows={dmaicAnalyze.statTests || []}
@@ -7976,7 +8482,7 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
-                <DmaicHint>La regression cherche quels facteurs X1/X2 expliquent le resultat Y. R2 indique la part expliquee ; les p-values aident a reperer les facteurs probablement significatifs.</DmaicHint>
+                <DmaicHint>La regression cherche quels facteurs X expliquent le resultat Y. R2 indique la part expliquee ; les p-values aident a reperer les facteurs probablement significatifs.</DmaicHint>
                 <AutoRegressionPanel rows={dmaicMeasure.data || []} labels={dmaicMeasure.labels || {}} factors={dmaicMeasure.factors || []} />
                 <div className="dmaic-grid">
                   <Field label="Equation de regression (modele retenu)"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
