@@ -1633,6 +1633,22 @@ const asNumber = (value) => {
 
 const roundN = (value, digits = 2) => Number.isFinite(value) ? Math.round(value * (10 ** digits)) / (10 ** digits) : null;
 
+function erf(x) {
+  const sign = x >= 0 ? 1 : -1;
+  const ax = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * ax);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-ax * ax);
+  return sign * y;
+}
+
+function normalCdf(x) {
+  return 0.5 * (1 + erf(x / Math.sqrt(2)));
+}
+
+function twoSidedNormalP(z) {
+  return Math.max(0, Math.min(1, 2 * (1 - normalCdf(Math.abs(z)))));
+}
+
 function percentile(sortedValues, p) {
   if (!sortedValues.length) return null;
   const pos = (sortedValues.length - 1) * p;
@@ -1684,6 +1700,192 @@ function dmaicStats(rows, spec = {}) {
   const cp = (lsl !== null && usl !== null && sd > 0) ? (usl - lsl) / (6 * sd) : null;
   const cpk = (lsl !== null && usl !== null && sd > 0) ? Math.min((usl - mean) / (3 * sd), (mean - lsl) / (3 * sd)) : null;
   return { values, sorted, n, mean, sd, min, max, q1, median, q3, mr, mrbar, lsl, usl, target, cp, cpk };
+}
+
+function correlation(xs, ys) {
+  const pairs = xs.map((x, i) => [x, ys[i]]).filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+  if (pairs.length < 3) return null;
+  const xMean = pairs.reduce((s, p) => s + p[0], 0) / pairs.length;
+  const yMean = pairs.reduce((s, p) => s + p[1], 0) / pairs.length;
+  const num = pairs.reduce((s, p) => s + (p[0] - xMean) * (p[1] - yMean), 0);
+  const denX = Math.sqrt(pairs.reduce((s, p) => s + ((p[0] - xMean) ** 2), 0));
+  const denY = Math.sqrt(pairs.reduce((s, p) => s + ((p[1] - yMean) ** 2), 0));
+  if (!denX || !denY) return null;
+  const r = num / (denX * denY);
+  const t = r * Math.sqrt((pairs.length - 2) / Math.max(0.000001, 1 - r * r));
+  return { r, p: twoSidedNormalP(t), n: pairs.length };
+}
+
+function groupedValues(rows) {
+  const groups = {};
+  (rows || []).forEach(row => {
+    const y = asNumber(row.valeur);
+    const segment = String(row.segment || '').trim();
+    if (y === null || !segment) return;
+    if (!groups[segment]) groups[segment] = [];
+    groups[segment].push(y);
+  });
+  return Object.entries(groups).filter(([, values]) => values.length >= 2);
+}
+
+function autoSegmentTest(rows) {
+  const groups = groupedValues(rows);
+  if (groups.length < 2) return null;
+  const all = groups.flatMap(([, values]) => values);
+  const grandMean = all.reduce((s, v) => s + v, 0) / all.length;
+  const within = groups.reduce((s, [, values]) => {
+    const mean = values.reduce((a, v) => a + v, 0) / values.length;
+    return s + values.reduce((a, v) => a + ((v - mean) ** 2), 0);
+  }, 0);
+  const between = groups.reduce((s, [, values]) => {
+    const mean = values.reduce((a, v) => a + v, 0) / values.length;
+    return s + values.length * ((mean - grandMean) ** 2);
+  }, 0);
+  const dfBetween = groups.length - 1;
+  const dfWithin = all.length - groups.length;
+  const f = dfWithin > 0 ? (between / dfBetween) / (within / dfWithin || 0.000001) : null;
+  const pApprox = f !== null ? Math.exp(-0.5 * Math.max(0, f)) : null;
+  const label = groups.length === 2 ? 'T test automatique par segment' : 'ANOVA automatique par segment';
+  const decision = pApprox !== null && pApprox < 0.05 ? 'Effet segment significatif probable' : 'Effet segment non demontre';
+  return { label, groups: groups.length, n: all.length, statistic: f, p: pApprox, decision };
+}
+
+function invertMatrix(matrix) {
+  const n = matrix.length;
+  const aug = matrix.map((row, i) => [...row, ...Array.from({ length: n }, (_v, j) => (i === j ? 1 : 0))]);
+  for (let i = 0; i < n; i += 1) {
+    let pivot = i;
+    for (let r = i + 1; r < n; r += 1) if (Math.abs(aug[r][i]) > Math.abs(aug[pivot][i])) pivot = r;
+    if (Math.abs(aug[pivot][i]) < 1e-10) return null;
+    [aug[i], aug[pivot]] = [aug[pivot], aug[i]];
+    const div = aug[i][i];
+    for (let c = 0; c < 2 * n; c += 1) aug[i][c] /= div;
+    for (let r = 0; r < n; r += 1) {
+      if (r === i) continue;
+      const factor = aug[r][i];
+      for (let c = 0; c < 2 * n; c += 1) aug[r][c] -= factor * aug[i][c];
+    }
+  }
+  return aug.map(row => row.slice(n));
+}
+
+function automaticRegression(rows) {
+  const factorKeys = ['facteurA', 'facteurB'];
+  const validKeys = factorKeys.filter(key => (rows || []).some(row => asNumber(row[key]) !== null));
+  const points = (rows || []).map(row => {
+    const y = asNumber(row.valeur);
+    const xs = validKeys.map(key => asNumber(row[key]));
+    return { y, xs };
+  }).filter(row => row.y !== null && row.xs.every(v => v !== null));
+  const p = validKeys.length + 1;
+  if (validKeys.length === 0 || points.length <= p) return null;
+  const x = points.map(row => [1, ...row.xs]);
+  const y = points.map(row => row.y);
+  const xtx = Array.from({ length: p }, (_v, r) => Array.from({ length: p }, (_vv, c) => x.reduce((s, row) => s + row[r] * row[c], 0)));
+  const inv = invertMatrix(xtx);
+  if (!inv) return null;
+  const xty = Array.from({ length: p }, (_v, r) => x.reduce((s, row, i) => s + row[r] * y[i], 0));
+  const beta = inv.map(row => row.reduce((s, v, i) => s + v * xty[i], 0));
+  const yMean = y.reduce((s, v) => s + v, 0) / y.length;
+  const predicted = x.map(row => row.reduce((s, v, i) => s + v * beta[i], 0));
+  const sse = y.reduce((s, v, i) => s + ((v - predicted[i]) ** 2), 0);
+  const sst = y.reduce((s, v) => s + ((v - yMean) ** 2), 0);
+  const r2 = sst > 0 ? 1 - (sse / sst) : null;
+  const adjR2 = r2 !== null && y.length > p ? 1 - (1 - r2) * ((y.length - 1) / (y.length - p)) : null;
+  const mse = y.length > p ? sse / (y.length - p) : 0;
+  const coefficients = beta.map((coef, i) => {
+    const se = Math.sqrt(Math.max(0, mse * inv[i][i]));
+    const z = se > 0 ? coef / se : 0;
+    return { name: i === 0 ? 'Intercept' : validKeys[i - 1], coef, se, p: se > 0 ? twoSidedNormalP(z) : null };
+  });
+  const equation = `Y = ${roundN(beta[0], 3)}${validKeys.map((key, i) => ` ${beta[i + 1] >= 0 ? '+' : '-'} ${Math.abs(roundN(beta[i + 1], 3))}*${key}`).join('')}`;
+  return { n: y.length, factors: validKeys, beta, coefficients, r2, adjR2, equation };
+}
+
+function AutomaticDmaicInsights({ rows, spec }) {
+  const stats = dmaicStats(rows, spec);
+  const segmentTest = autoSegmentTest(rows);
+  const regression = automaticRegression(rows);
+  const corrA = correlation((rows || []).map(r => asNumber(r.facteurA)), (rows || []).map(r => asNumber(r.valeur)));
+  const corrB = correlation((rows || []).map(r => asNumber(r.facteurB)), (rows || []).map(r => asNumber(r.valeur)));
+  const stable = stats.n > 2 && stats.mrbar > 0
+    ? stats.values.every(v => v <= stats.mean + 2.66 * stats.mrbar && v >= stats.mean - 2.66 * stats.mrbar)
+    : null;
+  const capability = stats.cpk === null || stats.cpk === undefined
+    ? 'Limites LSL/USL manquantes'
+    : stats.cpk >= 2 ? 'Tres capable' : stats.cpk >= 1 ? 'Capable sous surveillance' : 'Incapable';
+  return (
+    <div className="dmaic-auto-panel">
+      <div className="dmaic-auto-head">
+        <h3>Diagnostic automatique</h3>
+        <span>calculs depuis vos mesures</span>
+      </div>
+      <div className="dmaic-auto-grid">
+        <div><span>Capabilite</span><strong>{capability}</strong><small>{stats.cpk !== null && stats.cpk !== undefined ? `Cpk ${roundN(stats.cpk, 2)} - Cp ${roundN(stats.cp, 2)}` : 'Ajoutez LSL et USL'}</small></div>
+        <div><span>Stabilite X/MR</span><strong>{stable === null ? 'A confirmer' : stable ? 'Stable' : 'Instable'}</strong><small>{stable === false ? 'Point hors limites probable' : 'Lecture automatique des limites'}</small></div>
+        <div><span>Test segment</span><strong>{segmentTest ? segmentTest.decision : 'Non disponible'}</strong><small>{segmentTest ? `p approx. ${roundN(segmentTest.p, 4)} - ${segmentTest.groups} groupes` : 'Ajoutez des segments'}</small></div>
+        <div><span>Regression</span><strong>{regression ? `R2 ${roundN(regression.r2, 2)}` : 'Non disponible'}</strong><small>{regression ? regression.equation : 'Ajoutez facteurs X1/X2 numeriques'}</small></div>
+      </div>
+      <div className="dmaic-auto-details">
+        <div className="dmaic-conclusion">
+          <strong>Lecture conseillee.</strong> {stats.cpk !== null && stats.cpk < 1 ? 'Le processus semble incapable : prioriser la reduction de variabilite et le recentrage.' : stats.cpk >= 1 ? 'Le processus semble exploitable : surveiller la stabilite et maintenir le plan de controle.' : 'Completez les specifications pour conclure sur la capabilite.'}
+          {stable === false && ' La carte X/MR suggere une cause speciale : analysez les points atypiques avant de conclure.'}
+        </div>
+        <div className="dmaic-pill-row">
+          {corrA && <span className="dmaic-pill">Correlation X1/Y : r={roundN(corrA.r, 2)} ; p={roundN(corrA.p, 4)}</span>}
+          {corrB && <span className="dmaic-pill">Correlation X2/Y : r={roundN(corrB.r, 2)} ; p={roundN(corrB.p, 4)}</span>}
+          {regression?.coefficients?.filter(c => c.name !== 'Intercept').map(c => <span className="dmaic-pill" key={c.name}>{c.name} : coef {roundN(c.coef, 3)} ; p {c.p !== null ? roundN(c.p, 4) : '-'}</span>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AutoRegressionPanel({ rows }) {
+  const regression = automaticRegression(rows);
+  const segmentTest = autoSegmentTest(rows);
+  if (!regression && !segmentTest) {
+    return <div className="dmaic-empty-chart">Ajoutez des valeurs Y et des facteurs numeriques X1/X2 dans Measure pour calculer automatiquement les p-values, R2 et equations.</div>;
+  }
+  return (
+    <div className="dmaic-auto-panel">
+      <div className="dmaic-auto-head">
+        <h3>Resultats statistiques automatiques</h3>
+        <span>analyse calculee</span>
+      </div>
+      {regression && (
+        <>
+          <div className="dmaic-auto-grid">
+            <div><span>Equation</span><strong>{regression.equation}</strong><small>{regression.n} observations utilisees</small></div>
+            <div><span>R carre</span><strong>{roundN(regression.r2, 3)}</strong><small>Part de variance expliquee</small></div>
+            <div><span>R carre ajuste</span><strong>{roundN(regression.adjR2, 3)}</strong><small>Corrige du nombre de facteurs</small></div>
+            <div><span>Conclusion</span><strong>{regression.r2 >= 0.7 ? 'Modele explicatif fort' : regression.r2 >= 0.4 ? 'Modele utile' : 'Modele faible'}</strong><small>A confirmer avec le contexte metier</small></div>
+          </div>
+          <div className="ledger-table-wrap">
+            <table className="ledger-table">
+              <thead><tr><th>Facteur</th><th>Coefficient</th><th>Erreur standard</th><th>p-value approx.</th><th>Decision</th></tr></thead>
+              <tbody>
+                {regression.coefficients.map(c => (
+                  <tr key={c.name}>
+                    <td>{c.name}</td>
+                    <td>{roundN(c.coef, 4)}</td>
+                    <td>{roundN(c.se, 4)}</td>
+                    <td>{c.p !== null ? roundN(c.p, 4) : '-'}</td>
+                    <td>{c.name === 'Intercept' ? '-' : c.p !== null && c.p < 0.05 ? 'Effet significatif probable' : 'Effet non demontre'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+      {segmentTest && (
+        <div className="dmaic-conclusion">
+          <strong>{segmentTest.label}.</strong> {segmentTest.decision} ; p-value approx. {roundN(segmentTest.p, 4)} sur {segmentTest.groups} groupes et {segmentTest.n} mesures.
+        </div>
+      )}
+    </div>
+  );
 }
 
 function HistogramChart({ stats }) {
@@ -1830,6 +2032,7 @@ function DmaicStatsPanel({ rows, spec }) {
         <div className="dmaic-stat"><span>Cpk</span><strong>{stats.cpk !== null && stats.cpk !== undefined ? roundN(stats.cpk, 2) : '-'}</strong></div>
       </div>
       <CapabilitySummary stats={stats} />
+      <AutomaticDmaicInsights rows={rows} spec={spec} />
       <div className="dmaic-chart-grid">
         <div className="dmaic-chart-card"><h4>Histogramme</h4><HistogramChart stats={stats} /></div>
         <div className="dmaic-chart-card"><h4>Boite a moustaches</h4><BoxPlot stats={stats} /></div>
@@ -4735,6 +4938,71 @@ const CSS = `
   font-size:13px;
   font-weight:700;
 }
+.theme-light .dmaic-auto-panel{
+  margin:14px 0;
+  border:1px solid #C9D8EC;
+  background:#FFFFFF;
+}
+.theme-light .dmaic-auto-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid #DDE6F1;
+  background:#F2F7FC;
+}
+.theme-light .dmaic-auto-head h3{
+  margin:0;
+  color:#102033;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:20px;
+  font-weight:500;
+}
+.theme-light .dmaic-auto-head span{
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-auto-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  border-bottom:1px solid #DDE6F1;
+}
+.theme-light .dmaic-auto-grid div{
+  padding:12px 14px;
+  border-right:1px solid #DDE6F1;
+}
+.theme-light .dmaic-auto-grid div:last-child{
+  border-right:0;
+}
+.theme-light .dmaic-auto-grid span{
+  display:block;
+  color:#536983;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .dmaic-auto-grid strong{
+  display:block;
+  margin-top:7px;
+  color:#102033;
+  font-size:18px;
+  line-height:1.2;
+}
+.theme-light .dmaic-auto-grid small{
+  display:block;
+  margin-top:6px;
+  color:#667891;
+  font-size:12px;
+  line-height:1.35;
+}
+.theme-light .dmaic-auto-details{
+  padding:12px 14px 14px;
+}
 @media (max-width: 760px){
   .theme-light .dmaic-grid{
     grid-template-columns:1fr;
@@ -4742,8 +5010,13 @@ const CSS = `
   .theme-light .dmaic-summary,
   .theme-light .dmaic-stats-grid,
   .theme-light .dmaic-chart-grid,
-  .theme-light .dmaic-tool-columns{
+  .theme-light .dmaic-tool-columns,
+  .theme-light .dmaic-auto-grid{
     grid-template-columns:1fr;
+  }
+  .theme-light .dmaic-auto-grid div{
+    border-right:0;
+    border-bottom:1px solid #DDE6F1;
   }
 }
 .theme-light .bpmn-workbench{
@@ -7203,6 +7476,7 @@ export default function App() {
               </div>
               <div className="dmaic-tool-block">
                 <h3 className="dmaic-tool-title">Regression lineaire multiple <small>facteurs X vers Y</small></h3>
+                <AutoRegressionPanel rows={dmaicMeasure.data || []} />
                 <div className="dmaic-grid">
                   <Field label="Equation de regression"><textarea rows={3} value={dmaicAnalyze.regression?.equation || ''} onChange={e => updateField('dmaic.analyze.regression.equation', e.target.value)} placeholder="Y = b0 + b1X1 + b2X2 + ..." /></Field>
                   <Field label="R carre / R carre ajuste"><input value={dmaicAnalyze.regression?.r2 || ''} onChange={e => updateField('dmaic.analyze.regression.r2', e.target.value)} placeholder="Ex : R2 = 0,72 ; R2 ajuste = 0,68" /></Field>
