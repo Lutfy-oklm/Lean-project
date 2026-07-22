@@ -1110,6 +1110,8 @@ function insuranceClaimsData() {
 }
 
 function dmaicComplaintData() {
+  const completenessFactorId = uid();
+  const complexityFactorId = uid();
   const measuredData = [
     { date: '1', valeur: 21, segment: 'Agence', facteurA: 4, facteurB: 3, commentaire: 'Dossier incomplet, avis metier tardif' },
     { date: '2', valeur: 18, segment: 'Digital', facteurA: 3, facteurB: 2, commentaire: 'Pieces client manquantes' },
@@ -1131,7 +1133,14 @@ function dmaicComplaintData() {
     { date: '18', valeur: 12, segment: 'Digital', facteurA: 1, facteurB: 1, commentaire: 'Parcours complet' },
     { date: '19', valeur: 18, segment: 'CRC', facteurA: 3, facteurB: 2, commentaire: 'Attente historique compte' },
     { date: '20', valeur: 21, segment: 'Agence', facteurA: 4, facteurB: 3, commentaire: 'Motif mal code' },
-  ].map(row => ({ _id: uid(), ...row }));
+  ].map(row => ({
+    _id: uid(),
+    ...row,
+    factorValues: {
+      [completenessFactorId]: row.facteurA,
+      [complexityFactorId]: row.facteurB,
+    },
+  }));
 
   return {
     ...blankData(),
@@ -1225,13 +1234,16 @@ function dmaicComplaintData() {
         baseline: 'Periode observee : 20 dossiers representatifs sur 4 semaines. Moyenne = 17,95 jours ouvres, ecart type eleve, plusieurs dossiers au-dessus de 20 jours. La cible operationnelle est 8 jours, limite haute acceptable 10 jours.',
         labels: {
           y: 'Delai de traitement reclamation',
+          unit: 'jours ouvres',
+          direction: 'Reduire',
+          objective: 'Passer de 18 jours ouvres a 8 jours ouvres en securisant la qualite de reponse.',
           segment: 'Canal d entree',
           x1: 'Score de completude initiale',
           x2: 'Score complexite / escalade',
         },
         factors: [
-          { _id: uid(), name: 'Score de completude initiale', type: 'Numerique', description: 'Score 1 a 5 : plus le score est eleve, plus le dossier est incomplet.' },
-          { _id: uid(), name: 'Score complexite / escalade', type: 'Numerique', description: 'Score 1 a 5 : avis metier, conformite ou multi-produit.' },
+          { _id: completenessFactorId, name: 'Score de completude initiale', type: 'Numerique', description: 'Score 1 a 5 : plus le score est eleve, plus le dossier est incomplet.' },
+          { _id: complexityFactorId, name: 'Score complexite / escalade', type: 'Numerique', description: 'Score 1 a 5 : avis metier, conformite ou multi-produit.' },
         ],
         kpis: [
           { _id: uid(), nom: 'Delai de traitement reclamation', definition: 'Nombre de jours ouvres entre reception et reponse finale', baseline: '18 jours', cible: '8 jours', source: 'CRM Reclamations' },
