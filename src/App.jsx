@@ -1610,6 +1610,89 @@ function AmdecTable({ rows, addRow, removeRow, updateField }) {
   );
 }
 
+function formatVsmMinutes(value) {
+  const minutes = Number(value) || 0;
+  if (minutes >= 1440) return `${Math.round((minutes / 1440) * 10) / 10} j`;
+  if (minutes >= 60) return `${Math.round((minutes / 60) * 10) / 10} h`;
+  return `${minutes} min`;
+}
+
+function VsmGraphic({ rows }) {
+  const items = (rows || [])
+    .map((row, index) => ({
+      id: row._id || index,
+      etape: row.etape || `Etape ${index + 1}`,
+      traitement: Number(row.tempsTraitement) || 0,
+      attente: Number(row.tempsAttente) || 0,
+    }))
+    .filter(row => row.etape || row.traitement || row.attente);
+  if (items.length === 0) {
+    return <div className="empty-hint">Ajoutez des etapes VSM pour generer automatiquement le graphique du flux.</div>;
+  }
+
+  const totalTraitement = items.reduce((sum, row) => sum + row.traitement, 0);
+  const totalAttente = items.reduce((sum, row) => sum + row.attente, 0);
+  const leadTime = totalTraitement + totalAttente;
+  const maxTraitement = Math.max(...items.map(row => row.traitement), 1);
+  const maxAttente = Math.max(...items.map(row => row.attente), 1);
+
+  return (
+    <div className="vsm-graphic" aria-label="Graphique VSM genere automatiquement">
+      <div className="vsm-graphic-head">
+        <div>
+          <span>Flux AS-IS</span>
+          <strong>{items.length} etapes</strong>
+        </div>
+        <div>
+          <span>Lead time</span>
+          <strong>{formatVsmMinutes(leadTime)}</strong>
+        </div>
+        <div>
+          <span>Ratio VA</span>
+          <strong>{leadTime > 0 ? `${Math.round((totalTraitement / leadTime) * 1000) / 10}%` : '0%'}</strong>
+        </div>
+      </div>
+      <div className="vsm-flow">
+        {items.map((item, index) => (
+          <div className="vsm-flow-item" key={item.id}>
+            <div className="vsm-process-card">
+              <span className="vsm-step-index">{String(index + 1).padStart(2, '0')}</span>
+              <strong>{item.etape}</strong>
+              <div className="vsm-bar-label">
+                <span>Traitement</span>
+                <b>{formatVsmMinutes(item.traitement)}</b>
+              </div>
+              <div className="vsm-mini-bar">
+                <i style={{ width: `${Math.max(8, (item.traitement / maxTraitement) * 100)}%` }} />
+              </div>
+            </div>
+            {index < items.length - 1 && (
+              <div className="vsm-wait-link">
+                <span className="vsm-arrow" />
+                <span className="vsm-wait-badge">
+                  <small>Attente</small>
+                  <b>{formatVsmMinutes(item.attente)}</b>
+                  <i style={{ width: `${Math.max(10, (item.attente / maxAttente) * 100)}%` }} />
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="vsm-timeline">
+        <div style={{ flex: Math.max(totalTraitement, 1) }}>
+          <span>Temps de traitement</span>
+          <strong>{formatVsmMinutes(totalTraitement)}</strong>
+        </div>
+        <div style={{ flex: Math.max(totalAttente, 1) }}>
+          <span>Temps d'attente</span>
+          <strong>{formatVsmMinutes(totalAttente)}</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ParetoChart({ rows }) {
   const sorted = [...rows].filter(r => r.cause).sort((a, b) => (Number(b.occurrences) || 0) - (Number(a.occurrences) || 0));
   const total = sorted.reduce((s, r) => s + (Number(r.occurrences) || 0), 0) || 1;
@@ -1847,6 +1930,31 @@ const CSS = `
 .vsm-summary div{ background:var(--paper-2); border:1px solid var(--line); padding:10px 12px; }
 .vsm-summary span{ display:block; font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
 .vsm-summary strong{ font-family:var(--font-display); font-size:19px; }
+.vsm-graphic{ margin-top:18px; border:1px solid var(--line); background:#FFFFFF; border-top:4px solid var(--teal); padding:18px; overflow:hidden; }
+.vsm-graphic-head{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+.vsm-graphic-head div{ border:1px solid var(--line); background:#F8FAFC; padding:10px 12px; }
+.vsm-graphic-head span,.vsm-bar-label span,.vsm-wait-badge small,.vsm-timeline span{ display:block; font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:.055em; color:var(--ink-soft); }
+.vsm-graphic-head strong{ display:block; margin-top:4px; font-family:var(--font-display); font-size:20px; color:var(--ink); }
+.vsm-flow{ display:flex; align-items:stretch; gap:0; overflow-x:auto; padding:6px 0 14px; }
+.vsm-flow-item{ display:flex; align-items:center; flex:0 0 auto; min-width:260px; }
+.vsm-process-card{ width:210px; min-height:142px; border:1px solid #B9C5D4; background:#FBF8F0; padding:12px; display:flex; flex-direction:column; justify-content:space-between; }
+.vsm-step-index{ width:max-content; min-width:30px; border-left:3px solid var(--teal); padding-left:7px; font-family:var(--font-mono); font-size:10px; font-weight:800; color:var(--teal); }
+.vsm-process-card strong{ display:block; margin:8px 0 14px; font-family:var(--font-display); font-size:19px; line-height:1.08; color:var(--ink); }
+.vsm-bar-label{ display:flex; justify-content:space-between; gap:8px; align-items:end; }
+.vsm-bar-label b{ font-size:13px; color:var(--ink); }
+.vsm-mini-bar{ height:7px; background:#E4DED1; margin-top:7px; overflow:hidden; }
+.vsm-mini-bar i{ display:block; height:100%; background:var(--teal); }
+.vsm-wait-link{ width:120px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0 0 120px; }
+.vsm-arrow{ position:relative; display:block; width:100%; height:2px; background:var(--ink); }
+.vsm-arrow::after{ content:''; position:absolute; right:0; top:50%; width:9px; height:9px; border-right:2px solid var(--ink); border-top:2px solid var(--ink); transform:translateY(-50%) rotate(45deg); }
+.vsm-wait-badge{ width:92px; border:1px solid #D8D0C2; background:#FFFDF8; margin-top:10px; padding:8px 9px; }
+.vsm-wait-badge b{ display:block; margin-top:2px; font-size:13px; color:#A15E12; }
+.vsm-wait-badge i{ display:block; height:4px; background:#C98224; margin-top:6px; }
+.vsm-timeline{ display:flex; height:50px; border:1px solid var(--line); overflow:hidden; }
+.vsm-timeline div{ min-width:120px; padding:8px 12px; }
+.vsm-timeline div:first-child{ background:#EAF3F0; border-right:1px solid var(--line); }
+.vsm-timeline div:last-child{ background:#FFF4E3; }
+.vsm-timeline strong{ display:block; margin-top:2px; color:var(--ink); }
 
 .quadrant-labels{ position:absolute; inset:0; pointer-events:none; }
 .q-label{ position:absolute; font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; color:var(--ink-soft); text-transform:uppercase; }
@@ -6912,6 +7020,7 @@ export default function App() {
             onRemove={i => removeRow('step3.vsm', i)}
             onChange={(i, k, v) => updateField(`step3.vsm[${i}].${k}`, v)}
             addLabel="Ajouter une étape VSM" />
+          <VsmGraphic rows={data.step3.vsm} />
           <div className="vsm-summary">
             <div><span>Temps de traitement total</span><strong>{totalTrait} min</strong></div>
             <div><span>Temps d'attente total</span><strong>{totalAttente} min</strong></div>
