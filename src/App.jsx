@@ -6704,10 +6704,20 @@ export default function App() {
       navigate('auth', null, true);
       return;
     }
+    const existingProject = projects.find(project =>
+      project._templateKey === 'bank-complaints-example'
+      || project.projectName === 'Projet exemple bancaire - réclamations clients'
+      || project.projectName === 'Projet exemple bancaire - rÃ©clamations clients'
+    );
+    if (existingProject) {
+      openProject(existingProject._projectId);
+      return;
+    }
     const project = {
       ...bankComplaintData(),
       projectName: 'Projet exemple bancaire - réclamations clients',
       _projectId: uid(),
+      _templateKey: 'bank-complaints-example',
       updatedAt: new Date().toISOString(),
     };
     project.step1.charte.titre = project.projectName;
