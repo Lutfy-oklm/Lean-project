@@ -21,7 +21,15 @@ const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _t
 const createIndustrialExample = () => ({ ...industrialAircraftData(), _projectId: uid(), _templateKey: 'industrial-aircraft-turnaround-example', updatedAt: new Date().toISOString() });
 const createInsuranceExample = () => ({ ...insuranceClaimsData(), _projectId: uid(), _templateKey: 'insurance-home-claims-example', updatedAt: new Date().toISOString() });
 const projectProgress = (project) => Object.values(project.validated || {}).filter(Boolean).length;
-const localProjectsKey = (session) => session?.user?.id ? `pilotprocess-projects-${session.user.id}` : 'lean-projects-data';
+const clearBrowserProjectStorage = () => {
+  try {
+    Object.keys(window.localStorage)
+      .filter(key => key === 'lean-projects-data' || key === 'lean-projet-data' || key.startsWith('pilotprocess-projects-'))
+      .forEach(key => window.localStorage.removeItem(key));
+  } catch {
+    // Le stockage navigateur peut être indisponible selon les réglages du navigateur.
+  }
+};
 const EXAMPLE_TEMPLATE_KEYS = new Set([
   'bank-complaints-example',
   'industrial-aircraft-turnaround-example',
@@ -6293,39 +6301,24 @@ export default function App() {
     if (!authReady) return;
     (async () => {
       setLoaded(false);
-      let localProjects = [];
       deletedProjectIdsRef.current = new Set();
-      const storageKey = localProjectsKey(authSession);
-      try {
-        const savedProjects = window.localStorage.getItem(storageKey);
-        if (savedProjects) {
-          const parsed = JSON.parse(savedProjects);
-          const parsedProjects = Array.isArray(parsed) ? parsed : [createProject()];
-          localProjects = ensureExampleProjects(parsedProjects);
-        } else if (!authSession) {
-          const legacy = window.localStorage.getItem('lean-projet-data');
-          localProjects = ensureExampleProjects([createBlankProject(legacy ? JSON.parse(legacy) : undefined)]);
-        }
-      } catch (e) { /* pas de projet sauvegarde */ }
+      clearBrowserProjectStorage();
 
       try {
-        const cloudProjects = await loadProjectsFromSupabase(authSession);
+        const cloudProjects = authSession ? await loadProjectsFromSupabase(authSession) : [];
         if (authSession && cloudProjects?.length) {
           cloudProjects.filter(isExampleProject).forEach(project => deletedProjectIdsRef.current.add(project._projectId));
         }
-        const nextProjects = cloudProjects?.length
-          ? ensureExampleProjects(cloudProjects)
-          : (authSession ? [] : localProjects);
+        const nextProjects = authSession ? ensureExampleProjects(cloudProjects || []) : [];
         knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
         setProjects(nextProjects);
-        setStorageMode(isSupabaseConfigured() && authSession ? 'cloud' : 'local');
+        setStorageMode('cloud');
         setSyncError('');
       } catch (error) {
-        console.warn('Supabase indisponible, stockage local utilise', error);
-        const nextProjects = localProjects.length ? localProjects : [];
-        knownProjectIdsRef.current = new Set(nextProjects.map(project => project._projectId));
-        setProjects(nextProjects);
-        setStorageMode('local');
+        console.warn('Supabase indisponible', error);
+        knownProjectIdsRef.current = new Set();
+        setProjects([]);
+        setStorageMode('cloud');
         setSyncError('Supabase indisponible');
       }
       setLoaded(true);
@@ -6334,9 +6327,9 @@ export default function App() {
 
   useEffect(() => {
     if (!loaded) return;
+    if (!authSession) return;
     const t = setTimeout(async () => {
       try {
-        window.localStorage.setItem(localProjectsKey(authSession), JSON.stringify(projects));
         if (isSupabaseConfigured() && authSession) {
           const currentIds = new Set(projects.map(project => project._projectId));
           const deletedIds = [
@@ -6351,12 +6344,13 @@ export default function App() {
           setStorageMode('cloud');
           setSyncError('');
         } else {
-          setStorageMode('local');
+          setStorageMode('cloud');
+          setSyncError('Supabase non configure');
         }
         setSavedAt(new Date());
       } catch (e) {
         console.error('Erreur de sauvegarde', e);
-        setStorageMode('local');
+        setStorageMode('cloud');
         setSyncError('Sauvegarde cloud impossible');
       }
     }, 600);
@@ -6445,7 +6439,6 @@ export default function App() {
     const nextProjects = projects.filter(item => item._projectId !== deletedId);
     deletedProjectIdsRef.current.add(deletedId);
     setProjects(nextProjects);
-    window.localStorage.setItem(localProjectsKey(authSession), JSON.stringify(nextProjects));
     if (isSupabaseConfigured() && authSession) {
       saveProjectsToSupabase(nextProjects, [deletedId], authSession)
         .then(() => {
