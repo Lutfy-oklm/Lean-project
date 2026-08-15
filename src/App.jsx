@@ -35,6 +35,65 @@ const readAttachmentFile = (file) => new Promise((resolve, reject) => {
   reader.onerror = reject;
   reader.readAsDataURL(file);
 });
+const createTextAttachment = (name, content, type = 'text/plain;charset=utf-8') => {
+  const bytes = new TextEncoder().encode(content);
+  let binary = '';
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return {
+    _id: uid(),
+    name,
+    type,
+    size: bytes.length,
+    dataUrl: `data:${type};base64,${btoa(binary)}`,
+    addedAt: new Date().toISOString(),
+  };
+};
+const bankingComplaintAttachments = () => [
+  createTextAttachment(
+    'plan-collecte-reclamations-clients.csv',
+    [
+      'Indicateur;Definition;Source;Frequence;Responsable',
+      'Delai de traitement;Nombre de jours ouvres entre reception et reponse finale;CRM reclamations;Hebdomadaire;Responsable Reclamations',
+      'Taux de dossiers complets;Part des reclamations avec motif, pieces et client identifies des la saisie;CRM et controle qualite;Hebdomadaire;Referent CRC',
+      'Relances internes;Nombre de demandes de complements adressees aux agences ou experts;CRM et email;Mensuel;Process owner',
+      'Taux de reponse reglementaire;Part des dossiers repondus dans le delai applicable;CRM et conformite;Mensuel;Conformite',
+    ].join('\n'),
+    'text/csv;charset=utf-8'
+  ),
+  createTextAttachment(
+    'check-list-qualification-reclamation.txt',
+    [
+      'Check-list de qualification - reclamation client',
+      '',
+      '1. Identifier le canal d entree : agence, telephone, email, espace client.',
+      '2. Selectionner un motif normalise : frais, carte, virement, digital, qualite de service.',
+      '3. Verifier les pieces obligatoires selon le motif.',
+      '4. Identifier si le dossier est sensible : risque conformite, client vulnerable, reclamation repetee.',
+      '5. Orienter le dossier vers le bon acteur : reclamations, expert metier, conformite.',
+      '6. Informer le client du delai cible et du canal de suivi.',
+    ].join('\n')
+  ),
+  createTextAttachment(
+    'compte-rendu-observation-terrain.txt',
+    [
+      'Compte rendu observation terrain - processus reclamations clients',
+      '',
+      'Periode observee : 20/01/2027 au 24/01/2027',
+      'Sites observes : centre relation client, service reclamations, agence pilote',
+      '',
+      'Constats principaux :',
+      '- Les motifs CRM sont interpretes differemment selon les conseillers.',
+      '- Les dossiers incomplets generent des relances internes et allongent fortement le delai.',
+      '- Les dossiers sensibles ne sont pas toujours identifies assez tot.',
+      '- Les clients manquent de visibilite entre l accuse de reception et la reponse finale.',
+      '',
+      'Recommandations :',
+      '- Mettre en place une saisie guidee par motif.',
+      '- Installer une check-list de completude obligatoire.',
+      '- Router automatiquement les dossiers sensibles vers conformite ou expert metier.',
+    ].join('\n')
+  ),
+];
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
@@ -495,6 +554,7 @@ function bankComplaintData() {
   return {
     projectName: 'Optimisation du traitement des réclamations clients',
     validated: { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true },
+    attachments: bankingComplaintAttachments(),
     step0: {
       note: "Le processus de traitement des réclamations clients présente des délais élevés, des relances fréquentes et une visibilité limitée pour les agences comme pour les clients. Le projet couvre les réclamations banque de détail reçues par agence, centre de relation client et canal digital, depuis l'enregistrement jusqu'à la réponse finale.",
       planning: [
@@ -546,11 +606,11 @@ function bankComplaintData() {
     },
     step2: {
       questions: [
-        { _id: uid(), question: 'Comment une réclamation est-elle enregistrée selon le canal d’entrée ?' },
-        { _id: uid(), question: 'Quels motifs sont les plus difficiles à qualifier ?' },
-        { _id: uid(), question: 'À quel moment les pièces manquantes sont-elles détectées ?' },
-        { _id: uid(), question: 'Quels dossiers nécessitent un avis conformité ou expert métier ?' },
-        { _id: uid(), question: 'Comment le client est-il informé de l’avancement ?' },
+        { _id: uid(), question: 'Comment une réclamation est-elle enregistrée selon le canal d’entrée ?', answer: 'Les réclamations arrivent par agence, centre de relation client, email et espace client. La saisie CRM est réalisée par le premier point de contact, mais le niveau de détail dépend fortement du canal.' },
+        { _id: uid(), question: 'Quels motifs sont les plus difficiles à qualifier ?', answer: 'Les motifs liés aux frais, aux opérations cartes, aux incidents digitaux et aux virements contestés sont les plus difficiles à qualifier car ils nécessitent souvent un historique complet et un avis métier.' },
+        { _id: uid(), question: 'À quel moment les pièces manquantes sont-elles détectées ?', answer: 'Les pièces manquantes sont souvent détectées trop tard, lors de l’analyse par le service réclamations, après plusieurs jours d’attente. Un contrôle de complétude à l’entrée est nécessaire.' },
+        { _id: uid(), question: 'Quels dossiers nécessitent un avis conformité ou expert métier ?', answer: 'Les dossiers avec risque réglementaire, client vulnérable, geste commercial important ou réponse contestable doivent être orientés vers la conformité ou un expert métier.' },
+        { _id: uid(), question: 'Comment le client est-il informé de l’avancement ?', answer: 'Le client reçoit généralement un accusé de réception, mais peu d’informations intermédiaires. Un statut automatisé à chaque jalon réduirait les relances.' },
       ],
       journal: [
         { _id: uid(), date: '20/01/2027', lieu: 'Centre relation client', observateur: 'Équipe processus', type: 'Irritant', constat: 'Les motifs CRM sont trop nombreux et interprétés différemment selon les conseillers.' },
