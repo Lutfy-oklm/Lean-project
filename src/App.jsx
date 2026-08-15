@@ -11,10 +11,30 @@ import {
 import {
   ArrowLeft, BarChart3, BriefcaseBusiness, ChevronRight, ChevronLeft, ClipboardList, Download,
   Eye, FolderKanban, Gauge, GitBranch, LayoutGrid, List, Map, PanelLeftClose, PanelLeftOpen,
-  LogOut, PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
+  FileText, LogOut, Paperclip, PencilRuler, Plus, Rocket, RotateCcw, Rows3, Search, Target, Trash2
 } from 'lucide-react';
 
 const uid = () => 'r' + Math.random().toString(36).slice(2, 9);
+const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+const MAX_PROJECT_ATTACHMENTS_BYTES = 8 * 1024 * 1024;
+const formatFileSize = (bytes = 0) => {
+  if (bytes >= 1024 * 1024) return `${Math.round((bytes / 1024 / 1024) * 10) / 10} Mo`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} Ko`;
+  return `${bytes} o`;
+};
+const readAttachmentFile = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve({
+    _id: uid(),
+    name: file.name,
+    type: file.type || 'application/octet-stream',
+    size: file.size,
+    dataUrl: reader.result,
+    addedAt: new Date().toISOString(),
+  });
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
 const createProject = (seed) => ({ ...defaultData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBlankProject = (seed) => ({ ...blankData(), ...(seed || {}), _projectId: seed?._projectId || uid(), updatedAt: new Date().toISOString() });
 const createBankExample = () => ({ ...bankComplaintData(), _projectId: uid(), _templateKey: 'bank-complaints-example', updatedAt: new Date().toISOString() });
@@ -5412,6 +5432,125 @@ const CSS = `
   }
 }
 
+.attachment-input{
+  display:none;
+}
+.attachments-panel{
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.04);
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.attachments-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.attachments-title span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#E5E7EB;
+  font-size:12px;
+  font-weight:800;
+}
+.attachments-title button{
+  border:1px dashed rgba(255,255,255,.32);
+  background:rgba(255,255,255,.06);
+  color:#E5E7EB;
+  font-size:10.5px;
+  font-weight:800;
+  padding:5px 8px;
+}
+.attachments-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.attachment-item{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 26px;
+  align-items:center;
+  gap:6px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+}
+.attachment-item a{
+  min-width:0;
+  display:grid;
+  grid-template-columns:14px minmax(0,1fr) auto;
+  align-items:center;
+  gap:6px;
+  color:#E5E7EB;
+  text-decoration:none;
+  padding:7px 8px;
+}
+.attachment-item span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+}
+.attachment-item small{
+  color:#9CA3AF;
+  font-size:9.5px;
+  white-space:nowrap;
+}
+.attachment-item button{
+  width:26px;
+  height:26px;
+  border:0;
+  background:transparent;
+  color:#CBD5E1;
+  display:grid;
+  place-items:center;
+}
+.attachment-item button:hover{
+  color:#FCA5A5;
+}
+.attachments-empty{
+  color:#9CA3AF;
+  font-size:11px;
+  border:1px dashed rgba(255,255,255,.18);
+  padding:8px;
+}
+.theme-light .attachments-panel{
+  border-color:#CBD5E1;
+  background:#F8FAFC;
+}
+.theme-light .attachments-title span{
+  color:#10233F;
+}
+.theme-light .attachments-title button{
+  border-color:#2F6F63;
+  background:#EEF8F5;
+  color:#2F6F63;
+}
+.theme-light .attachment-item{
+  border-color:#D8E0EA;
+  background:#fff;
+}
+.theme-light .attachment-item a{
+  color:#10233F;
+}
+.theme-light .attachment-item small,
+.theme-light .attachments-empty{
+  color:#64748B;
+}
+.theme-light .attachment-item button{
+  color:#475569;
+}
+.theme-light .attachment-item button:hover{
+  color:#A23B2E;
+}
+.theme-light .attachments-empty{
+  border-color:#D8E0EA;
+  background:#fff;
+}
+
 @media (max-width: 390px){
   .theme-light .step-item,
   .theme-light.sidebar-collapsed .step-item{
@@ -5904,6 +6043,11 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
     ['Debut projet', projectStart],
     ['Fin cible', projectEnd],
   ]);
+  table('Fichiers lies au projet', [
+    { key: 'name', label: 'Nom du fichier', width: 0.5 },
+    { key: 'type', label: 'Type' },
+    { key: 'size', label: 'Taille', render: row => formatFileSize(row.size) },
+  ], data.attachments);
 
   executiveField('Contexte et probleme traite', charte.probleme || data.step0?.note);
   executiveField('Objectifs attendus', charte.objectifs);
@@ -6190,6 +6334,7 @@ export default function App() {
   const [authMessage, setAuthMessage] = useState('');
   const knownProjectIdsRef = useRef(new Set());
   const deletedProjectIdsRef = useRef(new Set());
+  const attachmentInputRef = useRef(null);
   const data = projects.find(p => p._projectId === activeProjectId) || projects[0] || createBlankProject();
 
   useEffect(() => {
@@ -6399,6 +6544,40 @@ export default function App() {
     if (window.confirm('Réinitialiser toutes les données du projet ? Cette action est irréversible.')) {
       setProjects(prev => prev.map(project => project._projectId === activeProjectId ? createBlankProject({ _projectId: activeProjectId }) : project));
     }
+  };
+  const addAttachments = async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+
+    const existing = data.attachments || [];
+    let totalSize = existing.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    const accepted = [];
+    const rejected = [];
+
+    for (const file of files) {
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        rejected.push(`${file.name} (${formatFileSize(file.size)})`);
+        continue;
+      }
+      if (totalSize + file.size > MAX_PROJECT_ATTACHMENTS_BYTES) {
+        rejected.push(`${file.name} (limite totale atteinte)`);
+        continue;
+      }
+      const attachment = await readAttachmentFile(file);
+      accepted.push(attachment);
+      totalSize += file.size;
+    }
+
+    if (accepted.length) {
+      updateField('attachments', [...existing, ...accepted]);
+    }
+    if (rejected.length) {
+      window.alert(`Fichier(s) non ajoute(s) :\n${rejected.join('\n')}\n\nLimite : 2 Mo par fichier, 8 Mo par projet.`);
+    }
+  };
+  const removeAttachment = (attachmentId) => {
+    updateField('attachments', (data.attachments || []).filter(file => file._id !== attachmentId));
   };
   const exportPdf = async () => {
     try {
@@ -7064,6 +7243,31 @@ export default function App() {
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
           <div className="pdf-hint">Génère un dossier projet structuré, prêt à partager.</div>
+          <div className="attachments-panel">
+            <div className="attachments-title">
+              <span><Paperclip size={14} /> Fichiers liés</span>
+              <button type="button" onClick={() => attachmentInputRef.current?.click()}>Ajouter</button>
+            </div>
+            <input ref={attachmentInputRef} className="attachment-input" type="file" multiple onChange={addAttachments} />
+            {(data.attachments || []).length > 0 ? (
+              <div className="attachments-list">
+                {(data.attachments || []).map(file => (
+                  <div className="attachment-item" key={file._id}>
+                    <a href={file.dataUrl} download={file.name} title={file.name}>
+                      <FileText size={13} />
+                      <span>{file.name}</span>
+                      <small>{formatFileSize(file.size)}</small>
+                    </a>
+                    <button type="button" onClick={() => removeAttachment(file._id)} title="Retirer le fichier">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="attachments-empty">Aucun fichier lié.</div>
+            )}
+          </div>
           {logoutButton('sidebar')}
           <button className="ghost-btn danger" onClick={resetAll}><RotateCcw size={14} /> Réinitialiser</button>
           <div className="save-indicator">
