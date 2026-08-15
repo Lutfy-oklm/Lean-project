@@ -5436,12 +5436,21 @@ const CSS = `
   display:none;
 }
 .attachments-panel{
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.035));
   padding:10px;
   display:flex;
   flex-direction:column;
   gap:8px;
+}
+.steps-nav > .attachments-panel{
+  margin:10px 14px 14px;
+  border-radius:0;
+  box-shadow:inset 3px 0 0 rgba(47,111,99,.9);
+}
+.sidebar-foot .attachments-panel,
+.sidebar-collapsed .attachments-panel{
+  display:none;
 }
 .attachments-title{
   display:flex;
@@ -5454,16 +5463,22 @@ const CSS = `
   align-items:center;
   gap:6px;
   color:#E5E7EB;
-  font-size:12px;
+  font-size:11.5px;
   font-weight:800;
+  letter-spacing:.02em;
 }
 .attachments-title button{
-  border:1px dashed rgba(255,255,255,.32);
-  background:rgba(255,255,255,.06);
-  color:#E5E7EB;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);
+  color:#F8FAFC;
   font-size:10.5px;
   font-weight:800;
-  padding:5px 8px;
+  padding:5px 9px;
+  min-height:26px;
+}
+.attachments-title button:hover{
+  background:rgba(47,111,99,.22);
+  border-color:rgba(47,111,99,.65);
 }
 .attachments-list{
   display:flex;
@@ -5475,8 +5490,8 @@ const CSS = `
   grid-template-columns:minmax(0,1fr) 26px;
   align-items:center;
   gap:6px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(3,7,18,.18);
 }
 .attachment-item a{
   min-width:0;
@@ -5486,7 +5501,7 @@ const CSS = `
   gap:6px;
   color:#E5E7EB;
   text-decoration:none;
-  padding:7px 8px;
+  padding:8px;
 }
 .attachment-item span{
   overflow:hidden;
@@ -5515,23 +5530,31 @@ const CSS = `
   color:#9CA3AF;
   font-size:11px;
   border:1px dashed rgba(255,255,255,.18);
-  padding:8px;
+  padding:9px;
+  background:rgba(255,255,255,.025);
 }
 .theme-light .attachments-panel{
-  border-color:#CBD5E1;
-  background:#F8FAFC;
+  border-color:#BFD4E7;
+  background:linear-gradient(180deg,#F8FBFF,#F3F8F6);
+}
+.theme-light .steps-nav > .attachments-panel{
+  box-shadow:inset 3px 0 0 #2F6F63;
 }
 .theme-light .attachments-title span{
   color:#10233F;
 }
 .theme-light .attachments-title button{
   border-color:#2F6F63;
-  background:#EEF8F5;
+  background:#F3FAF7;
   color:#2F6F63;
 }
+.theme-light .attachments-title button:hover{
+  background:#E4F4EF;
+  border-color:#245E54;
+}
 .theme-light .attachment-item{
-  border-color:#D8E0EA;
-  background:#fff;
+  border-color:#D8E4EE;
+  background:#FFFFFF;
 }
 .theme-light .attachment-item a{
   color:#10233F;
@@ -7239,6 +7262,31 @@ export default function App() {
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
+          <div className="attachments-panel">
+            <div className="attachments-title">
+              <span><Paperclip size={14} /> Fichiers liés</span>
+              <button type="button" onClick={() => attachmentInputRef.current?.click()}>Ajouter</button>
+            </div>
+            <input ref={attachmentInputRef} className="attachment-input" type="file" multiple onChange={addAttachments} />
+            {(data.attachments || []).length > 0 ? (
+              <div className="attachments-list">
+                {(data.attachments || []).map(file => (
+                  <div className="attachment-item" key={file._id}>
+                    <a href={file.dataUrl} download={file.name} title={file.name}>
+                      <FileText size={13} />
+                      <span>{file.name}</span>
+                      <small>{formatFileSize(file.size)}</small>
+                    </a>
+                    <button type="button" onClick={() => removeAttachment(file._id)} title="Retirer le fichier">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="attachments-empty">Aucun fichier lié.</div>
+            )}
+          </div>
         </nav>
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
