@@ -6637,6 +6637,23 @@ export default function App() {
     setProjects(prev => [project, ...prev]);
     openProject(project._projectId);
   };
+  const createBankingExampleProject = () => {
+    if (!authSession) {
+      setAuthMessage('Connectez-vous pour creer un projet exemple.');
+      setAuthMode('signin');
+      navigate('auth', null, true);
+      return;
+    }
+    const project = {
+      ...bankComplaintData(),
+      projectName: 'Projet exemple bancaire - réclamations clients',
+      _projectId: uid(),
+      updatedAt: new Date().toISOString(),
+    };
+    project.step1.charte.titre = project.projectName;
+    setProjects(prev => [project, ...prev]);
+    openProject(project._projectId);
+  };
   const deleteProject = (project) => {
     const name = project.projectName || 'ce projet';
     if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
@@ -7145,6 +7162,7 @@ export default function App() {
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
               {logoutButton('header')}
+              <button className="home-primary home-secondary" onClick={createBankingExampleProject}><BriefcaseBusiness size={18} /> Exemple bancaire</button>
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
             </div>
           </header>
