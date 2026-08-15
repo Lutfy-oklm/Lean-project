@@ -5947,7 +5947,10 @@ function generateProjectPdf(jsPDF, data, validatedCount) {
   table('RACI', [{ key: 'nom', label: 'Activite', width: 0.32 }, ...raciRoles.map(role => ({ key: role, label: role }))], raciRows);
 
   stepPage('02 - Observer');
-  table('Guide d entretien', [{ key: 'question', label: 'Question' }], data.step2?.questions);
+  table('Guide d entretien', [
+    { key: 'question', label: 'Question', width: 0.45 },
+    { key: 'answer', label: 'Reponse / synthese', width: 0.55 },
+  ], data.step2?.questions);
   table('Journal d observation', [
     { key: 'date', label: 'Date' },
     { key: 'lieu', label: 'Lieu' },
@@ -6098,7 +6101,7 @@ function PrintSummary({ data }) {
 
       <section className="print-step">
         <h2>Étape 02 — Observer</h2>
-        <PrintTable title="Guide d'entretien" columns={[{ key: 'question', label: 'Question' }]} rows={data.step2.questions} />
+        <PrintTable title="Guide d'entretien" columns={[{ key: 'question', label: 'Question' }, { key: 'answer', label: 'RÃ©ponse / synthÃ¨se' }]} rows={data.step2.questions} />
         <PrintTable title="Journal d'observation" columns={[{ key: 'date', label: 'Date' }, { key: 'lieu', label: 'Lieu' }, { key: 'type', label: 'Type' }, { key: 'constat', label: 'Constat' }]} rows={data.step2.journal} />
       </section>
 
@@ -6578,9 +6581,12 @@ export default function App() {
         return (<>
           <SubTitle>Guide d'entretien</SubTitle>
           <EditableTable
-            columns={[{ key: 'question', label: 'Question' }]}
+            columns={[
+              { key: 'question', label: 'Question', type: 'textarea' },
+              { key: 'answer', label: 'RÃ©ponse / synthÃ¨se', type: 'textarea' },
+            ]}
             rows={data.step2.questions}
-            onAdd={() => addRow('step2.questions', { question: '' })}
+            onAdd={() => addRow('step2.questions', { question: '', answer: '' })}
             onRemove={i => removeRow('step2.questions', i)}
             onChange={(i, k, v) => updateField(`step2.questions[${i}].${k}`, v)}
             addLabel="Ajouter une question" />
