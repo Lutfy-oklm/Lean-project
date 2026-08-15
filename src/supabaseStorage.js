@@ -209,6 +209,31 @@ export async function saveProjectsToSupabase(projects, deletedIds = [], session 
   if (!isSupabaseConfigured() || !session?.access_token || !session?.user?.id) return false;
 
   const deletedSet = new Set((deletedIds || []).map((id) => String(id)));
+  const now = new Date().toISOString();
+
+  if (deletedSet.size) {
+    const ownerId = encodeURIComponent(String(session.user.id));
+    for (const id of deletedSet) {
+      try {
+        await requestSupabase(`${TABLE_NAME}?id=eq.${encodeURIComponent(id)}&owner_id=eq.${ownerId}`, {
+          method: 'DELETE',
+          headers: { Prefer: 'return=minimal' },
+        }, session);
+      } catch {
+        await requestSupabase(`${TABLE_NAME}?on_conflict=id`, {
+          method: 'POST',
+          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify([{
+            id,
+            owner_id: session.user.id,
+            payload: { _projectId: id, deleted: true, deletedAt: now },
+            updated_at: now,
+          }]),
+        }, session);
+      }
+    }
+  }
+
   const rows = (projects || [])
     .filter((project) => project?._projectId && !deletedSet.has(String(project._projectId)))
     .map((project) => ({
@@ -223,21 +248,6 @@ export async function saveProjectsToSupabase(projects, deletedIds = [], session 
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(rows),
-    }, session);
-  }
-
-  if (deletedIds.length) {
-    const now = new Date().toISOString();
-    const tombstones = deletedIds.map((id) => ({
-      id: String(id),
-      owner_id: session.user.id,
-      payload: { _projectId: String(id), deleted: true, deletedAt: now },
-      updated_at: now,
-    }));
-    await requestSupabase(`${TABLE_NAME}?on_conflict=id`, {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(tombstones),
     }, session);
   }
 
