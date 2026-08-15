@@ -8553,7 +8553,7 @@ export default function App() {
     ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
     : 0;
   const appClass = 'lean-app theme-light';
-  const activeToolMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : (active === DMAIC_TAB.id ? DMAIC_TAB : null);
+  const activeToolMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : null;
   const activeMeta = activeToolMeta || STEPS[active] || STEPS[0];
   const ActiveIcon = activeMeta.icon || GitBranch;
   const userEmail = authSession?.user?.email;
@@ -9494,7 +9494,6 @@ export default function App() {
             <div className="home-hero-actions">
               <span>{STEPS.length} étapes structurées</span>
               {logoutButton('header')}
-              <button className="home-primary home-secondary" onClick={createDmaicExampleProject}><Target size={18} /> Exemple DMAIC</button>
               <button className="home-primary" onClick={createNewProject}><Plus size={18} /> Nouveau projet</button>
             </div>
           </header>
@@ -9612,10 +9611,6 @@ export default function App() {
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
-          <button className={`step-item advanced-step ${active === DMAIC_TAB.id ? 'is-active' : ''}`} onClick={() => goToStep(DMAIC_TAB.id)}>
-            <Target className="advanced-step-icon" size={16} aria-hidden="true" />
-            <span className="step-title">{DMAIC_TAB.title}</span>
-          </button>
         </nav>
         <div className="sidebar-foot">
           <button className="ghost-btn" onClick={exportPdf}><Download size={14} /> Télécharger le dossier PDF</button>
@@ -9633,7 +9628,7 @@ export default function App() {
       <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
         <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
           <div className="eyebrow">{activeToolMeta ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
-          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}{active === DMAIC_TAB.id && <span className="optional-badge">Six Sigma</span>}</h2>
+          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
           <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
