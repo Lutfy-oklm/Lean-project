@@ -196,18 +196,22 @@ async function requestSupabase(path, options = {}, session = null) {
 }
 
 export async function loadProjectsFromSupabase(session) {
-  if (!isSupabaseConfigured() || !session?.access_token) return null;
+  if (!isSupabaseConfigured() || !session?.access_token || !session?.user?.id) return null;
 
-  const rows = await requestSupabase(`${TABLE_NAME}?select=id,payload,updated_at&order=updated_at.desc`, {}, session);
+  const ownerId = encodeURIComponent(String(session.user.id));
+  const rows = await requestSupabase(`${TABLE_NAME}?select=id,owner_id,payload,updated_at&owner_id=eq.${ownerId}&order=updated_at.desc`, {}, session);
   return (rows || [])
     .map((row) => ({ ...(row.payload || {}), _projectId: row.id || row.payload?._projectId }))
-    .filter((project) => project && project._projectId);
+    .filter((project) => project && project._projectId && !project.deleted);
 }
 
 export async function saveProjectsToSupabase(projects, deletedIds = [], session = null) {
   if (!isSupabaseConfigured() || !session?.access_token || !session?.user?.id) return false;
 
-  const rows = (projects || []).map((project) => ({
+  const deletedSet = new Set((deletedIds || []).map((id) => String(id)));
+  const rows = (projects || [])
+    .filter((project) => project?._projectId && !deletedSet.has(String(project._projectId)))
+    .map((project) => ({
     id: project._projectId,
     owner_id: session.user.id,
     payload: project,
@@ -223,11 +227,17 @@ export async function saveProjectsToSupabase(projects, deletedIds = [], session 
   }
 
   if (deletedIds.length) {
-    const ids = deletedIds.map((id) => encodeURIComponent(String(id))).join(',');
-    const ownerId = encodeURIComponent(String(session.user.id));
-    await requestSupabase(`${TABLE_NAME}?id=in.(${ids})&owner_id=eq.${ownerId}`, {
-      method: 'DELETE',
-      headers: { Prefer: 'return=minimal' },
+    const now = new Date().toISOString();
+    const tombstones = deletedIds.map((id) => ({
+      id: String(id),
+      owner_id: session.user.id,
+      payload: { _projectId: String(id), deleted: true, deletedAt: now },
+      updated_at: now,
+    }));
+    await requestSupabase(`${TABLE_NAME}?on_conflict=id`, {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(tombstones),
     }, session);
   }
 
