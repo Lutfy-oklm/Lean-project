@@ -1617,6 +1617,35 @@ function formatVsmMinutes(value) {
   return `${minutes} min`;
 }
 
+function getVsmValueAddedInsight(percent) {
+  if (percent >= 30) {
+    return {
+      status: 'Flux performant',
+      text: "Une part importante du délai total est consacrée au traitement utile. Le flux est plutôt sain, même s'il peut encore être optimisé.",
+      tone: 'good',
+    };
+  }
+  if (percent >= 15) {
+    return {
+      status: 'Flux à optimiser',
+      text: "La valeur ajoutée reste correcte, mais les attentes pèsent encore beaucoup dans le délai total. Des améliorations ciblées sont recommandées.",
+      tone: 'medium',
+    };
+  }
+  if (percent >= 5) {
+    return {
+      status: 'Processus à améliorer',
+      text: "Le processus passe surtout du temps en attente. Il faut améliorer en priorité les files, validations, relances et transferts.",
+      tone: 'warning',
+    };
+  }
+  return {
+    status: 'Amélioration prioritaire',
+    text: "La quasi-totalité du délai est du temps d'attente. Le processus doit être retravaillé en priorité pour réduire fortement le lead time.",
+    tone: 'critical',
+  };
+}
+
 function VsmGraphic({ rows }) {
   const items = (rows || [])
     .map((row, index) => ({
@@ -1633,6 +1662,8 @@ function VsmGraphic({ rows }) {
   const totalTraitement = items.reduce((sum, row) => sum + row.traitement, 0);
   const totalAttente = items.reduce((sum, row) => sum + row.attente, 0);
   const leadTime = totalTraitement + totalAttente;
+  const vaPct = leadTime > 0 ? Math.round((totalTraitement / leadTime) * 1000) / 10 : 0;
+  const vaInsight = getVsmValueAddedInsight(vaPct);
   const maxTraitement = Math.max(...items.map(row => row.traitement), 1);
   const maxAttente = Math.max(...items.map(row => row.attente), 1);
 
@@ -1649,7 +1680,8 @@ function VsmGraphic({ rows }) {
         </div>
         <div>
           <span>Ratio VA</span>
-          <strong>{leadTime > 0 ? `${Math.round((totalTraitement / leadTime) * 1000) / 10}%` : '0%'}</strong>
+          <strong>{vaPct}%</strong>
+          <small className={`vsm-head-indicator ${vaInsight.tone}`}>{vaInsight.status}</small>
         </div>
       </div>
       <div className="vsm-flow">
@@ -1930,11 +1962,24 @@ const CSS = `
 .vsm-summary div{ background:var(--paper-2); border:1px solid var(--line); padding:10px 12px; }
 .vsm-summary span{ display:block; font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
 .vsm-summary strong{ font-family:var(--font-display); font-size:19px; }
+.vsm-va-card{ position:relative; border-top:3px solid var(--teal)!important; }
+.vsm-va-card em{ display:inline-block; margin-top:6px; font-style:normal; font-family:var(--font-mono); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--teal); }
+.vsm-va-card p{ margin:7px 0 0; font-size:12.5px; line-height:1.35; color:var(--ink-muted); }
+.vsm-va-card.medium{ border-top-color:#C97D2E!important; }
+.vsm-va-card.medium em{ color:#A15E12; }
+.vsm-va-card.warning{ border-top-color:#F0A33B!important; background:#FFF9EE!important; }
+.vsm-va-card.warning em{ color:#A15E12; }
+.vsm-va-card.critical{ border-top-color:#A23B2E!important; background:#FFF4F2!important; }
+.vsm-va-card.critical em{ color:#A23B2E; }
 .vsm-graphic{ margin-top:18px; border:1px solid var(--line); background:#FFFFFF; border-top:4px solid var(--teal); padding:18px; overflow:hidden; }
 .vsm-graphic-head{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
 .vsm-graphic-head div{ border:1px solid var(--line); background:#F8FAFC; padding:10px 12px; }
 .vsm-graphic-head span,.vsm-bar-label span,.vsm-wait-badge small,.vsm-timeline span{ display:block; font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:.055em; color:var(--ink-soft); }
 .vsm-graphic-head strong{ display:block; margin-top:4px; font-family:var(--font-display); font-size:20px; color:var(--ink); }
+.vsm-head-indicator{ display:inline-block; margin-top:6px; font-family:var(--font-mono); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--teal); }
+.vsm-head-indicator.medium{ color:#A15E12; }
+.vsm-head-indicator.warning{ color:#A15E12; }
+.vsm-head-indicator.critical{ color:#A23B2E; }
 .vsm-flow{ display:flex; align-items:stretch; gap:0; overflow-x:auto; padding:6px 0 14px; }
 .vsm-flow-item{ display:flex; align-items:center; flex:0 0 auto; min-width:260px; }
 .vsm-process-card{ width:210px; min-height:142px; border:1px solid #B9C5D4; background:#FBF8F0; padding:12px; display:flex; flex-direction:column; justify-content:space-between; }
@@ -7001,6 +7046,7 @@ export default function App() {
         const totalAttente = data.step3.vsm.reduce((s, r) => s + (Number(r.tempsAttente) || 0), 0);
         const leadTime = totalTrait + totalAttente;
         const vaPct = leadTime > 0 ? Math.round((totalTrait / leadTime) * 1000) / 10 : 0;
+        const vaInsight = getVsmValueAddedInsight(vaPct);
         return (<>
           <SubTitle>Référentiel de processus</SubTitle>
           <EditableTable
@@ -7025,7 +7071,12 @@ export default function App() {
             <div><span>Temps de traitement total</span><strong>{totalTrait} min</strong></div>
             <div><span>Temps d'attente total</span><strong>{totalAttente} min</strong></div>
             <div><span>Lead time total</span><strong>{leadTime} min</strong></div>
-            <div><span>% valeur ajoutée</span><strong>{vaPct}%</strong></div>
+            <div className={`vsm-va-card ${vaInsight.tone}`}>
+              <span>% valeur ajoutée</span>
+              <strong>{vaPct}%</strong>
+              <em>{vaInsight.status}</em>
+              <p>{vaInsight.text}</p>
+            </div>
           </div>
         </>);
       }
