@@ -6441,8 +6441,26 @@ export default function App() {
   const deleteProject = (project) => {
     const name = project.projectName || 'ce projet';
     if (!window.confirm(`Supprimer définitivement "${name}" ?`)) return;
-    deletedProjectIdsRef.current.add(project._projectId);
-    setProjects(prev => prev.filter(item => item._projectId !== project._projectId));
+    const deletedId = project._projectId;
+    const nextProjects = projects.filter(item => item._projectId !== deletedId);
+    deletedProjectIdsRef.current.add(deletedId);
+    setProjects(nextProjects);
+    window.localStorage.setItem(localProjectsKey(authSession), JSON.stringify(nextProjects));
+    if (isSupabaseConfigured() && authSession) {
+      saveProjectsToSupabase(nextProjects, [deletedId], authSession)
+        .then(() => {
+          knownProjectIdsRef.current = new Set(nextProjects.map(item => item._projectId));
+          deletedProjectIdsRef.current.delete(deletedId);
+          setStorageMode('cloud');
+          setSyncError('');
+          setSavedAt(new Date());
+        })
+        .catch((error) => {
+          console.error('Suppression cloud impossible', error);
+          setStorageMode('local');
+          setSyncError('Suppression cloud impossible');
+        });
+    }
     if (activeProjectId === project._projectId) {
       navigate('dashboard');
     }

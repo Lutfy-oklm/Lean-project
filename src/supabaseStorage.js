@@ -224,7 +224,8 @@ export async function saveProjectsToSupabase(projects, deletedIds = [], session 
 
   if (deletedIds.length) {
     const ids = deletedIds.map((id) => encodeURIComponent(String(id))).join(',');
-    await requestSupabase(`${TABLE_NAME}?id=in.(${ids})`, {
+    const ownerId = encodeURIComponent(String(session.user.id));
+    await requestSupabase(`${TABLE_NAME}?id=in.(${ids})&owner_id=eq.${ownerId}`, {
       method: 'DELETE',
       headers: { Prefer: 'return=minimal' },
     }, session);
