@@ -6101,7 +6101,7 @@ function PrintSummary({ data }) {
 
       <section className="print-step">
         <h2>Étape 02 — Observer</h2>
-        <PrintTable title="Guide d'entretien" columns={[{ key: 'question', label: 'Question' }, { key: 'answer', label: 'RÃ©ponse / synthÃ¨se' }]} rows={data.step2.questions} />
+        <PrintTable title="Guide d'entretien" columns={[{ key: 'question', label: 'Question' }, { key: 'answer', label: 'Réponse / synthèse' }]} rows={data.step2.questions} />
         <PrintTable title="Journal d'observation" columns={[{ key: 'date', label: 'Date' }, { key: 'lieu', label: 'Lieu' }, { key: 'type', label: 'Type' }, { key: 'constat', label: 'Constat' }]} rows={data.step2.journal} />
       </section>
 
@@ -6583,7 +6583,7 @@ export default function App() {
           <EditableTable
             columns={[
               { key: 'question', label: 'Question', type: 'textarea' },
-              { key: 'answer', label: 'RÃ©ponse / synthÃ¨se', type: 'textarea' },
+              { key: 'answer', label: 'Réponse / synthèse', type: 'textarea' },
             ]}
             rows={data.step2.questions}
             onAdd={() => addRow('step2.questions', { question: '', answer: '' })}
