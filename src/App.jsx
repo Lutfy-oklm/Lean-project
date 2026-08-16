@@ -227,20 +227,97 @@ function defaultVsmAdvancedMap(projectName = 'Value Stream Mapping') {
 }
 function createVsmNode(type) {
   const symbol = VSM_SYMBOLS.find(item => item.type === type) || VSM_SYMBOLS[0];
+  const sizeByType = {
+    process: { w: 175, h: 118 },
+    inventory: { w: 126, h: 110 },
+    supplier: { w: 165, h: 96 },
+    customer: { w: 165, h: 96 },
+    control: { w: 190, h: 92 },
+    info: { w: 170, h: 86 },
+    truck: { w: 130, h: 84 },
+    dataBox: { w: 140, h: 92 },
+  };
+  const size = sizeByType[type] || { w: 130, h: 78 };
   return {
     _id: uid(),
     type,
     label: symbol.label,
     x: 320 + Math.round(Math.random() * 160),
     y: 220 + Math.round(Math.random() * 120),
-    w: type === 'process' ? 160 : 130,
-    h: type === 'process' ? 96 : 78,
+    w: size.w,
+    h: size.h,
     meta: '',
     cycleTime: '',
     changeover: '',
     uptime: '',
     shifts: '',
   };
+}
+
+function getVsmNodeSize(node) {
+  const baseW = Number(node.w) || 130;
+  const baseH = Number(node.h) || 78;
+  if (node.type === 'process') return { w: Math.max(baseW, 175), h: Math.max(baseH, 118) };
+  if (node.type === 'inventory') return { w: Math.max(baseW, 126), h: Math.max(baseH, 110) };
+  if (node.type === 'supplier' || node.type === 'customer') return { w: Math.max(baseW, 165), h: Math.max(baseH, 96) };
+  if (node.type === 'control' || node.type === 'info') return { w: Math.max(baseW, 170), h: Math.max(baseH, 86) };
+  if (node.type === 'truck') return { w: Math.max(baseW, 130), h: Math.max(baseH, 84) };
+  return { w: Math.max(baseW, 112), h: Math.max(baseH, 72) };
+}
+
+function splitVsmText(value, maxChars = 18, maxLines = 3) {
+  const words = String(value || '').replace(/\s*\/\s*/g, ' / ').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > maxChars && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  });
+  if (current) lines.push(current);
+  if (lines.length <= maxLines) return lines;
+  return [...lines.slice(0, maxLines - 1), `${lines.slice(maxLines - 1).join(' ').slice(0, maxChars - 1)}...`];
+}
+
+function VsmTextBlock({ value, x, y, maxChars = 18, maxLines = 3, className = 'vsm-svg-small', anchor = 'middle', lineHeight = 13 }) {
+  return (
+    <text x={x} y={y} textAnchor={anchor} className={className}>
+      {splitVsmText(value, maxChars, maxLines).map((line, index) => (
+        <tspan key={`${line}-${index}`} x={x} dy={index === 0 ? 0 : lineHeight}>{line}</tspan>
+      ))}
+    </text>
+  );
+}
+
+function normalizeVsmAdvancedMap(map) {
+  const defaultLayout = {
+    supplier: { x: 70, y: 70, w: 165, h: 96 },
+    control: { x: 510, y: 60, w: 190, h: 92 },
+    customer: { x: 970, y: 70, w: 165, h: 96 },
+    truck: { x: 80, y: 348, w: 130, h: 84 },
+    processA: { x: 255, y: 338, w: 175, h: 118 },
+    inventoryA: { x: 465, y: 344, w: 126, h: 110 },
+    processB: { x: 630, y: 338, w: 175, h: 118 },
+    inventoryB: { x: 840, y: 344, w: 126, h: 110 },
+    shipping: { x: 1000, y: 338, w: 175, h: 118 },
+  };
+  const nodes = (map.nodes || []).map(node => {
+    if (node.type === 'supplier' && node.x === 70 && node.y === 92) return { ...node, ...defaultLayout.supplier };
+    if (node.type === 'control' && node.x === 430 && node.y === 62) return { ...node, ...defaultLayout.control };
+    if (node.type === 'customer' && node.x === 800 && node.y === 92) return { ...node, ...defaultLayout.customer };
+    if (node.type === 'truck' && node.x === 82 && node.y === 310) return { ...node, ...defaultLayout.truck };
+    if (node.type === 'process' && node.label === 'Process A' && node.x === 250 && node.y === 320) return { ...node, ...defaultLayout.processA };
+    if (node.type === 'inventory' && node.x === 445 && node.y === 330) return { ...node, ...defaultLayout.inventoryA };
+    if (node.type === 'process' && node.label === 'Process B' && node.x === 575 && node.y === 320) return { ...node, ...defaultLayout.processB };
+    if (node.type === 'inventory' && node.x === 770 && node.y === 330) return { ...node, ...defaultLayout.inventoryB };
+    if (node.type === 'process' && node.x === 900 && node.y === 320) return { ...node, ...defaultLayout.shipping };
+    return node;
+  });
+  return { ...map, nodes };
 }
 
 function defaultBpmnXml(projectName = 'Processus') {
@@ -1603,8 +1680,7 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
 }
 
 function VsmNodeShape({ node }) {
-  const w = Number(node.w) || 130;
-  const h = Number(node.h) || 78;
+  const { w, h } = getVsmNodeSize(node);
   const textY = node.type === 'process' ? 24 : h / 2 + 4;
   const label = node.label || 'Élément VSM';
 
@@ -1612,7 +1688,8 @@ function VsmNodeShape({ node }) {
     const roof = `0,22 34,6 34,22 68,6 68,22 102,6 102,22 ${w},22 ${w},${h} 0,${h}`;
     return <>
       <polygon points={roof} className="vsm-svg-building" />
-      <text x={w / 2} y={h / 2 + 12} textAnchor="middle" className="vsm-svg-title">{label}</text>
+      <VsmTextBlock value={label} x={w / 2} y={h / 2 + 2} maxChars={16} maxLines={2} className="vsm-svg-title" />
+      {node.meta && <VsmTextBlock value={node.meta} x={w / 2} y={h - 12} maxChars={20} maxLines={1} />}
     </>;
   }
 
@@ -1620,18 +1697,19 @@ function VsmNodeShape({ node }) {
     return <>
       <rect x="0" y="0" width={w} height={h} className="vsm-svg-process" />
       <line x1="0" y1="28" x2={w} y2="28" className="vsm-svg-line" />
-      <text x={w / 2} y="19" textAnchor="middle" className="vsm-svg-title">{label}</text>
+      <VsmTextBlock value={label} x={w / 2} y="18" maxChars={18} maxLines={1} className="vsm-svg-title" />
       <text x="10" y="46" className="vsm-svg-small">C/T : {node.cycleTime || '-'}</text>
       <text x="10" y="62" className="vsm-svg-small">C/O : {node.changeover || '-'}</text>
       <text x="10" y="78" className="vsm-svg-small">Uptime : {node.uptime || '-'}</text>
+      <text x="10" y="94" className="vsm-svg-small">Equipes : {node.shifts || '-'}</text>
     </>;
   }
 
   if (node.type === 'inventory') {
     return <>
-      <polygon points={`${w / 2},4 ${w - 6},${h - 8} 6,${h - 8}`} className="vsm-svg-inventory" />
-      <text x={w / 2} y={h - 24} textAnchor="middle" className="vsm-svg-title">{label}</text>
-      <text x={w / 2} y={h - 10} textAnchor="middle" className="vsm-svg-small">{node.meta}</text>
+      <polygon points={`${w / 2},6 ${w - 8},${h - 10} 8,${h - 10}`} className="vsm-svg-inventory" />
+      <VsmTextBlock value={label} x={w / 2} y={h - 42} maxChars={12} maxLines={1} className="vsm-svg-title" />
+      <VsmTextBlock value={node.meta} x={w / 2} y={h - 26} maxChars={15} maxLines={2} />
     </>;
   }
 
@@ -1641,7 +1719,7 @@ function VsmNodeShape({ node }) {
       <path d={`M${w - 34} 27 h20 l10 11 v14 h-30 z`} className="vsm-svg-plain" />
       <circle cx="34" cy="60" r="8" className="vsm-svg-wheel" />
       <circle cx={w - 22} cy="60" r="8" className="vsm-svg-wheel" />
-      <text x={w / 2} y={h - 4} textAnchor="middle" className="vsm-svg-small">{label}</text>
+      <VsmTextBlock value={label} x={w / 2} y={h - 5} maxChars={16} maxLines={1} />
     </>;
   }
 
@@ -1649,7 +1727,7 @@ function VsmNodeShape({ node }) {
     return <>
       {[0, 1, 2, 3].map(i => <line key={i} x1="28" y1={16 + i * 13} x2={w - 24} y2={16 + i * 13} className="vsm-svg-line" />)}
       <line x1={w - 24} y1="12" x2={w - 24} y2={h - 14} className="vsm-svg-line" />
-      <text x={w / 2} y={h - 2} textAnchor="middle" className="vsm-svg-small">{label}</text>
+      <VsmTextBlock value={label} x={w / 2} y={h - 2} maxChars={16} maxLines={1} />
     </>;
   }
 
@@ -1664,8 +1742,8 @@ function VsmNodeShape({ node }) {
   if (node.type === 'control' || node.type === 'info') {
     return <>
       <rect x="0" y="0" width={w} height={h} className="vsm-svg-info" />
-      <text x={w / 2} y={textY} textAnchor="middle" className="vsm-svg-title">{label}</text>
-      <text x={w / 2} y={textY + 18} textAnchor="middle" className="vsm-svg-small">{node.meta}</text>
+      <VsmTextBlock value={label} x={w / 2} y={textY - 8} maxChars={18} maxLines={2} className="vsm-svg-title" />
+      <VsmTextBlock value={node.meta} x={w / 2} y={textY + 26} maxChars={22} maxLines={2} />
     </>;
   }
 
@@ -1680,7 +1758,7 @@ function VsmNodeShape({ node }) {
     return <>
       <text x={w / 2} y="24" textAnchor="middle" className="vsm-svg-fifo">FIFO</text>
       <line x1="12" y1="34" x2={w - 12} y2="34" className="vsm-svg-line" />
-      <text x={w / 2} y="56" textAnchor="middle" className="vsm-svg-small">{node.meta || 'Séquence'}</text>
+      <VsmTextBlock value={node.meta || 'Sequence'} x={w / 2} y="56" maxChars={16} maxLines={1} />
     </>;
   }
 
@@ -1718,7 +1796,7 @@ function VsmAdvancedEditor({ value, onChange, projectName }) {
   const [connectFrom, setConnectFrom] = useState(null);
   const [connectorType, setConnectorType] = useState('material');
   const [status, setStatus] = useState('Carte VSM prête');
-  const map = value || defaultVsmAdvancedMap(projectName);
+  const map = normalizeVsmAdvancedMap(value || defaultVsmAdvancedMap(projectName));
   const nodes = map.nodes || [];
   const connectors = map.connectors || [];
   const ladder = map.ladder || [];
@@ -1889,10 +1967,12 @@ function VsmAdvancedEditor({ value, onChange, projectName }) {
     const from = nodes.find(node => node._id === connector.from);
     const to = nodes.find(node => node._id === connector.to);
     if (!from || !to) return null;
-    const x1 = from.x + (Number(from.w) || 130);
-    const y1 = from.y + (Number(from.h) || 78) / 2;
+    const fromSize = getVsmNodeSize(from);
+    const toSize = getVsmNodeSize(to);
+    const x1 = from.x + fromSize.w;
+    const y1 = from.y + fromSize.h / 2;
     const x2 = to.x;
-    const y2 = to.y + (Number(to.h) || 78) / 2;
+    const y2 = to.y + toSize.h / 2;
     const mid = x1 + Math.max(40, (x2 - x1) / 2);
     return { d: `M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`, x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
   };
@@ -1948,12 +2028,12 @@ function VsmAdvancedEditor({ value, onChange, projectName }) {
               <pattern id="vsm-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#EEF2F6" strokeWidth="1" /></pattern>
             </defs>
             <rect x="0" y="0" width="1200" height="720" fill="url(#vsm-grid)" />
-            <rect x="35" y="35" width="1130" height="145" className="vsm-zone-info" />
-            <text x="600" y="118" textAnchor="middle" className="vsm-zone-title info">Flux informationnels</text>
-            <rect x="35" y="205" width="1130" height="330" className="vsm-zone-material" />
-            <text x="600" y="265" textAnchor="middle" className="vsm-zone-title material">Flux matières</text>
-            <rect x="35" y="555" width="1130" height="125" className="vsm-zone-ladder" />
-            <text x="600" y="660" textAnchor="middle" className="vsm-zone-title ladder">Lead time ladder</text>
+            <rect x="28" y="28" width="1144" height="172" className="vsm-zone-info" />
+            <text x="54" y="58" className="vsm-zone-label info">Flux informationnels</text>
+            <rect x="28" y="222" width="1144" height="318" className="vsm-zone-material" />
+            <text x="54" y="252" className="vsm-zone-label material">Flux matieres</text>
+            <rect x="28" y="562" width="1144" height="130" className="vsm-zone-ladder" />
+            <text x="54" y="592" className="vsm-zone-label ladder">Lead time ladder</text>
 
             {connectors.map(connector => {
               const path = connectorPath(connector);
@@ -5494,7 +5574,7 @@ const CSS = `
 .theme-light .vsm-canvas-shell{
   min-height:760px;
   border:1px solid #C9D4E3;
-  background:#FFFFFF;
+  background:#F8FAFC;
   overflow:auto;
 }
 .theme-light .vsm-advanced-canvas{
@@ -5507,22 +5587,22 @@ const CSS = `
 .theme-light .vsm-zone-info,
 .theme-light .vsm-zone-material,
 .theme-light .vsm-zone-ladder{
-  fill:transparent;
-  stroke-width:3;
-  stroke-dasharray:18 12;
+  stroke-width:2;
+  rx:10;
 }
-.theme-light .vsm-zone-info{ stroke:#7DA34B; }
-.theme-light .vsm-zone-material{ stroke:#9D7FBD; stroke-dasharray:6 9; }
-.theme-light .vsm-zone-ladder{ stroke:#E8842A; stroke-dasharray:14 9 2 9; }
-.theme-light .vsm-zone-title{
-  font-family:Inter,Arial,sans-serif;
-  font-size:34px;
-  font-weight:500;
-  opacity:.82;
+.theme-light .vsm-zone-info{ fill:#F7FBF1; stroke:#7DA34B; stroke-dasharray:16 10; }
+.theme-light .vsm-zone-material{ fill:#FBF8FF; stroke:#9D7FBD; stroke-dasharray:7 8; }
+.theme-light .vsm-zone-ladder{ fill:#FFF8F0; stroke:#E8842A; stroke-dasharray:14 9 2 9; }
+.theme-light .vsm-zone-label{
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
 }
-.theme-light .vsm-zone-title.info{ fill:#7DA34B; }
-.theme-light .vsm-zone-title.material{ fill:#9D7FBD; }
-.theme-light .vsm-zone-title.ladder{ fill:#E8842A; }
+.theme-light .vsm-zone-label.info{ fill:#5F8430; }
+.theme-light .vsm-zone-label.material{ fill:#7A5AA1; }
+.theme-light .vsm-zone-label.ladder{ fill:#C86917; }
 .theme-light .vsm-node{ cursor:grab; }
 .theme-light .vsm-node.is-selected > *:first-child,
 .theme-light .vsm-node.is-connecting > *:first-child{
@@ -5537,10 +5617,10 @@ const CSS = `
 .theme-light .vsm-svg-kanban{
   fill:#F8FBFF;
   stroke:#10233F;
-  stroke-width:1.6;
+  stroke-width:1.45;
 }
 .theme-light .vsm-svg-process{ fill:#EAF3F9; }
-.theme-light .vsm-svg-info{ fill:#F4FAF8; }
+.theme-light .vsm-svg-info{ fill:#FFFFFF; }
 .theme-light .vsm-svg-kanban{ fill:#F9FBFE; }
 .theme-light .vsm-svg-inventory{ fill:#FFF7A8; stroke:#10233F; stroke-width:1.5; }
 .theme-light .vsm-svg-kaizen{ fill:#FFF8EA; stroke:#C47A1A; stroke-width:1.5; }
@@ -5550,13 +5630,13 @@ const CSS = `
 .theme-light .vsm-svg-title{
   fill:#10233F;
   font-family:Inter,Arial,sans-serif;
-  font-size:14px;
+  font-size:13px;
   font-weight:750;
 }
 .theme-light .vsm-svg-small{
   fill:#10233F;
   font-family:Inter,Arial,sans-serif;
-  font-size:10.5px;
+  font-size:9.8px;
 }
 .theme-light .vsm-svg-fifo{
   fill:#10233F;
@@ -5567,7 +5647,7 @@ const CSS = `
 .theme-light .vsm-connector path{
   fill:none;
   stroke:#10233F;
-  stroke-width:2.4;
+  stroke-width:2.1;
 }
 .theme-light .vsm-connector.information path{
   stroke:#2F756A;
@@ -5579,8 +5659,8 @@ const CSS = `
 }
 .theme-light .vsm-connector.push path{
   stroke:#10233F;
-  stroke-width:5;
-  stroke-dasharray:12 8;
+  stroke-width:4;
+  stroke-dasharray:14 9;
 }
 .theme-light .vsm-connector text,
 .theme-light .vsm-ladder-svg text{
