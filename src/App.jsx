@@ -141,6 +141,14 @@ const ADVANCED_BPMN_TAB = {
   objectif: 'Modéliser un processus complet avec un éditeur BPMN professionnel, plus riche que la cartographie simplifiée des étapes.',
   livrable: 'Diagramme BPMN complet exportable au format .bpmn.',
 };
+const ADVANCED_VSM_TAB = {
+  id: 'vsm-advanced',
+  num: '10',
+  title: 'VSM avancé',
+  icon: Map,
+  objectif: 'Construire une Value Stream Mapping complète avec flux informationnels, flux matières, stocks, processus, fournisseurs, clients et lead time ladder.',
+  livrable: 'Carte VSM avancée exportable en SVG, JSON et PDF.',
+};
 
 const BPMN_ASSET_VERSION = '18.21.0';
 const BPMN_MODEL_SCRIPT = `https://unpkg.com/bpmn-js@${BPMN_ASSET_VERSION}/dist/bpmn-modeler.production.min.js`;
@@ -159,6 +167,81 @@ const BPMN_COLOR_PRESETS = [
   { name: 'Violet', stroke: '#6D28D9', fill: '#EDE9FE' },
   { name: 'Gris', stroke: '#475569', fill: '#F1F5F9' },
 ];
+const VSM_SYMBOLS = [
+  { type: 'supplier', label: 'Fournisseur', group: 'Flux matière' },
+  { type: 'customer', label: 'Client', group: 'Flux matière' },
+  { type: 'process', label: 'Processus', group: 'Flux matière' },
+  { type: 'inventory', label: 'Stock', group: 'Flux matière' },
+  { type: 'truck', label: 'Transport', group: 'Flux matière' },
+  { type: 'supermarket', label: 'Supermarché', group: 'Flux matière' },
+  { type: 'dataBox', label: 'Boîte données', group: 'Données' },
+  { type: 'control', label: 'Contrôle production', group: 'Information' },
+  { type: 'info', label: 'Information', group: 'Information' },
+  { type: 'kanban', label: 'Kanban', group: 'Information' },
+  { type: 'fifo', label: 'FIFO', group: 'Information' },
+  { type: 'kaizen', label: 'Kaizen burst', group: 'Amélioration' },
+  { type: 'operator', label: 'Opérateur', group: 'Ressources' },
+];
+
+const VSM_CONNECTOR_TYPES = [
+  { type: 'material', label: 'Flux matière' },
+  { type: 'information', label: 'Flux information' },
+  { type: 'electronic', label: 'Flux électronique' },
+  { type: 'push', label: 'Flux poussé' },
+];
+
+function defaultVsmAdvancedMap(projectName = 'Value Stream Mapping') {
+  const supplier = { _id: uid(), type: 'supplier', label: 'Fournisseur', x: 70, y: 92, w: 150, h: 90, meta: 'Livraison hebdo' };
+  const control = { _id: uid(), type: 'control', label: 'Contrôle production', x: 430, y: 62, w: 170, h: 88, meta: 'Plan directeur / ordonnancement' };
+  const customer = { _id: uid(), type: 'customer', label: 'Client', x: 800, y: 92, w: 150, h: 90, meta: 'Demande client' };
+  const receiving = { _id: uid(), type: 'truck', label: 'Réception', x: 82, y: 310, w: 116, h: 70, meta: 'Hebdomadaire' };
+  const processA = { _id: uid(), type: 'process', label: 'Process A', x: 250, y: 320, w: 160, h: 96, cycleTime: '300 sec', changeover: '60 min', uptime: '80%', shifts: '2 équipes' };
+  const inventoryA = { _id: uid(), type: 'inventory', label: 'Stock', x: 445, y: 330, w: 88, h: 74, meta: '1202 pièces / 4 jours' };
+  const processB = { _id: uid(), type: 'process', label: 'Process B', x: 575, y: 320, w: 160, h: 96, cycleTime: '45 sec', changeover: '10 min', uptime: '90%', shifts: '2 équipes' };
+  const inventoryB = { _id: uid(), type: 'inventory', label: 'Stock', x: 770, y: 330, w: 88, h: 74, meta: '733 pièces / 1 jour' };
+  const shipping = { _id: uid(), type: 'process', label: 'Expédition', x: 900, y: 320, w: 160, h: 96, cycleTime: '240 sec', changeover: '20 min', uptime: '95%', shifts: '2 équipes' };
+
+  return {
+    nodes: [supplier, control, customer, receiving, processA, inventoryA, processB, inventoryB, shipping],
+    connectors: [
+      { _id: uid(), from: supplier._id, to: control._id, type: 'information', label: 'Commande hebdo' },
+      { _id: uid(), from: customer._id, to: control._id, type: 'information', label: 'Prévision / demande' },
+      { _id: uid(), from: supplier._id, to: receiving._id, type: 'material', label: 'Livraison' },
+      { _id: uid(), from: receiving._id, to: processA._id, type: 'material', label: '' },
+      { _id: uid(), from: processA._id, to: inventoryA._id, type: 'push', label: '' },
+      { _id: uid(), from: inventoryA._id, to: processB._id, type: 'material', label: '' },
+      { _id: uid(), from: processB._id, to: inventoryB._id, type: 'push', label: '' },
+      { _id: uid(), from: inventoryB._id, to: shipping._id, type: 'material', label: '' },
+      { _id: uid(), from: shipping._id, to: customer._id, type: 'material', label: 'Expédition' },
+    ],
+    ladder: [
+      { _id: uid(), label: 'Attente fournisseur', value: '6 jours', kind: 'wait' },
+      { _id: uid(), label: 'Traitement A', value: '300 sec', kind: 'process' },
+      { _id: uid(), label: 'Stock intermédiaire', value: '4 jours', kind: 'wait' },
+      { _id: uid(), label: 'Traitement B', value: '45 sec', kind: 'process' },
+      { _id: uid(), label: 'Attente expédition', value: '3 jours', kind: 'wait' },
+      { _id: uid(), label: 'Traitement final', value: '240 sec', kind: 'process' },
+    ],
+    title: projectName || 'Value Stream Mapping',
+  };
+}
+function createVsmNode(type) {
+  const symbol = VSM_SYMBOLS.find(item => item.type === type) || VSM_SYMBOLS[0];
+  return {
+    _id: uid(),
+    type,
+    label: symbol.label,
+    x: 320 + Math.round(Math.random() * 160),
+    y: 220 + Math.round(Math.random() * 120),
+    w: type === 'process' ? 160 : 130,
+    h: type === 'process' ? 96 : 78,
+    meta: '',
+    cycleTime: '',
+    changeover: '',
+    uptime: '',
+    shifts: '',
+  };
+}
 
 function defaultBpmnXml(projectName = 'Processus') {
   const name = String(projectName || 'Processus').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -268,6 +351,7 @@ function defaultData() {
     validated: { 0: true, 1: true },
     bpmnXml: '',
     bpmnViewbox: null,
+    vsmAdvanced: defaultVsmAdvancedMap('Optimisation du processus de clôture de compte bancaire'),
     step0: {
       note: "Le processus de clôture de compte bancaire fait l'objet de nombreuses réclamations clients, liées aux délais de traitement (souvent supérieurs à 15 jours ouvrés) et à un manque de visibilité pour le client sur l'avancement de sa demande. Le périmètre pressenti couvre la clôture des comptes courants particuliers, de la demande initiale jusqu'à la restitution du solde et la fermeture définitive dans le système d'information. Sont exclus de ce périmètre les comptes professionnels, les comptes en situation de succession et les clôtures à l'initiative de la banque.",
       planning: [
@@ -468,6 +552,7 @@ function blankData() {
     validated: {},
     bpmnXml: '',
     bpmnViewbox: null,
+    vsmAdvanced: null,
     step0: {
       note: '',
       planning: [],
@@ -1517,6 +1602,454 @@ function BpmnAdvancedEditor({ value, viewbox, onChange, onViewboxChange, project
   );
 }
 
+function VsmNodeShape({ node }) {
+  const w = Number(node.w) || 130;
+  const h = Number(node.h) || 78;
+  const textY = node.type === 'process' ? 24 : h / 2 + 4;
+  const label = node.label || 'Élément VSM';
+
+  if (node.type === 'supplier' || node.type === 'customer') {
+    const roof = `0,22 34,6 34,22 68,6 68,22 102,6 102,22 ${w},22 ${w},${h} 0,${h}`;
+    return <>
+      <polygon points={roof} className="vsm-svg-building" />
+      <text x={w / 2} y={h / 2 + 12} textAnchor="middle" className="vsm-svg-title">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'process') {
+    return <>
+      <rect x="0" y="0" width={w} height={h} className="vsm-svg-process" />
+      <line x1="0" y1="28" x2={w} y2="28" className="vsm-svg-line" />
+      <text x={w / 2} y="19" textAnchor="middle" className="vsm-svg-title">{label}</text>
+      <text x="10" y="46" className="vsm-svg-small">C/T : {node.cycleTime || '-'}</text>
+      <text x="10" y="62" className="vsm-svg-small">C/O : {node.changeover || '-'}</text>
+      <text x="10" y="78" className="vsm-svg-small">Uptime : {node.uptime || '-'}</text>
+    </>;
+  }
+
+  if (node.type === 'inventory') {
+    return <>
+      <polygon points={`${w / 2},4 ${w - 6},${h - 8} 6,${h - 8}`} className="vsm-svg-inventory" />
+      <text x={w / 2} y={h - 24} textAnchor="middle" className="vsm-svg-title">{label}</text>
+      <text x={w / 2} y={h - 10} textAnchor="middle" className="vsm-svg-small">{node.meta}</text>
+    </>;
+  }
+
+  if (node.type === 'truck') {
+    return <>
+      <rect x="8" y="18" width={w - 42} height="34" className="vsm-svg-plain" />
+      <path d={`M${w - 34} 27 h20 l10 11 v14 h-30 z`} className="vsm-svg-plain" />
+      <circle cx="34" cy="60" r="8" className="vsm-svg-wheel" />
+      <circle cx={w - 22} cy="60" r="8" className="vsm-svg-wheel" />
+      <text x={w / 2} y={h - 4} textAnchor="middle" className="vsm-svg-small">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'supermarket') {
+    return <>
+      {[0, 1, 2, 3].map(i => <line key={i} x1="28" y1={16 + i * 13} x2={w - 24} y2={16 + i * 13} className="vsm-svg-line" />)}
+      <line x1={w - 24} y1="12" x2={w - 24} y2={h - 14} className="vsm-svg-line" />
+      <text x={w / 2} y={h - 2} textAnchor="middle" className="vsm-svg-small">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'dataBox') {
+    return <>
+      <rect x="0" y="0" width={w} height={h} className="vsm-svg-plain" />
+      {[1, 2, 3].map(i => <line key={i} x1="0" y1={i * h / 4} x2={w} y2={i * h / 4} className="vsm-svg-line" />)}
+      <text x={w / 2} y="18" textAnchor="middle" className="vsm-svg-title">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'control' || node.type === 'info') {
+    return <>
+      <rect x="0" y="0" width={w} height={h} className="vsm-svg-info" />
+      <text x={w / 2} y={textY} textAnchor="middle" className="vsm-svg-title">{label}</text>
+      <text x={w / 2} y={textY + 18} textAnchor="middle" className="vsm-svg-small">{node.meta}</text>
+    </>;
+  }
+
+  if (node.type === 'kanban') {
+    return <>
+      <path d={`M10 16 H${w - 28} L${w - 10} 34 V${h - 12} H10 Z`} className="vsm-svg-kanban" />
+      <text x={w / 2} y={h / 2 + 4} textAnchor="middle" className="vsm-svg-title">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'fifo') {
+    return <>
+      <text x={w / 2} y="24" textAnchor="middle" className="vsm-svg-fifo">FIFO</text>
+      <line x1="12" y1="34" x2={w - 12} y2="34" className="vsm-svg-line" />
+      <text x={w / 2} y="56" textAnchor="middle" className="vsm-svg-small">{node.meta || 'Séquence'}</text>
+    </>;
+  }
+
+  if (node.type === 'kaizen') {
+    const points = Array.from({ length: 24 }).map((_, i) => {
+      const a = (Math.PI * 2 * i) / 24;
+      const r = i % 2 ? Math.min(w, h) * 0.38 : Math.min(w, h) * 0.48;
+      return `${w / 2 + Math.cos(a) * r},${h / 2 + Math.sin(a) * r}`;
+    }).join(' ');
+    return <>
+      <polygon points={points} className="vsm-svg-kaizen" />
+      <text x={w / 2} y={h / 2 + 4} textAnchor="middle" className="vsm-svg-title">{label}</text>
+    </>;
+  }
+
+  if (node.type === 'operator') {
+    return <>
+      <circle cx={w / 2} cy="22" r="15" className="vsm-svg-plain" />
+      <path d={`M${w / 2 - 28} ${h - 12} q28 -38 56 0`} className="vsm-svg-plain no-fill" />
+      <text x={w / 2} y={h - 2} textAnchor="middle" className="vsm-svg-small">{label}</text>
+    </>;
+  }
+
+  return <>
+    <rect x="0" y="0" width={w} height={h} className="vsm-svg-plain" />
+    <text x={w / 2} y={h / 2} textAnchor="middle" className="vsm-svg-title">{label}</text>
+  </>;
+}
+
+function VsmAdvancedEditor({ value, onChange, projectName }) {
+  const fileRef = useRef(null);
+  const svgRef = useRef(null);
+  const dragRef = useRef(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [connectFrom, setConnectFrom] = useState(null);
+  const [connectorType, setConnectorType] = useState('material');
+  const [status, setStatus] = useState('Carte VSM prête');
+  const map = value || defaultVsmAdvancedMap(projectName);
+  const nodes = map.nodes || [];
+  const connectors = map.connectors || [];
+  const ladder = map.ladder || [];
+  const selectedNode = nodes.find(node => node._id === selectedId) || null;
+
+  const commitMap = useCallback((nextMap) => {
+    onChange({ ...nextMap, updatedAt: new Date().toISOString() });
+  }, [onChange]);
+
+  const updateNode = (id, patch) => {
+    commitMap({ ...map, nodes: nodes.map(node => node._id === id ? { ...node, ...patch } : node) });
+  };
+
+  const addNode = (type) => {
+    const node = createVsmNode(type);
+    commitMap({ ...map, nodes: [...nodes, node] });
+    setSelectedId(node._id);
+    setStatus('Élément VSM ajouté');
+  };
+
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    commitMap({
+      ...map,
+      nodes: nodes.filter(node => node._id !== selectedId),
+      connectors: connectors.filter(connector => connector.from !== selectedId && connector.to !== selectedId),
+    });
+    setSelectedId(null);
+    setConnectFrom(null);
+    setStatus('Élément supprimé');
+  };
+
+  const addConnector = (from, to) => {
+    if (!from || !to || from === to) return;
+    commitMap({ ...map, connectors: [...connectors, { _id: uid(), from, to, type: connectorType, label: '' }] });
+    setConnectFrom(null);
+    setSelectedId(to);
+    setStatus('Flux ajouté');
+  };
+
+  const deleteConnector = (id) => {
+    commitMap({ ...map, connectors: connectors.filter(connector => connector._id !== id) });
+  };
+
+  const addLadderItem = () => {
+    commitMap({ ...map, ladder: [...ladder, { _id: uid(), label: 'Nouveau segment', value: '', kind: 'wait' }] });
+  };
+
+  const updateLadder = (id, patch) => {
+    commitMap({ ...map, ladder: ladder.map(item => item._id === id ? { ...item, ...patch } : item) });
+  };
+
+  const removeLadder = (id) => {
+    commitMap({ ...map, ladder: ladder.filter(item => item._id !== id) });
+  };
+
+  const pointerToCanvas = (event) => {
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * 1200,
+      y: ((event.clientY - rect.top) / rect.height) * 720,
+    };
+  };
+
+  const onNodePointerDown = (event, node) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (connectFrom && connectFrom !== node._id) {
+      addConnector(connectFrom, node._id);
+      return;
+    }
+    const point = pointerToCanvas(event);
+    setSelectedId(node._id);
+    dragRef.current = { id: node._id, dx: point.x - node.x, dy: point.y - node.y };
+  };
+
+  useEffect(() => {
+    const onMove = (event) => {
+      if (!dragRef.current || !svgRef.current) return;
+      const point = pointerToCanvas(event);
+      const { id, dx, dy } = dragRef.current;
+      updateNode(id, {
+        x: Math.max(10, Math.min(1120, Math.round(point.x - dx))),
+        y: Math.max(10, Math.min(650, Math.round(point.y - dy))),
+      });
+    };
+    const onUp = () => { dragRef.current = null; };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [map, nodes]);
+
+  const exportJson = () => {
+    const blob = new Blob([JSON.stringify(map, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${slugFileName(projectName, 'vsm')}-vsm.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus('JSON VSM exporté');
+  };
+
+  const exportSvg = () => {
+    const svg = svgRef.current?.outerHTML;
+    if (!svg) return;
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${slugFileName(projectName, 'vsm')}-vsm.svg`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus('SVG VSM exporté');
+  };
+
+  const exportPdf = async () => {
+    try {
+      setStatus('Préparation du PDF VSM...');
+      const svg = svgRef.current?.outerHTML;
+      const [image, jsPDF] = await Promise.all([svgToPngDataUrl(svg), loadJsPdf()]);
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+      const ratio = Math.min(maxWidth / image.width, maxHeight / image.height);
+      pdf.addImage(image.dataUrl, 'PNG', margin, margin, image.width * ratio, image.height * ratio);
+      pdf.save(`${slugFileName(projectName, 'vsm')}-vsm.pdf`);
+      setStatus('PDF VSM téléchargé');
+    } catch (error) {
+      console.error(error);
+      setStatus('Export PDF VSM impossible');
+    }
+  };
+
+  const importJson = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || '{}'));
+        commitMap({ ...defaultVsmAdvancedMap(projectName), ...parsed });
+        setStatus('Carte VSM importée');
+      } catch {
+        setStatus('Fichier VSM invalide');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+  const resetMap = () => {
+    if (!window.confirm('Créer une nouvelle carte VSM ?')) return;
+    const next = defaultVsmAdvancedMap(projectName);
+    commitMap(next);
+    setSelectedId(null);
+    setConnectFrom(null);
+    setStatus('Nouvelle carte VSM créée');
+  };
+
+  const connectorPath = (connector) => {
+    const from = nodes.find(node => node._id === connector.from);
+    const to = nodes.find(node => node._id === connector.to);
+    if (!from || !to) return null;
+    const x1 = from.x + (Number(from.w) || 130);
+    const y1 = from.y + (Number(from.h) || 78) / 2;
+    const x2 = to.x;
+    const y2 = to.y + (Number(to.h) || 78) / 2;
+    const mid = x1 + Math.max(40, (x2 - x1) / 2);
+    return { d: `M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`, x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+  };
+
+  const groupedSymbols = VSM_SYMBOLS.reduce((acc, symbol) => {
+    acc[symbol.group] = [...(acc[symbol.group] || []), symbol];
+    return acc;
+  }, {});
+
+  return (
+    <div className="vsm-advanced-workbench">
+      <div className="vsm-advanced-toolbar">
+        <div>
+          <strong>Éditeur VSM</strong>
+          <span>{status}</span>
+        </div>
+        <div className="vsm-advanced-actions">
+          <select value={connectorType} onChange={e => setConnectorType(e.target.value)}>
+            {VSM_CONNECTOR_TYPES.map(type => <option key={type.type} value={type.type}>{type.label}</option>)}
+          </select>
+          <button className="nav-btn" disabled={!selectedId} onClick={() => { setConnectFrom(selectedId); setStatus('Cliquez sur un second élément pour créer le flux'); }}>Connecter</button>
+          <button className="nav-btn" onClick={() => fileRef.current?.click()}>Importer JSON</button>
+          <button className="nav-btn" onClick={exportJson}>Exporter JSON</button>
+          <button className="nav-btn" onClick={exportSvg}>Exporter SVG</button>
+          <button className="nav-btn" onClick={exportPdf}>Exporter PDF</button>
+          <button className="nav-btn" onClick={resetMap}>Nouvelle VSM</button>
+          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={importJson} />
+        </div>
+      </div>
+
+      <div className="vsm-advanced-layout">
+        <aside className="vsm-palette" aria-label="Palette VSM">
+          {Object.entries(groupedSymbols).map(([group, symbols]) => (
+            <section key={group}>
+              <h3>{group}</h3>
+              <div>
+                {symbols.map(symbol => (
+                  <button key={symbol.type} type="button" onClick={() => addNode(symbol.type)}>
+                    <span className={`vsm-palette-mark ${symbol.type}`} />
+                    {symbol.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </aside>
+
+        <div className="vsm-canvas-shell">
+          <svg ref={svgRef} className="vsm-advanced-canvas" viewBox="0 0 1200 720" role="img" aria-label="Carte VSM avancée" onPointerDown={() => { setSelectedId(null); setConnectFrom(null); }}>
+            <defs>
+              <marker id="vsm-arrow-material" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#112747" /></marker>
+              <marker id="vsm-arrow-info" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#2F756A" /></marker>
+              <pattern id="vsm-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#EEF2F6" strokeWidth="1" /></pattern>
+            </defs>
+            <rect x="0" y="0" width="1200" height="720" fill="url(#vsm-grid)" />
+            <rect x="35" y="35" width="1130" height="145" className="vsm-zone-info" />
+            <text x="600" y="118" textAnchor="middle" className="vsm-zone-title info">Flux informationnels</text>
+            <rect x="35" y="205" width="1130" height="330" className="vsm-zone-material" />
+            <text x="600" y="265" textAnchor="middle" className="vsm-zone-title material">Flux matières</text>
+            <rect x="35" y="555" width="1130" height="125" className="vsm-zone-ladder" />
+            <text x="600" y="660" textAnchor="middle" className="vsm-zone-title ladder">Lead time ladder</text>
+
+            {connectors.map(connector => {
+              const path = connectorPath(connector);
+              if (!path) return null;
+              return (
+                <g key={connector._id} className={`vsm-connector ${connector.type}`} onPointerDown={(e) => { e.stopPropagation(); }}>
+                  <path d={path.d} markerEnd={connector.type === 'information' || connector.type === 'electronic' ? 'url(#vsm-arrow-info)' : 'url(#vsm-arrow-material)'} />
+                  {connector.label && <text x={path.x} y={path.y - 8} textAnchor="middle">{connector.label}</text>}
+                </g>
+              );
+            })}
+
+            {nodes.map(node => (
+              <g
+                key={node._id}
+                transform={`translate(${node.x} ${node.y})`}
+                className={`vsm-node ${node.type} ${selectedId === node._id ? 'is-selected' : ''} ${connectFrom === node._id ? 'is-connecting' : ''}`}
+                onPointerDown={(event) => onNodePointerDown(event, node)}
+              >
+                <VsmNodeShape node={node} />
+              </g>
+            ))}
+
+            {ladder.length > 0 && (
+              <g className="vsm-ladder-svg" transform="translate(75 585)">
+                {ladder.map((item, index) => {
+                  const x = index * 160;
+                  const high = item.kind === 'process';
+                  return <g key={item._id} transform={`translate(${x} 0)`}>
+                    <text x="5" y="-8">{item.value}</text>
+                    <path d={high ? 'M0 38 H70 V12 H140' : 'M0 12 H70 V38 H140'} />
+                    <text x="5" y="58">{item.label}</text>
+                  </g>;
+                })}
+              </g>
+            )}
+          </svg>
+        </div>
+
+        <aside className="vsm-inspector">
+          {selectedNode ? (
+            <>
+              <div className="vsm-inspector-head">
+                <span>Élément sélectionné</span>
+                <button type="button" onClick={deleteSelected}><Trash2 size={13} /> Supprimer</button>
+              </div>
+              <label>Nom<input value={selectedNode.label || ''} onChange={e => updateNode(selectedNode._id, { label: e.target.value })} /></label>
+              <label>Note / fréquence<input value={selectedNode.meta || ''} onChange={e => updateNode(selectedNode._id, { meta: e.target.value })} placeholder="ex. Hebdomadaire, 500 pièces..." /></label>
+              {selectedNode.type === 'process' && <>
+                <label>C/T<input value={selectedNode.cycleTime || ''} onChange={e => updateNode(selectedNode._id, { cycleTime: e.target.value })} placeholder="ex. 300 sec" /></label>
+                <label>C/O<input value={selectedNode.changeover || ''} onChange={e => updateNode(selectedNode._id, { changeover: e.target.value })} placeholder="ex. 60 min" /></label>
+                <label>Uptime<input value={selectedNode.uptime || ''} onChange={e => updateNode(selectedNode._id, { uptime: e.target.value })} placeholder="ex. 80%" /></label>
+                <label>Équipes<input value={selectedNode.shifts || ''} onChange={e => updateNode(selectedNode._id, { shifts: e.target.value })} placeholder="ex. 2 équipes" /></label>
+              </>}
+            </>
+          ) : (
+            <div className="vsm-inspector-empty">
+              <strong>Construire la VSM</strong>
+              <p>Ajoutez un symbole, déplacez-le sur la zone, puis utilisez Connecter pour créer les flux matière ou information.</p>
+            </div>
+          )}
+
+          <div className="vsm-connectors-list">
+            <h3>Flux créés</h3>
+            {connectors.length === 0 && <p>Aucun flux pour le moment.</p>}
+            {connectors.map(connector => (
+              <div key={connector._id}>
+                <span>{VSM_CONNECTOR_TYPES.find(type => type.type === connector.type)?.label || 'Flux'}</span>
+                <button type="button" onClick={() => deleteConnector(connector._id)}>×</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="vsm-ladder-editor">
+            <div className="vsm-inspector-head">
+              <span>Lead time ladder</span>
+              <button type="button" onClick={addLadderItem}>Ajouter</button>
+            </div>
+            {ladder.map(item => (
+              <div className="vsm-ladder-row" key={item._id}>
+                <input value={item.label || ''} onChange={e => updateLadder(item._id, { label: e.target.value })} placeholder="Libellé" />
+                <input value={item.value || ''} onChange={e => updateLadder(item._id, { value: e.target.value })} placeholder="Durée" />
+                <select value={item.kind || 'wait'} onChange={e => updateLadder(item._id, { kind: e.target.value })}>
+                  <option value="wait">Attente</option>
+                  <option value="process">Traitement</option>
+                </select>
+                <button type="button" onClick={() => removeLadder(item._id)}>×</button>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+      <p className="hint-text">Utilisez cette page pour réaliser une VSM détaillée : fournisseurs, clients, processus, stocks, transports, kanban, flux d'information et ligne de temps.</p>
+    </div>
+  );
+}
 function Ishikawa({ path, data, updateField }) {
   const branches = ["Main d'œuvre", 'Méthode', 'Matériel', 'Milieu', 'Matière'];
   const d = data || {};
@@ -4853,6 +5386,355 @@ const CSS = `
   font-weight:900;
 }
 
+.theme-light .vsm-advanced-workbench{
+  display:grid;
+  gap:14px;
+  min-height:calc(100vh - 190px);
+}
+.theme-light .vsm-advanced-toolbar{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-start;
+  border:1px solid #D6DEE9;
+  background:#F8FAFC;
+  padding:14px;
+}
+.theme-light .vsm-advanced-toolbar strong{
+  display:block;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:24px;
+  font-weight:500;
+  color:#10233F;
+}
+.theme-light .vsm-advanced-toolbar span{
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+  color:#607089;
+}
+.theme-light .vsm-advanced-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:flex-end;
+}
+.theme-light .vsm-advanced-actions select{
+  min-height:40px;
+  border:1px solid #CBD5E1;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:0 10px;
+  font:inherit;
+  font-size:12px;
+  font-weight:750;
+}
+.theme-light .vsm-advanced-layout{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr) 280px;
+  gap:12px;
+  align-items:stretch;
+}
+.theme-light .vsm-palette,
+.theme-light .vsm-inspector{
+  border:1px solid #D6DEE9;
+  background:#FFFFFF;
+  padding:12px;
+  max-height:760px;
+  overflow:auto;
+}
+.theme-light .vsm-palette section + section{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid #E4EAF2;
+}
+.theme-light .vsm-palette h3,
+.theme-light .vsm-connectors-list h3{
+  margin:0 0 8px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#5D6B82;
+}
+.theme-light .vsm-palette section > div{
+  display:grid;
+  gap:6px;
+}
+.theme-light .vsm-palette button{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:34px;
+  border:1px solid #D6DEE9;
+  background:#F8FAFC;
+  color:#10233F;
+  padding:6px 8px;
+  font-size:12px;
+  font-weight:750;
+  text-align:left;
+  cursor:pointer;
+}
+.theme-light .vsm-palette button:hover{
+  background:#EFF6F4;
+  border-color:#2F756A;
+}
+.theme-light .vsm-palette-mark{
+  width:18px;
+  height:18px;
+  border:2px solid #10233F;
+  background:#EAF6F5;
+  display:inline-block;
+  flex:0 0 auto;
+}
+.theme-light .vsm-palette-mark.inventory{ transform:rotate(45deg); background:#FFF5A8; }
+.theme-light .vsm-palette-mark.kaizen{ border-radius:50%; border-style:dashed; background:#FFF8EB; }
+.theme-light .vsm-palette-mark.truck{ border-radius:2px 7px 2px 2px; }
+.theme-light .vsm-palette-mark.operator{ border-radius:50%; }
+.theme-light .vsm-canvas-shell{
+  min-height:760px;
+  border:1px solid #C9D4E3;
+  background:#FFFFFF;
+  overflow:auto;
+}
+.theme-light .vsm-advanced-canvas{
+  display:block;
+  width:1400px;
+  max-width:none;
+  height:840px;
+  cursor:default;
+}
+.theme-light .vsm-zone-info,
+.theme-light .vsm-zone-material,
+.theme-light .vsm-zone-ladder{
+  fill:transparent;
+  stroke-width:3;
+  stroke-dasharray:18 12;
+}
+.theme-light .vsm-zone-info{ stroke:#7DA34B; }
+.theme-light .vsm-zone-material{ stroke:#9D7FBD; stroke-dasharray:6 9; }
+.theme-light .vsm-zone-ladder{ stroke:#E8842A; stroke-dasharray:14 9 2 9; }
+.theme-light .vsm-zone-title{
+  font-family:Inter,Arial,sans-serif;
+  font-size:34px;
+  font-weight:500;
+  opacity:.82;
+}
+.theme-light .vsm-zone-title.info{ fill:#7DA34B; }
+.theme-light .vsm-zone-title.material{ fill:#9D7FBD; }
+.theme-light .vsm-zone-title.ladder{ fill:#E8842A; }
+.theme-light .vsm-node{ cursor:grab; }
+.theme-light .vsm-node.is-selected > *:first-child,
+.theme-light .vsm-node.is-connecting > *:first-child{
+  filter:drop-shadow(0 0 0 rgba(0,0,0,0));
+  stroke:#C47A1A!important;
+  stroke-width:3!important;
+}
+.theme-light .vsm-svg-building,
+.theme-light .vsm-svg-process,
+.theme-light .vsm-svg-plain,
+.theme-light .vsm-svg-info,
+.theme-light .vsm-svg-kanban{
+  fill:#F8FBFF;
+  stroke:#10233F;
+  stroke-width:1.6;
+}
+.theme-light .vsm-svg-process{ fill:#EAF3F9; }
+.theme-light .vsm-svg-info{ fill:#F4FAF8; }
+.theme-light .vsm-svg-kanban{ fill:#F9FBFE; }
+.theme-light .vsm-svg-inventory{ fill:#FFF7A8; stroke:#10233F; stroke-width:1.5; }
+.theme-light .vsm-svg-kaizen{ fill:#FFF8EA; stroke:#C47A1A; stroke-width:1.5; }
+.theme-light .vsm-svg-wheel{ fill:#10233F; stroke:#10233F; }
+.theme-light .vsm-svg-line{ stroke:#10233F; stroke-width:1.4; fill:none; }
+.theme-light .vsm-svg-plain.no-fill{ fill:none; }
+.theme-light .vsm-svg-title{
+  fill:#10233F;
+  font-family:Inter,Arial,sans-serif;
+  font-size:14px;
+  font-weight:750;
+}
+.theme-light .vsm-svg-small{
+  fill:#10233F;
+  font-family:Inter,Arial,sans-serif;
+  font-size:10.5px;
+}
+.theme-light .vsm-svg-fifo{
+  fill:#10233F;
+  font-family:Inter,Arial,sans-serif;
+  font-size:28px;
+  font-weight:800;
+}
+.theme-light .vsm-connector path{
+  fill:none;
+  stroke:#10233F;
+  stroke-width:2.4;
+}
+.theme-light .vsm-connector.information path{
+  stroke:#2F756A;
+  stroke-dasharray:8 6;
+}
+.theme-light .vsm-connector.electronic path{
+  stroke:#2F756A;
+  stroke-dasharray:2 6;
+}
+.theme-light .vsm-connector.push path{
+  stroke:#10233F;
+  stroke-width:5;
+  stroke-dasharray:12 8;
+}
+.theme-light .vsm-connector text,
+.theme-light .vsm-ladder-svg text{
+  fill:#10233F;
+  font-family:Inter,Arial,sans-serif;
+  font-size:11px;
+  font-weight:700;
+}
+.theme-light .vsm-ladder-svg path{
+  fill:none;
+  stroke:#111827;
+  stroke-width:3;
+}
+.theme-light .vsm-inspector{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.theme-light .vsm-inspector-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid #E4EAF2;
+  padding-bottom:8px;
+}
+.theme-light .vsm-inspector-head span{
+  font-family:var(--font-mono);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#5D6B82;
+  font-weight:850;
+}
+.theme-light .vsm-inspector-head button,
+.theme-light .vsm-connectors-list button,
+.theme-light .vsm-ladder-row button{
+  border:1px solid #D6DEE9;
+  background:#FFFFFF;
+  color:#10233F;
+  min-height:28px;
+  padding:4px 8px;
+  font-weight:800;
+  cursor:pointer;
+}
+.theme-light .vsm-inspector label{
+  display:grid;
+  gap:5px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:#5D6B82;
+  font-weight:800;
+}
+.theme-light .vsm-inspector input,
+.theme-light .vsm-ladder-row input,
+.theme-light .vsm-ladder-row select{
+  min-height:34px;
+  border:1px solid #CBD5E1;
+  background:#FFFFFF;
+  color:#10233F;
+  padding:6px 8px;
+  font:inherit;
+  font-size:12px;
+  text-transform:none;
+  letter-spacing:0;
+}
+.theme-light .vsm-inspector-empty{
+  border:1px dashed #B7C4D6;
+  background:#F8FAFC;
+  padding:14px;
+}
+.theme-light .vsm-inspector-empty strong{
+  display:block;
+  margin-bottom:6px;
+  color:#10233F;
+}
+.theme-light .vsm-inspector-empty p,
+.theme-light .vsm-connectors-list p{
+  margin:0;
+  color:#607089;
+  font-size:12px;
+  line-height:1.45;
+}
+.theme-light .vsm-connectors-list{
+  border-top:1px solid #E4EAF2;
+  padding-top:10px;
+}
+.theme-light .vsm-connectors-list div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  border:1px solid #E4EAF2;
+  padding:6px 8px;
+  margin-top:6px;
+  font-size:12px;
+}
+.theme-light .vsm-ladder-editor{
+  border-top:1px solid #E4EAF2;
+  padding-top:10px;
+}
+.theme-light .vsm-ladder-row{
+  display:grid;
+  grid-template-columns:1fr .75fr .85fr auto;
+  gap:5px;
+  margin-top:7px;
+}
+
+@media (max-width: 1100px){
+  .theme-light .vsm-advanced-toolbar{
+    flex-direction:column;
+  }
+  .theme-light .vsm-advanced-actions{
+    justify-content:flex-start;
+  }
+  .theme-light .vsm-advanced-layout{
+    grid-template-columns:1fr;
+  }
+  .theme-light .vsm-palette,
+  .theme-light .vsm-inspector{
+    max-height:none;
+  }
+  .theme-light .vsm-palette section > div{
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  }
+  .theme-light .vsm-canvas-shell{
+    min-height:560px;
+  }
+  .theme-light .vsm-advanced-canvas{
+    width:1200px;
+    height:720px;
+  }
+}
+
+@media (max-width: 680px){
+  .theme-light .vsm-advanced-workbench{
+    gap:10px;
+  }
+  .theme-light .vsm-advanced-toolbar,
+  .theme-light .vsm-palette,
+  .theme-light .vsm-inspector{
+    padding:10px;
+  }
+  .theme-light .vsm-advanced-actions button,
+  .theme-light .vsm-advanced-actions select{
+    width:100%;
+  }
+  .theme-light .vsm-ladder-row{
+    grid-template-columns:1fr;
+  }
+}
+
 @media print {
   @page{ margin:12mm; }
   body *{ visibility:hidden; }
@@ -6912,7 +7794,7 @@ export default function App() {
     ? Math.round(projects.reduce((sum, project) => sum + projectProgress(project), 0) / (projects.length * STEPS.length) * 100)
     : 0;
   const appClass = 'lean-app theme-light';
-  const activeToolMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : null;
+  const activeToolMeta = active === ADVANCED_BPMN_TAB.id ? ADVANCED_BPMN_TAB : active === ADVANCED_VSM_TAB.id ? ADVANCED_VSM_TAB : null;
   const activeMeta = activeToolMeta || STEPS[active] || STEPS[0];
   const ActiveIcon = activeMeta.icon || GitBranch;
   const userEmail = authSession?.user?.email;
@@ -7197,6 +8079,15 @@ export default function App() {
             layoutKey={sidebarCollapsed ? 'collapsed' : 'expanded'}
             onChange={(xml) => updateField('bpmnXml', xml)}
             onViewboxChange={(viewbox) => updateField('bpmnViewbox', viewbox)}
+          />
+        );
+      case 'vsm-advanced':
+        return (
+          <VsmAdvancedEditor
+            key={data._projectId}
+            value={data.vsmAdvanced}
+            projectName={data.projectName}
+            onChange={(map) => updateField('vsmAdvanced', map)}
           />
         );
       default: return null;
@@ -7512,6 +8403,10 @@ export default function App() {
             <GitBranch className="advanced-step-icon" size={16} aria-hidden="true" />
             <span className="step-title">{ADVANCED_BPMN_TAB.title}</span>
           </button>
+          <button className={`step-item advanced-step ${active === ADVANCED_VSM_TAB.id ? 'is-active' : ''}`} onClick={() => goToStep(ADVANCED_VSM_TAB.id)}>
+            <Map className="advanced-step-icon" size={16} aria-hidden="true" />
+            <span className="step-title">{ADVANCED_VSM_TAB.title}</span>
+          </button>
           <div className="attachments-panel">
             <div className="attachments-title">
               <span><Paperclip size={14} /> Fichiers liés</span>
@@ -7576,10 +8471,10 @@ export default function App() {
           </div>
         </div>
       </aside>
-      <main className={`main ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-main' : ''}`}>
-        <div className={`dossier-card ${active === ADVANCED_BPMN_TAB.id ? 'bpmn-card' : ''}`}>
+      <main className={`main ${activeToolMeta ? 'bpmn-main' : ''}`}>
+        <div className={`dossier-card ${activeToolMeta ? 'bpmn-card' : ''}`}>
           <div className="eyebrow">{activeToolMeta ? 'Outil' : `Étape ${String(active).padStart(2, '0')}`} — {activeMeta.title}</div>
-          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{active === ADVANCED_BPMN_TAB.id && <span className="optional-badge">Optionnel</span>}</h2>
+          <h2 className="step-page-title"><ActiveIcon className="step-page-icon" size={24} aria-hidden="true" /> <span>{activeMeta.title}</span>{activeToolMeta && <span className="optional-badge">Optionnel</span>}</h2>
           <p className="objectif"><em>Objectif</em>{activeMeta.objectif}</p>
           <p className="livrable"><em>Livrables</em>{activeMeta.livrable}</p>
           <div className="step-body">{renderStep()}</div>
