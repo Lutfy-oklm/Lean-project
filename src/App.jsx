@@ -5904,6 +5904,243 @@ const CSS = `
   color:#0F2744;
 }
 
+.theme-light .landing-mode{
+  background:
+    linear-gradient(rgba(16,35,63,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16,35,63,.035) 1px, transparent 1px),
+    radial-gradient(circle at 18% 18%, rgba(47,119,107,.08), transparent 28rem),
+    #FFFFFF;
+  background-size:56px 56px,56px 56px,auto,auto;
+}
+.theme-light .landing-nav{
+  border-bottom:1px solid #D8E0EA;
+  padding-bottom:20px;
+}
+.theme-light .landing-hero{
+  grid-template-columns:minmax(0,.95fr) minmax(430px,1.05fr);
+  gap:34px;
+  align-items:center;
+  padding:46px 0 30px;
+}
+.theme-light .landing-copy{
+  border-top:4px solid #10233F;
+  padding-top:22px;
+}
+.theme-light .landing-copy h1{
+  max-width:720px;
+  font-size:clamp(48px,5.4vw,78px);
+  line-height:.98;
+  letter-spacing:0;
+}
+.theme-light .landing-copy p{
+  max-width:640px;
+  font-size:16px;
+}
+.theme-light .landing-proof-row{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:10px;
+  margin-top:24px;
+}
+.theme-light .landing-proof-row div{
+  border:1px solid #D8E0EA;
+  border-top:3px solid #2F776B;
+  background:rgba(255,255,255,.86);
+  padding:13px 14px;
+}
+.theme-light .landing-proof-row strong{
+  display:block;
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:18px;
+  font-weight:500;
+}
+.theme-light .landing-proof-row span{
+  display:block;
+  margin-top:5px;
+  color:#596B82;
+  font-size:12px;
+  line-height:1.4;
+}
+.theme-light .landing-product-preview{
+  border:1px solid #C9D4E3;
+  border-top:4px solid #2F776B;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 28px 80px rgba(16,35,63,.13);
+  padding:18px;
+}
+.theme-light .preview-topbar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  border-bottom:1px solid #D8E0EA;
+  padding-bottom:14px;
+}
+.theme-light .preview-topbar span,
+.theme-light .preview-kpis span,
+.theme-light .preview-section-title{
+  color:#536884;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.theme-light .preview-topbar strong{
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:36px;
+  font-weight:500;
+  line-height:1;
+}
+.theme-light .preview-kpis{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:14px 0;
+}
+.theme-light .preview-kpis div{
+  border:1px solid #D8E0EA;
+  background:#F8FAFD;
+  padding:12px;
+}
+.theme-light .preview-kpis strong{
+  display:block;
+  margin-top:7px;
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:28px;
+  font-weight:500;
+}
+.theme-light .preview-workspace{
+  display:grid;
+  grid-template-columns:148px minmax(0,1fr);
+  min-height:330px;
+  border:1px solid #D8E0EA;
+  background:#FFFFFF;
+}
+.theme-light .preview-sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  border-right:1px solid #D8E0EA;
+  background:#F5F8FC;
+  padding:12px;
+}
+.theme-light .preview-sidebar span{
+  color:#536884;
+  border-left:3px solid transparent;
+  padding:10px 8px;
+  font-size:12px;
+  font-weight:800;
+}
+.theme-light .preview-sidebar span.is-active{
+  color:#10233F;
+  background:#FFFFFF;
+  border-left-color:#2F776B;
+  box-shadow:0 1px 0 rgba(16,35,63,.08);
+}
+.theme-light .preview-main{
+  padding:16px;
+  min-width:0;
+}
+.theme-light .preview-section-title{
+  border-bottom:2px solid #10233F;
+  padding-bottom:9px;
+  margin-bottom:12px;
+}
+.theme-light .preview-project-row{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid #D8E0EA;
+  margin-bottom:8px;
+  padding:9px 11px;
+  color:#10233F;
+  font-weight:750;
+}
+.theme-light .preview-project-row em{
+  font-style:normal;
+  color:#2F776B;
+  background:#E9F4EF;
+  border:1px solid #A9D2C4;
+  padding:4px 7px;
+  font-family:var(--font-mono);
+  font-size:9px;
+  text-transform:uppercase;
+}
+.theme-light .preview-flow{
+  display:grid;
+  grid-template-columns:1fr 38px 1fr 38px 1fr;
+  align-items:center;
+  gap:8px;
+  margin:16px 0;
+}
+.theme-light .preview-flow div{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #C9D4E3;
+  background:#F8FAFD;
+  color:#10233F;
+  font-size:12px;
+  font-weight:800;
+  text-align:center;
+}
+.theme-light .preview-flow span{
+  position:relative;
+  height:2px;
+  background:#2F776B;
+}
+.theme-light .preview-flow span:after{
+  content:'';
+  position:absolute;
+  right:-1px;
+  top:50%;
+  width:8px;
+  height:8px;
+  border-top:2px solid #2F776B;
+  border-right:2px solid #2F776B;
+  transform:translateY(-50%) rotate(45deg);
+}
+.theme-light .preview-bottom-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.theme-light .preview-bottom-grid div{
+  min-height:86px;
+  border:1px solid #D8E0EA;
+  border-top:3px solid #C9832B;
+  background:#FBFAF6;
+  padding:12px;
+}
+.theme-light .preview-bottom-grid span{
+  color:#10233F;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:20px;
+}
+.theme-light .preview-bottom-grid small{
+  display:block;
+  margin-top:8px;
+  color:#596B82;
+}
+
+@media (max-width: 980px){
+  .theme-light .landing-hero{
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+  .theme-light .landing-product-preview{
+    width:100%;
+    box-sizing:border-box;
+  }
+}
+
 @media (max-width: 640px){
   html,body,#root{ width:100%; min-width:0; overflow-x:hidden; }
   .lean-app{
@@ -5965,6 +6202,46 @@ const CSS = `
   .theme-light .landing-secondary{
     width:100%;
     min-height:44px;
+  }
+  .theme-light .landing-proof-row,
+  .theme-light .preview-kpis,
+  .theme-light .preview-bottom-grid{
+    grid-template-columns:1fr;
+  }
+  .theme-light .landing-product-preview{
+    margin-top:22px;
+    padding:12px;
+  }
+  .theme-light .preview-workspace{
+    grid-template-columns:1fr;
+  }
+  .theme-light .preview-sidebar{
+    flex-direction:row;
+    overflow-x:auto;
+    border-right:0;
+    border-bottom:1px solid #D8E0EA;
+  }
+  .theme-light .preview-sidebar span{
+    flex:0 0 auto;
+    border-left:0;
+    border-bottom:3px solid transparent;
+  }
+  .theme-light .preview-sidebar span.is-active{
+    border-bottom-color:#2F776B;
+  }
+  .theme-light .preview-flow{
+    grid-template-columns:1fr;
+  }
+  .theme-light .preview-flow span{
+    width:2px;
+    height:22px;
+    margin:0 auto;
+  }
+  .theme-light .preview-flow span:after{
+    right:50%;
+    top:auto;
+    bottom:-1px;
+    transform:translateX(50%) rotate(135deg);
   }
   .theme-light .landing-panel{
     margin-top:22px;
@@ -8278,67 +8555,79 @@ export default function App() {
 
           <section className="landing-hero">
             <div className="landing-copy">
-              <div className="landing-kicker">Pilotage des démarches d'amélioration</div>
-              <h1>Structurez vos projets processus de bout en bout.</h1>
-              <p>Pilotez vos projets d'amélioration de processus avec une méthode structurée, des livrables prêts à remplir et un suivi clair de bout en bout.</p>
+              <div className="landing-kicker">Plateforme de pilotage processus</div>
+              <h1>Pilotez vos processus de bout en bout.</h1>
+              <p>Centralisez vos projets d'amélioration, structurez vos livrables, cartographiez vos flux et suivez l'exécution dans un espace clair, fiable et prêt pour tous les secteurs.</p>
               <div className="landing-method-strip" aria-label="Méthode PilotProcess">
                 <span>9 étapes structurées</span>
-                <span>Livrables guidés</span>
-                <span>Suivi par projet</span>
+                <span>BPMN &amp; VSM avancés</span>
+                <span>Dossier PDF</span>
               </div>
-              <div className="landing-trust-note">Vos projets sont sauvegardés dans votre espace sécurisé.</div>
               <div className="landing-actions">
                 <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
                 <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
               </div>
+              <div className="landing-proof-row" aria-label="Points forts">
+                <div><strong>Projet</strong><span>Charte, SIPOC, RACI, actions</span></div>
+                <div><strong>Analyse</strong><span>Pareto, Ishikawa, 5 pourquoi</span></div>
+                <div><strong>Contrôle</strong><span>KPI, plan de contrôle, REX</span></div>
+              </div>
             </div>
 
-            <div className="landing-panel" aria-label="Aperçu du tableau de bord">
-              <div className="landing-panel-head">
-                <span>Exemple de portefeuille projet</span>
+            <div className="landing-product-preview" aria-label="Aperçu de PilotProcess">
+              <div className="preview-topbar">
+                <span>Portefeuille projets</span>
+                <strong>78%</strong>
               </div>
-              <div className="landing-panel-metrics">
-                <div><span>Total projets</span><strong>12</strong></div>
+              <div className="preview-kpis">
+                <div><span>Projets actifs</span><strong>12</strong></div>
                 <div><span>À finaliser</span><strong>5</strong></div>
-                <div><span>Avancement</span><strong>78%</strong></div>
+                <div><span>Terminés</span><strong>7</strong></div>
               </div>
-              <div className="landing-panel-progress" aria-label="Avancement global exemple 78%">
-                <div className="landing-panel-progress-bar"><span /></div>
-                <small>Vision consolidée des projets en cours, terminés et à prioriser.</small>
-              </div>
-              <div className="landing-mini-list">
-                <div>
-                  <span>Réduction des délais de traitement</span>
-                  <em className="in-progress">En cours</em>
+              <div className="preview-workspace">
+                <div className="preview-sidebar">
+                  {['Cadrer', 'Observer', 'Cartographier', 'Analyser', 'Contrôler'].map((item, index) => (
+                    <span key={item} className={index === 2 ? 'is-active' : ''}>{item}</span>
+                  ))}
                 </div>
-                <div>
-                  <span>Standardisation d’un flux opérationnel</span>
-                  <em className="done">Terminé</em>
-                </div>
-                <div>
-                  <span>Amélioration de la qualité de service</span>
-                  <em className="in-progress">En cours</em>
-                </div>
-                <div>
-                  <span>Digitalisation du suivi terrain</span>
-                  <em className="done">Terminé</em>
+                <div className="preview-main">
+                  <div className="preview-section-title">Projet - Réduction des délais</div>
+                  <div className="preview-project-row">
+                    <span>Charte projet</span><em>Validé</em>
+                  </div>
+                  <div className="preview-project-row">
+                    <span>Cartographie AS-IS</span><em>En cours</em>
+                  </div>
+                  <div className="preview-flow">
+                    <div>Client</div><span /><div>Analyse</div><span /><div>Action</div>
+                  </div>
+                  <div className="preview-bottom-grid">
+                    <div>
+                      <span>VSM</span>
+                      <small>Lead time 14 j</small>
+                    </div>
+                    <div>
+                      <span>BPMN</span>
+                      <small>Flux validé</small>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="landing-sectors" aria-label="Secteurs couverts">
+          <section className="landing-sectors" aria-label="Capacités PilotProcess">
             <div>
-              <span>Services</span>
-              <p>Parcours client, réclamations, délais de traitement, qualité de service.</p>
+              <span>Structurer</span>
+              <p>Cadrez le problème, clarifiez le périmètre et organisez les parties prenantes.</p>
             </div>
             <div>
-              <span>Industrie & opérations</span>
-              <p>Maintenance, flux terrain, production, logistique, qualité et performance.</p>
+              <span>Analyser</span>
+              <p>Identifiez les irritants, les causes racines et les leviers à plus fort impact.</p>
             </div>
             <div>
-              <span>Fonctions transverses</span>
-              <p>Back-office, support, conformité, IT, pilotage interne et amélioration continue.</p>
+              <span>Déployer</span>
+              <p>Transformez vos analyses en plans d'action, KPI, contrôles et livrables partageables.</p>
             </div>
           </section>
         </main>
