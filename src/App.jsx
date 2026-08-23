@@ -5908,77 +5908,181 @@ const CSS = `
   background:
     linear-gradient(rgba(16,35,63,.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(16,35,63,.035) 1px, transparent 1px),
-    radial-gradient(circle at 18% 18%, rgba(47,119,107,.08), transparent 28rem),
-    #FFFFFF;
-  background-size:56px 56px,56px 56px,auto,auto;
+    radial-gradient(circle at 74% 22%, rgba(47,119,107,.07), transparent 24rem),
+    radial-gradient(circle at 12% 78%, rgba(201,131,43,.055), transparent 21rem),
+    linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%);
+  background-size:72px 72px,72px 72px,auto,auto,auto;
+}
+.theme-light .landing-page{
+  width:min(1840px,100%);
+  padding:32px 64px 48px;
 }
 .theme-light .landing-nav{
-  border-bottom:1px solid #D8E0EA;
-  padding-bottom:20px;
+  height:78px;
+  border-bottom:1px solid #DCE4EE;
+  padding-bottom:22px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:36px;
+}
+.theme-light .landing-brand{
+  font-size:36px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+.theme-light .landing-brand img{
+  width:54px;
+  height:54px;
+  border:0;
+}
+.theme-light .landing-menu{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:42px;
+}
+.theme-light .landing-menu button{
+  border:0;
+  background:transparent;
+  color:#061538;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 0;
+  font-size:16px;
+  font-weight:650;
+  cursor:pointer;
+}
+.theme-light .landing-auth-actions{
+  gap:18px;
+}
+.theme-light .auth-nav-button{
+  min-height:54px;
+  min-width:174px;
+  border-radius:5px;
+  border:1.5px solid #10233F;
+  background:#FFFFFF;
+  color:#061538;
+  font-size:15px;
+  font-weight:850;
+}
+.theme-light .auth-nav-button.primary{
+  background:linear-gradient(180deg,#167C78 0%,#0D6661 100%);
+  border-color:#0D6661;
+  color:#FFFFFF;
+  box-shadow:0 12px 24px rgba(13,102,97,.18);
+}
+.theme-light .auth-nav-button.ghost{
+  background:#FFFFFF;
 }
 .theme-light .landing-hero{
-  grid-template-columns:minmax(0,.95fr) minmax(430px,1.05fr);
-  gap:34px;
+  grid-template-columns:minmax(430px,.64fr) minmax(680px,1fr);
+  gap:72px;
   align-items:center;
-  padding:46px 0 30px;
+  min-height:690px;
+  padding:54px 0 34px;
 }
 .theme-light .landing-copy{
-  border-top:4px solid #10233F;
-  padding-top:22px;
+  border-top:0;
+  padding-top:0;
 }
 .theme-light .landing-copy h1{
-  max-width:720px;
-  font-size:clamp(48px,5.4vw,78px);
-  line-height:.98;
-  letter-spacing:0;
+  max-width:650px;
+  margin:0 0 24px;
+  color:#061538;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(64px,5.5vw,104px);
+  font-weight:650;
+  line-height:.96;
+  letter-spacing:-.035em;
+  text-shadow:0 10px 24px rgba(6,21,56,.09);
+}
+.theme-light .landing-copy h1:after{
+  content:'';
+  display:block;
+  width:72px;
+  height:5px;
+  background:#0D7771;
+  margin-top:30px;
 }
 .theme-light .landing-copy p{
-  max-width:640px;
-  font-size:16px;
+  max-width:580px;
+  color:#293655;
+  font-size:21px;
+  line-height:1.55;
+}
+.theme-light .landing-actions{
+  margin-top:40px;
+  gap:24px;
+}
+.theme-light .landing-primary{
+  min-height:64px;
+  min-width:265px;
+  border-radius:6px;
+  border:1px solid #0D6661;
+  background:linear-gradient(180deg,#16847F 0%,#0D6863 100%);
+  box-shadow:0 16px 32px rgba(13,102,97,.2);
+  color:#FFFFFF;
+  padding:0 28px;
+  font-size:18px;
+  font-weight:900;
+}
+.theme-light .landing-secondary,
+.theme-light .landing-demo{
+  min-height:64px;
+  border:0;
+  background:transparent;
+  color:#061538;
+  padding:0 6px;
+  font-size:18px;
+  font-weight:900;
 }
 .theme-light .landing-proof-row{
   display:grid;
   grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:10px;
-  margin-top:24px;
+  gap:28px;
+  margin-top:62px;
 }
 .theme-light .landing-proof-row div{
-  border:1px solid #D8E0EA;
-  border-top:3px solid #2F776B;
-  background:rgba(255,255,255,.86);
-  padding:13px 14px;
+  position:relative;
+  border:0;
+  border-top:0;
+  background:transparent;
+  padding:0 0 0 42px;
+}
+.theme-light .landing-proof-row div:before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:3px;
+  width:28px;
+  height:28px;
+  border:2px solid #0D7771;
+  border-radius:9px;
 }
 .theme-light .landing-proof-row strong{
   display:block;
-  color:#10233F;
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:18px;
-  font-weight:500;
+  color:#0B2244;
+  font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;
+  font-weight:850;
 }
 .theme-light .landing-proof-row span{
   display:block;
   margin-top:5px;
-  color:#596B82;
-  font-size:12px;
+  color:#43506B;
+  font-size:13px;
   line-height:1.4;
 }
 .theme-light .landing-product-preview{
-  border:1px solid #C9D4E3;
-  border-top:4px solid #2F776B;
-  background:rgba(255,255,255,.94);
-  box-shadow:0 28px 80px rgba(16,35,63,.13);
-  padding:18px;
+  border:1px solid #D6E0EB;
+  border-radius:10px;
+  background:#FFFFFF;
+  box-shadow:0 34px 90px rgba(12,31,63,.13);
+  padding:0;
+  overflow:hidden;
 }
-.theme-light .preview-topbar{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:18px;
-  border-bottom:1px solid #D8E0EA;
-  padding-bottom:14px;
-}
-.theme-light .preview-topbar span,
-.theme-light .preview-kpis span,
 .theme-light .preview-section-title{
   color:#536884;
   font-family:var(--font-mono);
@@ -5987,68 +6091,221 @@ const CSS = `
   text-transform:uppercase;
   letter-spacing:.04em;
 }
-.theme-light .preview-topbar strong{
-  color:#10233F;
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:36px;
-  font-weight:500;
-  line-height:1;
-}
-.theme-light .preview-kpis{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin:14px 0;
-}
-.theme-light .preview-kpis div{
-  border:1px solid #D8E0EA;
-  background:#F8FAFD;
-  padding:12px;
-}
-.theme-light .preview-kpis strong{
-  display:block;
-  margin-top:7px;
-  color:#10233F;
-  font-family:Georgia,'Times New Roman',serif;
-  font-size:28px;
-  font-weight:500;
-}
 .theme-light .preview-workspace{
   display:grid;
-  grid-template-columns:148px minmax(0,1fr);
-  min-height:330px;
-  border:1px solid #D8E0EA;
+  grid-template-columns:190px minmax(0,1fr);
+  min-height:710px;
+  border:0;
   background:#FFFFFF;
 }
 .theme-light .preview-sidebar{
   display:flex;
   flex-direction:column;
-  gap:0;
+  gap:7px;
   border-right:1px solid #D8E0EA;
-  background:#F5F8FC;
-  padding:12px;
+  background:#FAFCFE;
+  padding:25px 18px;
+}
+.theme-light .preview-brand-mini{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:20px;
+  color:#061538;
+}
+.theme-light .preview-brand-mini img{
+  width:28px;
+  height:28px;
+}
+.theme-light .preview-brand-mini strong{
+  font-size:18px;
+  font-weight:900;
 }
 .theme-light .preview-sidebar span{
+  color:#24324E;
+  border-left:0;
+  border-radius:6px;
+  padding:12px 13px;
+  font-size:13px;
+  font-weight:760;
+}
+.theme-light .preview-sidebar span.is-active{
+  color:#061538;
+  background:#ECF2FA;
+  box-shadow:none;
+}
+.theme-light .preview-sidebar button{
+  margin-top:auto;
+  border:0;
+  background:transparent;
+  color:#24324E;
+  text-align:left;
+  padding:12px;
+  font-weight:750;
+}
+.theme-light .preview-main{
+  padding:28px 26px 24px;
+  min-width:0;
+}
+.theme-light .preview-header-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:22px;
+}
+.theme-light .preview-header-row h2{
+  margin:0;
+  color:#061538;
+  font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+  font-size:24px;
+  font-weight:850;
+}
+.theme-light .preview-header-row p{
+  margin:5px 0 0;
   color:#536884;
-  border-left:3px solid transparent;
-  padding:10px 8px;
+  font-size:13px;
+}
+.theme-light .preview-period{
+  border:1px solid #D6E0EB;
+  border-radius:4px;
+  padding:10px 14px;
+  color:#061538;
+  font-size:12px;
+  white-space:nowrap;
+}
+.theme-light .preview-section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:0;
+  padding-bottom:0;
+  margin-bottom:14px;
+  color:#061538;
+  font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;
+  font-weight:850;
+  text-transform:none;
+  letter-spacing:0;
+}
+.theme-light .preview-section-title button{
+  border:0;
+  background:transparent;
+  color:#003C91;
   font-size:12px;
   font-weight:800;
 }
-.theme-light .preview-sidebar span.is-active{
-  color:#10233F;
+.theme-light .preview-project-cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  border:1px solid #D6E0EB;
+  border-radius:8px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.theme-light .preview-project-cards > div{
+  position:relative;
+  min-height:130px;
+  border:1px solid #D6E0EB;
+  border-radius:8px;
   background:#FFFFFF;
-  border-left-color:#2F776B;
-  box-shadow:0 1px 0 rgba(16,35,63,.08);
+  padding:22px 18px 16px;
 }
-.theme-light .preview-main{
-  padding:16px;
-  min-width:0;
+.theme-light .preview-project-cards strong{
+  display:block;
+  color:#061538;
+  font-size:14px;
+  font-weight:850;
+  margin-bottom:18px;
 }
-.theme-light .preview-section-title{
-  border-bottom:2px solid #10233F;
-  padding-bottom:9px;
-  margin-bottom:12px;
+.theme-light .preview-project-cards span{
+  display:block;
+  height:5px;
+  background:#E2E8F0;
+  margin-bottom:18px;
+}
+.theme-light .preview-project-cards i{
+  display:block;
+  height:100%;
+  background:#0D7771;
+}
+.theme-light .preview-project-cards small{
+  color:#536884;
+  font-size:11px;
+  line-height:1.45;
+}
+.theme-light .preview-project-cards em{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  font-style:normal;
+  background:#E9F4EF;
+  color:#0D6661;
+  padding:5px 9px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:800;
+}
+.theme-light .preview-process-track{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:0;
+  border:1px solid #D6E0EB;
+  border-radius:8px;
+  padding:28px 18px 20px;
+  margin-bottom:18px;
+}
+.theme-light .preview-process-track div{
+  position:relative;
+  text-align:center;
+}
+.theme-light .preview-process-track div:before{
+  content:'';
+  position:absolute;
+  left:-50%;
+  right:50%;
+  top:16px;
+  height:2px;
+  background:#D6E0EB;
+}
+.theme-light .preview-process-track div:first-child:before{
+  display:none;
+}
+.theme-light .preview-process-track span{
+  position:relative;
+  z-index:1;
+  width:34px;
+  height:34px;
+  border:2px solid #D6E0EB;
+  border-radius:50%;
+  background:#FFFFFF;
+  color:#0D7771;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+}
+.theme-light .preview-process-track .done span{
+  border-color:#0D7771;
+}
+.theme-light .preview-process-track .current span{
+  border-color:#C9832B;
+  color:#C9832B;
+}
+.theme-light .preview-process-track strong,
+.theme-light .preview-process-track small{
+  display:block;
+}
+.theme-light .preview-process-track strong{
+  margin-top:10px;
+  color:#061538;
+  font-size:12px;
+}
+.theme-light .preview-process-track small{
+  margin-top:4px;
+  color:#536884;
+  font-size:11px;
 }
 .theme-light .preview-project-row{
   min-height:44px;
@@ -6110,24 +6367,133 @@ const CSS = `
 .theme-light .preview-bottom-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:18px;
 }
 .theme-light .preview-bottom-grid div{
-  min-height:86px;
-  border:1px solid #D8E0EA;
-  border-top:3px solid #C9832B;
-  background:#FBFAF6;
-  padding:12px;
+  min-height:176px;
+  border:1px solid #D6E0EB;
+  border-top:0;
+  border-radius:8px;
+  background:#FFFFFF;
+  padding:18px;
 }
-.theme-light .preview-bottom-grid span{
-  color:#10233F;
+.theme-light .preview-metric-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.theme-light .preview-metric-row span{
+  border:1px solid #D6E0EB;
+  border-radius:6px;
+  padding:14px 12px;
+}
+.theme-light .preview-metric-row strong{
+  color:#061538;
   font-family:Georgia,'Times New Roman',serif;
-  font-size:20px;
+  font-size:28px;
+  font-weight:650;
 }
-.theme-light .preview-bottom-grid small{
+.theme-light .preview-metric-row small{
+  margin-left:4px;
+  color:#536884;
+}
+.theme-light .preview-vsm-mini{
+  display:grid;
+  grid-template-columns:1fr 32px 1fr 32px 1fr;
+  align-items:center;
+  gap:8px;
+  margin:18px 0;
+}
+.theme-light .preview-vsm-mini span{
+  border:1px solid #BFCBDD;
+  border-radius:5px;
+  background:#FAFCFE;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#061538;
+  font-size:12px;
+}
+.theme-light .preview-vsm-mini i{
+  height:2px;
+  background:#0D7771;
+  position:relative;
+}
+.theme-light .preview-vsm-mini i:after{
+  content:'';
+  position:absolute;
+  right:-1px;
+  top:50%;
+  width:7px;
+  height:7px;
+  border-top:2px solid #0D7771;
+  border-right:2px solid #0D7771;
+  transform:translateY(-50%) rotate(45deg);
+}
+.theme-light .preview-vsm-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.theme-light .preview-vsm-stats small{
   display:block;
-  margin-top:8px;
+  border:1px solid #D6E0EB;
+  border-radius:6px;
+  padding:10px;
   color:#596B82;
+  text-align:center;
+  line-height:1.45;
+}
+.theme-light .landing-sectors{
+  border-top:1px solid #DCE4EE;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin-top:0;
+}
+.theme-light .landing-sectors div{
+  border:0;
+  border-top:0;
+  border-right:1px solid #DCE4EE;
+  background:transparent;
+  display:grid;
+  grid-template-columns:92px minmax(0,1fr);
+  gap:10px 28px;
+  padding:42px 42px;
+}
+.theme-light .landing-sectors div:last-child{
+  border-right:0;
+}
+.theme-light .landing-sectors svg{
+  grid-row:1 / span 3;
+  color:#0D7771;
+  width:70px;
+  height:70px;
+}
+.theme-light .landing-sectors div:nth-child(2) svg{
+  color:#C9832B;
+}
+.theme-light .landing-sectors span{
+  color:#061538;
+  font-size:30px;
+}
+.theme-light .landing-sectors p{
+  margin:0;
+  color:#293655;
+  font-size:16px;
+  line-height:1.5;
+}
+.theme-light .landing-sectors button{
+  justify-self:start;
+  border:0;
+  background:transparent;
+  color:#0D7771;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 0;
+  font-size:15px;
+  font-weight:850;
 }
 
 @media (max-width: 980px){
@@ -8550,65 +8916,85 @@ export default function App() {
               <img src="/pilotprocess-logo.svg" alt="" />
               <span>PilotProcess</span>
             </div>
+            <div className="landing-menu" aria-label="Navigation principale">
+              <button type="button">Fonctionnalites</button>
+              <button type="button">Solutions <ChevronRight size={13} /></button>
+              <button type="button">Ressources <ChevronRight size={13} /></button>
+              <button type="button">Tarifs</button>
+              <button type="button">A propos</button>
+            </div>
             {landingAuthActions}
           </nav>
 
           <section className="landing-hero">
             <div className="landing-copy">
-              <div className="landing-kicker">Plateforme de pilotage processus</div>
-              <h1>Pilotez vos processus de bout en bout.</h1>
-              <p>Centralisez vos projets d'amélioration, structurez vos livrables, cartographiez vos flux et suivez l'exécution dans un espace clair, fiable et prêt pour tous les secteurs.</p>
-              <div className="landing-method-strip" aria-label="Méthode PilotProcess">
-                <span>9 étapes structurées</span>
-                <span>BPMN &amp; VSM avancés</span>
-                <span>Dossier PDF</span>
-              </div>
+              <h1>Pilotez vos processus de bout en bout</h1>
+              <p>Modelisez, analysez et deployez vos processus pour generer de la valeur durablement.</p>
               <div className="landing-actions">
-                <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Accéder au tableau de bord <ChevronRight size={17} /></button>
-                <button className="landing-secondary" onClick={createNewProject}><Plus size={16} /> Créer un projet</button>
+                <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signup')}>Creer un compte <ChevronRight size={17} /></button>
+                <button className="landing-secondary landing-demo" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Voir une demo <ChevronRight size={17} /></button>
               </div>
               <div className="landing-proof-row" aria-label="Points forts">
-                <div><strong>Projet</strong><span>Charte, SIPOC, RACI, actions</span></div>
-                <div><strong>Analyse</strong><span>Pareto, Ishikawa, 5 pourquoi</span></div>
-                <div><strong>Contrôle</strong><span>KPI, plan de contrôle, REX</span></div>
+                <div><strong>Securise & conforme</strong><span>Heberge en France</span></div>
+                <div><strong>Collaboration efficace</strong><span>Travaillez en equipe</span></div>
+                <div><strong>Resultats mesurables</strong><span>Suivez l'impact terrain</span></div>
               </div>
             </div>
 
-            <div className="landing-product-preview" aria-label="Aperçu de PilotProcess">
-              <div className="preview-topbar">
-                <span>Portefeuille projets</span>
-                <strong>78%</strong>
-              </div>
-              <div className="preview-kpis">
-                <div><span>Projets actifs</span><strong>12</strong></div>
-                <div><span>À finaliser</span><strong>5</strong></div>
-                <div><span>Terminés</span><strong>7</strong></div>
-              </div>
+            <div className="landing-product-preview" aria-label="Apercu de PilotProcess">
               <div className="preview-workspace">
                 <div className="preview-sidebar">
-                  {['Cadrer', 'Observer', 'Cartographier', 'Analyser', 'Contrôler'].map((item, index) => (
-                    <span key={item} className={index === 2 ? 'is-active' : ''}>{item}</span>
+                  <div className="preview-brand-mini">
+                    <img src="/pilotprocess-logo.svg" alt="" />
+                    <strong>PilotProcess</strong>
+                  </div>
+                  {['Tableau de bord', 'Projets', 'Processus', 'Analyses', 'Indicateurs', 'Actions', 'Documents', 'Equipe', 'Parametres'].map((item, index) => (
+                    <span key={item} className={index === 0 ? 'is-active' : ''}>{item}</span>
                   ))}
+                  <button type="button">Reduire</button>
                 </div>
                 <div className="preview-main">
-                  <div className="preview-section-title">Projet - Réduction des délais</div>
-                  <div className="preview-project-row">
-                    <span>Charte projet</span><em>Validé</em>
+                  <div className="preview-header-row">
+                    <div>
+                      <h2>Tableau de bord</h2>
+                      <p>Vue d'ensemble de vos projets et de la performance</p>
+                    </div>
+                    <div className="preview-period">Periode : 30 derniers jours</div>
                   </div>
-                  <div className="preview-project-row">
-                    <span>Cartographie AS-IS</span><em>En cours</em>
+                  <div className="preview-section-title">Projets recents <button type="button">Voir tous les projets</button></div>
+                  <div className="preview-project-cards">
+                    <div><strong>Commande client</strong><span><i style={{ width: '68%' }} /></span><small>Derniere mise a jour<br />16/05/2024</small><em>En cours</em></div>
+                    <div><strong>Facturation</strong><span><i style={{ width: '42%' }} /></span><small>Derniere mise a jour<br />14/05/2024</small><em>En cours</em></div>
+                    <div><strong>Onboarding fournisseur</strong><span><i style={{ width: '75%' }} /></span><small>Derniere mise a jour<br />13/05/2024</small><em>En revue</em></div>
                   </div>
-                  <div className="preview-flow">
-                    <div>Client</div><span /><div>Analyse</div><span /><div>Action</div>
+                  <div className="preview-process-track">
+                    {['Definir', 'Modeliser', 'Analyser', 'Ameliorer', 'Deployer', 'Suivre'].map((item, index) => (
+                      <div key={item} className={index < 2 ? 'done' : index === 2 ? 'current' : ''}>
+                        <span>{index < 2 ? '✓' : index === 2 ? '▣' : ''}</span>
+                        <strong>{item}</strong>
+                        <small>{index === 5 ? 'En continu' : `${String(index + 2).padStart(2, '0')}/05`}</small>
+                      </div>
+                    ))}
                   </div>
                   <div className="preview-bottom-grid">
                     <div>
-                      <span>VSM</span>
-                      <small>Lead time 14 j</small>
+                      <div className="preview-section-title">Indicateurs cles</div>
+                      <div className="preview-metric-row">
+                        <span><strong>5,2</strong><small>jours</small></span>
+                        <span><strong>92%</strong><small>SLA</small></span>
+                        <span><strong>23,4 €</strong><small>cout</small></span>
+                      </div>
                     </div>
                     <div>
-                      <span>BPMN</span>
-                      <small>Flux validé</small>
+                      <div className="preview-section-title">Apercu du processus (VSM)</div>
+                      <div className="preview-vsm-mini">
+                        <span>Fournisseur</span><i /><span>Processus</span><i /><span>Client</span>
+                      </div>
+                      <div className="preview-vsm-stats">
+                        <small>3,2 j<br />Delai total</small>
+                        <small>1,1 j<br />VA</small>
+                        <small>34%<br />Valeur ajoutee</small>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -8616,21 +9002,26 @@ export default function App() {
             </div>
           </section>
 
-          <section className="landing-sectors" aria-label="Capacités PilotProcess">
+          <section className="landing-sectors" aria-label="Capacites PilotProcess">
             <div>
+              <BarChart3 size={54} strokeWidth={1.45} />
               <span>Structurer</span>
-              <p>Cadrez le problème, clarifiez le périmètre et organisez les parties prenantes.</p>
+              <p>Modelisez vos processus avec clarte et capitalisez votre savoir-faire.</p>
+              <button type="button">En savoir plus <ChevronRight size={15} /></button>
             </div>
             <div>
+              <Target size={54} strokeWidth={1.45} />
               <span>Analyser</span>
-              <p>Identifiez les irritants, les causes racines et les leviers à plus fort impact.</p>
+              <p>Mesurez la performance et identifiez les leviers d'amelioration.</p>
+              <button type="button">En savoir plus <ChevronRight size={15} /></button>
             </div>
             <div>
-              <span>Déployer</span>
-              <p>Transformez vos analyses en plans d'action, KPI, contrôles et livrables partageables.</p>
+              <Rocket size={54} strokeWidth={1.45} />
+              <span>Deployer</span>
+              <p>Pilotez les actions, engagez les equipes et suivez les resultats.</p>
+              <button type="button">En savoir plus <ChevronRight size={15} /></button>
             </div>
-          </section>
-        </main>
+          </section>        </main>
       </div>
     );
   }
