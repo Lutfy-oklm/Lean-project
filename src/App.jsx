@@ -6445,30 +6445,55 @@ const CSS = `
   background:#0D7771;
   flex:0 0 auto;
 }
-.theme-light .preview-vsm-mini{
+.theme-light .preview-bpmn-mini{
   display:grid;
-  grid-template-columns:1fr 32px 1fr 32px 1fr;
+  grid-template-columns:28px 28px 1fr 28px 42px 28px 28px;
   align-items:center;
   gap:7px;
   margin:14px 0;
 }
-.theme-light .preview-vsm-mini span{
+.theme-light .preview-bpmn-node{
   border:1px solid #BFCBDD;
-  border-radius:5px;
   background:#FAFCFE;
-  min-height:39px;
   display:flex;
   align-items:center;
   justify-content:center;
   color:#061538;
   font-size:10px;
+  min-height:38px;
 }
-.theme-light .preview-vsm-mini i{
+.theme-light .preview-bpmn-node.start,
+.theme-light .preview-bpmn-node.end{
+  width:24px;
+  height:24px;
+  min-height:24px;
+  border-radius:50%;
+  justify-self:center;
+}
+.theme-light .preview-bpmn-node.task{
+  border-radius:5px;
+  font-weight:800;
+}
+.theme-light .preview-bpmn-node.decision{
+  width:30px;
+  height:30px;
+  min-height:30px;
+  transform:rotate(45deg);
+  justify-self:center;
+  background:#FFF8ED;
+  border-color:#C9832B;
+}
+.theme-light .preview-bpmn-node.decision span{
+  transform:rotate(-45deg);
+  font-weight:900;
+  color:#A36314;
+}
+.theme-light .preview-bpmn-arrow{
   height:2px;
   background:#0D7771;
   position:relative;
 }
-.theme-light .preview-vsm-mini i:after{
+.theme-light .preview-bpmn-arrow:after{
   content:'';
   position:absolute;
   right:-1px;
@@ -9059,8 +9084,14 @@ export default function App() {
                     </div>
                     <div>
                       <div className="preview-section-title">Apercu du processus</div>
-                      <div className="preview-vsm-mini">
-                        <span>Fournisseur</span><i /><span>Processus</span><i /><span>Client</span>
+                      <div className="preview-bpmn-mini">
+                        <span className="preview-bpmn-node start" />
+                        <i className="preview-bpmn-arrow" />
+                        <span className="preview-bpmn-node task">Demande</span>
+                        <i className="preview-bpmn-arrow" />
+                        <span className="preview-bpmn-node decision"><span>?</span></span>
+                        <i className="preview-bpmn-arrow" />
+                        <span className="preview-bpmn-node end" />
                       </div>
                       <div className="preview-vsm-notes">
                         <span>Flux clair</span>
