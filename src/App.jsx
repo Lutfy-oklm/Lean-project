@@ -6395,13 +6395,12 @@ const CSS = `
   grid-template-columns:1fr 1fr;
   gap:13px;
 }
-.theme-light .preview-bottom-grid div{
-  min-height:142px;
+.theme-light .preview-bottom-grid > div{
+  min-height:122px;
   border:1px solid #D6E0EB;
-  border-top:0;
   border-radius:8px;
   background:#FFFFFF;
-  padding:14px;
+  padding:13px;
 }
 .theme-light .preview-metric-row{
   display:grid;
@@ -6411,12 +6410,12 @@ const CSS = `
 .theme-light .preview-metric-row span{
   border:1px solid #D6E0EB;
   border-radius:6px;
-  padding:11px 9px;
+  padding:10px 8px;
 }
 .theme-light .preview-metric-row strong{
   color:#061538;
   font-family:Georgia,'Times New Roman',serif;
-  font-size:23px;
+  font-size:22px;
   font-weight:650;
 }
 .theme-light .preview-metric-row small{
@@ -6434,7 +6433,7 @@ const CSS = `
   border:1px solid #BFCBDD;
   border-radius:5px;
   background:#FAFCFE;
-  min-height:43px;
+  min-height:39px;
   display:flex;
   align-items:center;
   justify-content:center;
