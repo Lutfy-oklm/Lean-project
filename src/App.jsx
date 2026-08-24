@@ -6095,6 +6095,275 @@ const CSS = `
   border:0;
   background:#FFFFFF;
 }
+.theme-light .preview-product-board{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 260px;
+  min-height:570px;
+  background:#FFFFFF;
+}
+.theme-light .preview-dashboard-pane{
+  padding:24px 24px 22px;
+  min-width:0;
+}
+.theme-light .preview-dashboard-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  border-top:4px solid #10233F;
+  border-bottom:1px solid #D8E0EA;
+  padding:20px 0 22px;
+}
+.theme-light .preview-dashboard-title{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.theme-light .preview-dashboard-title img{
+  width:48px;
+  height:48px;
+  border:1px solid #D6E0EB;
+}
+.theme-light .preview-dashboard-title small{
+  display:block;
+  color:#536884;
+  font-family:var(--font-mono);
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.theme-light .preview-dashboard-title strong{
+  display:block;
+  color:#061538;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:40px;
+  font-weight:650;
+  line-height:1;
+}
+.theme-light .preview-dashboard-head p{
+  margin:10px 0 0;
+  max-width:520px;
+  color:#536884;
+  font-size:12px;
+  line-height:1.55;
+}
+.theme-light .preview-dashboard-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+}
+.theme-light .preview-dashboard-actions span{
+  color:#536884;
+  font-family:var(--font-mono);
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.theme-light .preview-dashboard-actions button{
+  border:1px solid #10233F;
+  background:#10233F;
+  color:#FFFFFF;
+  min-height:36px;
+  padding:0 14px;
+  font-size:12px;
+  font-weight:900;
+}
+.theme-light .preview-kpi-cards{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:18px 0 22px;
+}
+.theme-light .preview-kpi-cards div{
+  border:1px solid #D6E0EB;
+  border-top:3px solid #8798B0;
+  background:#FFFFFF;
+  padding:13px 14px;
+}
+.theme-light .preview-kpi-cards div:nth-child(2){ border-top-color:#C9832B; }
+.theme-light .preview-kpi-cards div:nth-child(3){ border-top-color:#2F776B; }
+.theme-light .preview-kpi-cards div:nth-child(4){ border-top-color:#102B5C; }
+.theme-light .preview-kpi-cards small{
+  display:block;
+  color:#536884;
+  font-family:var(--font-mono);
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.theme-light .preview-kpi-cards strong{
+  display:block;
+  margin-top:9px;
+  color:#061538;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:28px;
+  font-weight:650;
+}
+.theme-light .preview-kpi-cards span{
+  display:block;
+  margin-top:4px;
+  color:#536884;
+  font-size:10px;
+}
+.theme-light .preview-portfolio-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  border-bottom:2px solid #10233F;
+  padding-bottom:10px;
+  margin-bottom:14px;
+}
+.theme-light .preview-portfolio-head small{
+  display:block;
+  color:#536884;
+  font-family:var(--font-mono);
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+.theme-light .preview-portfolio-head strong{
+  display:block;
+  color:#061538;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:28px;
+  font-weight:650;
+}
+.theme-light .preview-search-pill{
+  min-width:240px;
+  border:1px solid #D6E0EB;
+  background:#F8FAFD;
+  color:#8A97AA;
+  padding:12px 14px;
+  font-size:12px;
+}
+.theme-light .preview-project-lines{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.theme-light .preview-project-line{
+  border:1px solid #D6E0EB;
+  border-top:3px solid #10233F;
+  background:#FFFFFF;
+  padding:16px;
+}
+.theme-light .preview-project-line h3{
+  margin:0 0 8px;
+  color:#061538;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:19px;
+  line-height:1.05;
+}
+.theme-light .preview-project-line p{
+  margin:0 0 14px;
+  color:#536884;
+  font-size:11px;
+  line-height:1.45;
+}
+.theme-light .preview-project-line .bar{
+  display:block;
+  height:5px;
+  background:#E4DED1;
+}
+.theme-light .preview-project-line .bar i{
+  display:block;
+  height:100%;
+  background:#2F776B;
+}
+.theme-light .preview-project-line small{
+  display:block;
+  margin-top:10px;
+  color:#24324E;
+  font-weight:850;
+  font-size:10px;
+}
+.theme-light .preview-method-pane{
+  background:#10233F;
+  color:#FFFFFF;
+  padding:24px 18px;
+  overflow:hidden;
+}
+.theme-light .preview-method-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:16px;
+}
+.theme-light .preview-method-brand img{
+  width:34px;
+  height:34px;
+  border:1px solid rgba(255,255,255,.2);
+}
+.theme-light .preview-method-brand strong{
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:26px;
+  font-weight:650;
+}
+.theme-light .preview-method-project{
+  border:1px solid rgba(255,255,255,.2);
+  color:#FFFFFF;
+  padding:10px;
+  font-size:12px;
+  line-height:1.35;
+}
+.theme-light .preview-method-progress{
+  height:5px;
+  background:#D8D0C2;
+  margin:12px 0 8px;
+}
+.theme-light .preview-method-progress i{
+  display:block;
+  width:45%;
+  height:100%;
+  background:#2F776B;
+}
+.theme-light .preview-method-count{
+  color:#DCE5F2;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:850;
+}
+.theme-light .preview-method-steps{
+  display:grid;
+  gap:5px;
+  margin-top:17px;
+}
+.theme-light .preview-method-steps span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#EAF1FA;
+  padding:7px 8px;
+  font-size:12px;
+  font-weight:850;
+}
+.theme-light .preview-method-steps span.is-active{
+  background:#FFFFFF;
+  color:#10233F;
+}
+.theme-light .preview-method-steps svg{
+  color:#8FB0D6;
+}
+.theme-light .preview-method-tools{
+  border-top:1px solid rgba(255,255,255,.22);
+  margin-top:16px;
+  padding-top:12px;
+  display:grid;
+  gap:8px;
+}
+.theme-light .preview-method-tools span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#FFFFFF;
+  font-size:12px;
+  font-weight:850;
+}
 .theme-light .preview-sidebar{
   display:flex;
   flex-direction:column;
@@ -6593,6 +6862,12 @@ const CSS = `
     width:100%;
     box-sizing:border-box;
   }
+  .theme-light .preview-product-board{
+    grid-template-columns:1fr;
+  }
+  .theme-light .preview-method-pane{
+    display:none;
+  }
 }
 
 @media (max-width: 640px){
@@ -6624,6 +6899,26 @@ const CSS = `
   .theme-light .landing-nav{
     gap:12px;
     padding-bottom:14px;
+  }
+  .theme-light .preview-dashboard-head,
+  .theme-light .preview-portfolio-head{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .theme-light .preview-dashboard-actions{
+    align-items:flex-start;
+  }
+  .theme-light .preview-dashboard-title strong{
+    font-size:30px;
+  }
+  .theme-light .preview-kpi-cards,
+  .theme-light .preview-project-lines{
+    grid-template-columns:1fr;
+  }
+  .theme-light .preview-search-pill{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
   }
   .theme-light .landing-brand{
     font-size:26px;
@@ -9016,90 +9311,98 @@ export default function App() {
 
           <section className="landing-hero">
             <div className="landing-copy">
-              <h1>Pilotez vos processus de bout en bout</h1>
-              <p>Modelisez, analysez et deployez vos processus pour generer de la valeur durablement.</p>
+              <h1>Pilotez vos projets d'amelioration de processus</h1>
+              <p>Cadrez, observez, cartographiez, analysez et deployez vos plans d'action dans une methode structuree en 9 etapes.</p>
               <div className="landing-actions">
                 <button className="landing-primary" onClick={() => authSession ? navigate('dashboard') : openAuth('signup')}>Creer un compte <ChevronRight size={17} /></button>
                 <button className="landing-secondary landing-demo" onClick={() => authSession ? navigate('dashboard') : openAuth('signin')}>Voir une demo <ChevronRight size={17} /></button>
               </div>
               <div className="landing-proof-row" aria-label="Points forts">
-                <div><strong>Securise & conforme</strong><span>Heberge en France</span></div>
-                <div><strong>Collaboration efficace</strong><span>Travaillez en equipe</span></div>
-                <div><strong>Resultats mesurables</strong><span>Suivez l'impact terrain</span></div>
+                <div><strong>Portefeuille projets</strong><span>Visualisez vos projets, leur avancement et les dossiers a finaliser.</span></div>
+                <div><strong>Methode 9 etapes</strong><span>De la preparation au controle, chaque phase guide le travail terrain.</span></div>
+                <div><strong>Outils processus</strong><span>BPMN, VSM, analyses et pieces jointes dans un meme espace.</span></div>
               </div>
             </div>
 
             <div className="landing-product-preview" aria-label="Apercu de PilotProcess">
-              <div className="preview-workspace">
-                <div className="preview-sidebar">
-                  <div className="preview-brand-mini">
+              <div className="preview-product-board">
+                <div className="preview-dashboard-pane">
+                  <div className="preview-dashboard-head">
+                    <div>
+                      <div className="preview-dashboard-title">
+                        <img src="/pilotprocess-logo.svg" alt="" />
+                        <div>
+                          <small>Tableau de bord</small>
+                          <strong>PilotProcess</strong>
+                        </div>
+                      </div>
+                      <p>Un espace clair pour piloter vos demarches d'amelioration, comparer les projets et suivre les etapes validees.</p>
+                    </div>
+                    <div className="preview-dashboard-actions">
+                      <span>9 etapes structurees</span>
+                      <button type="button">Nouveau projet</button>
+                    </div>
+                  </div>
+
+                  <div className="preview-kpi-cards">
+                    <div><small>Total projets</small><strong>4</strong><span>Portefeuille actif</span></div>
+                    <div><small>A finaliser</small><strong>2</strong><span>Actions ouvertes</span></div>
+                    <div><small>Termines</small><strong>1</strong><span>Dossiers complets</span></div>
+                    <div><small>Avancement</small><strong>67%</strong><span>Sur les 9 etapes</span></div>
+                  </div>
+
+                  <div className="preview-portfolio-head">
+                    <div>
+                      <small>Portefeuille</small>
+                      <strong>Projets sauvegardes</strong>
+                    </div>
+                    <div className="preview-search-pill">Rechercher un projet...</div>
+                  </div>
+
+                  <div className="preview-project-lines">
+                    <div className="preview-project-line">
+                      <h3>Reduction des delais de traitement</h3>
+                      <p>Projet transverse pour analyser les irritants, cartographier le flux et deployer un plan d'action.</p>
+                      <span className="bar"><i style={{ width: '78%' }} /></span>
+                      <small>7/9 etapes validees</small>
+                    </div>
+                    <div className="preview-project-line">
+                      <h3>Standardisation d'un flux operationnel</h3>
+                      <p>Demarche structuree pour cadrer, observer, prioriser et securiser les gains dans la duree.</p>
+                      <span className="bar"><i style={{ width: '45%' }} /></span>
+                      <small>4/9 etapes validees</small>
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="preview-method-pane" aria-label="Methode projet PilotProcess">
+                  <div className="preview-method-brand">
                     <img src="/pilotprocess-logo.svg" alt="" />
                     <strong>PilotProcess</strong>
                   </div>
-                  {['Tableau de bord', 'Projets', 'Processus', 'Analyses', 'Actions'].map((item, index) => (
-                    <span key={item} className={index === 0 ? 'is-active' : ''}>{item}</span>
-                  ))}
-                </div>
-                <div className="preview-main">
-                  <div className="preview-header-row">
-                    <div>
-                      <h2>Tableau de bord</h2>
-                      <p>Vue d'ensemble de vos projets et de la performance</p>
-                    </div>
-                    <div className="preview-period">Periode : 30 derniers jours</div>
-                  </div>
-                  <div className="preview-section-title">Projets recents <button type="button">Voir tous les projets</button></div>
-                  <div className="preview-project-cards">
-                    <div className="tone-teal"><b><FolderKanban size={16} /></b><strong>Commande client</strong><span><i style={{ width: '68%' }} /></span><small>Flux prioritaire structure</small><em>En cours</em></div>
-                    <div className="tone-gold"><b><FileText size={16} /></b><strong>Facturation</strong><span><i style={{ width: '42%' }} /></span><small>Points de controle clarifies</small><em>Analyse</em></div>
-                    <div className="tone-blue"><b><BriefcaseBusiness size={16} /></b><strong>Onboarding fournisseur</strong><span><i style={{ width: '75%' }} /></span><small>Plan d'action consolide</small><em>Suivi</em></div>
-                  </div>
-                  <div className="preview-process-track">
+                  <div className="preview-method-project">Optimisation du processus de mise a jour client</div>
+                  <div className="preview-method-progress"><i /></div>
+                  <div className="preview-method-count">4/9 etapes validees</div>
+                  <div className="preview-method-steps">
                     {[
-                      ['Preparer', 'Dossier'],
-                      ['Cadrer', 'Charte'],
-                      ['Observer', 'Terrain'],
-                      ['Cartographier', 'VSM'],
-                      ['Analyser', 'Causes'],
-                      ['Prioriser', 'Choix'],
-                      ['Concevoir', 'Solution'],
-                      ['Deployer', 'Pilote'],
-                      ['Controler', 'Suivi'],
-                    ].map(([item, detail], index) => (
-                      <div key={item} className={index < 4 ? 'done' : index === 4 ? 'current' : ''}>
-                        <span>{index < 4 ? '\u2713' : index === 4 ? '\u25A1' : ''}</span>
-                        <strong>{item}</strong>
-                        <small>{detail}</small>
-                      </div>
+                      [ClipboardList, 'Preparer'],
+                      [Target, 'Cadrer'],
+                      [Eye, 'Observer'],
+                      [Map, 'Cartographier'],
+                      [BarChart3, 'Analyser'],
+                      [Gauge, 'Prioriser'],
+                      [PencilRuler, 'Concevoir'],
+                      [Rocket, 'Deployer'],
+                      [Gauge, 'Controler'],
+                    ].map(([Icon, label], index) => (
+                      <span key={label} className={index === 3 ? 'is-active' : ''}><Icon size={15} />{label}</span>
                     ))}
                   </div>
-                  <div className="preview-bottom-grid">
-                    <div>
-                      <div className="preview-section-title">Pilotage simplifie</div>
-                      <div className="preview-focus-list">
-                        <span><b />Priorites visibles</span>
-                        <span><b />Actions suivies</span>
-                        <span><b />Decisions facilitees</span>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="preview-section-title">Apercu du processus</div>
-                      <div className="preview-bpmn-mini">
-                        <span className="preview-bpmn-node start" />
-                        <i className="preview-bpmn-arrow" />
-                        <span className="preview-bpmn-node task">Demande</span>
-                        <i className="preview-bpmn-arrow" />
-                        <span className="preview-bpmn-node decision"><span>?</span></span>
-                        <i className="preview-bpmn-arrow" />
-                        <span className="preview-bpmn-node end" />
-                      </div>
-                      <div className="preview-vsm-notes">
-                        <span>Flux clair</span>
-                        <span>Irritants reperes</span>
-                      </div>
-                    </div>
+                  <div className="preview-method-tools">
+                    <span><GitBranch size={15} />BPMN avance</span>
+                    <span><Map size={15} />VSM avance</span>
                   </div>
-                </div>
+                </aside>
               </div>
             </div>
           </section>
