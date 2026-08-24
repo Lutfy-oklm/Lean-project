@@ -6422,6 +6422,30 @@ const CSS = `
   margin-left:4px;
   color:#536884;
 }
+.theme-light .preview-focus-list{
+  display:grid;
+  gap:9px;
+  margin-top:8px;
+}
+.theme-light .preview-focus-list span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  border:1px solid #D6E0EB;
+  border-radius:6px;
+  background:#FAFCFE;
+  color:#24324E;
+  padding:10px 12px;
+  font-size:12px;
+  font-weight:850;
+}
+.theme-light .preview-focus-list b{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#0D7771;
+  flex:0 0 auto;
+}
 .theme-light .preview-vsm-mini{
   display:grid;
   grid-template-columns:1fr 32px 1fr 32px 1fr;
@@ -6469,6 +6493,21 @@ const CSS = `
   color:#596B82;
   text-align:center;
   line-height:1.45;
+}
+.theme-light .preview-vsm-notes{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.theme-light .preview-vsm-notes span{
+  border:1px solid #D6E0EB;
+  border-radius:6px;
+  background:#FAFCFE;
+  color:#24324E;
+  padding:9px 10px;
+  text-align:center;
+  font-size:12px;
+  font-weight:850;
 }
 .theme-light .landing-sectors{
   border-top:1px solid #DCE4EE;
@@ -8973,10 +9012,9 @@ export default function App() {
                     <img src="/pilotprocess-logo.svg" alt="" />
                     <strong>PilotProcess</strong>
                   </div>
-                  {['Tableau de bord', 'Projets', 'Processus', 'Analyses', 'Indicateurs', 'Actions', 'Documents', 'Equipe', 'Parametres'].map((item, index) => (
+                  {['Tableau de bord', 'Projets', 'Processus', 'Analyses', 'Actions'].map((item, index) => (
                     <span key={item} className={index === 0 ? 'is-active' : ''}>{item}</span>
                   ))}
-                  <button type="button">Reduire</button>
                 </div>
                 <div className="preview-main">
                   <div className="preview-header-row">
@@ -8988,37 +9026,36 @@ export default function App() {
                   </div>
                   <div className="preview-section-title">Projets recents <button type="button">Voir tous les projets</button></div>
                   <div className="preview-project-cards">
-                    <div className="tone-teal"><b><FolderKanban size={16} /></b><strong>Commande client</strong><span><i style={{ width: '68%' }} /></span><small>Derniere mise a jour<br />16/05/2024</small><em>En cours</em></div>
-                    <div className="tone-gold"><b><FileText size={16} /></b><strong>Facturation</strong><span><i style={{ width: '42%' }} /></span><small>Derniere mise a jour<br />14/05/2024</small><em>En cours</em></div>
-                    <div className="tone-blue"><b><BriefcaseBusiness size={16} /></b><strong>Onboarding fournisseur</strong><span><i style={{ width: '75%' }} /></span><small>Derniere mise a jour<br />13/05/2024</small><em>En revue</em></div>
+                    <div className="tone-teal"><b><FolderKanban size={16} /></b><strong>Commande client</strong><span><i style={{ width: '68%' }} /></span><small>Flux prioritaire structure</small><em>En cours</em></div>
+                    <div className="tone-gold"><b><FileText size={16} /></b><strong>Facturation</strong><span><i style={{ width: '42%' }} /></span><small>Points de controle clarifies</small><em>Analyse</em></div>
+                    <div className="tone-blue"><b><BriefcaseBusiness size={16} /></b><strong>Onboarding fournisseur</strong><span><i style={{ width: '75%' }} /></span><small>Plan d'action consolide</small><em>Suivi</em></div>
                   </div>
                   <div className="preview-process-track">
                     {['Definir', 'Modeliser', 'Analyser', 'Ameliorer', 'Deployer', 'Suivre'].map((item, index) => (
                       <div key={item} className={index < 2 ? 'done' : index === 2 ? 'current' : ''}>
                         <span>{index < 2 ? '\u2713' : index === 2 ? '\u25A1' : ''}</span>
                         <strong>{item}</strong>
-                        <small>{index === 5 ? 'En continu' : `${String(index + 2).padStart(2, '0')}/05`}</small>
+                        <small>{['Cadrage', 'Processus', 'Diagnostic', 'Solutions', 'Plan', 'Pilotage'][index]}</small>
                       </div>
                     ))}
                   </div>
                   <div className="preview-bottom-grid">
                     <div>
-                      <div className="preview-section-title">Indicateurs cles</div>
-                      <div className="preview-metric-row">
-                        <span><strong>5,2</strong><small>jours</small></span>
-                        <span><strong>92%</strong><small>SLA</small></span>
-                        <span><strong>23,4 €</strong><small>cout</small></span>
+                      <div className="preview-section-title">Pilotage simplifie</div>
+                      <div className="preview-focus-list">
+                        <span><b />Priorites visibles</span>
+                        <span><b />Actions suivies</span>
+                        <span><b />Decisions facilitees</span>
                       </div>
                     </div>
                     <div>
-                      <div className="preview-section-title">Apercu du processus (VSM)</div>
+                      <div className="preview-section-title">Apercu du processus</div>
                       <div className="preview-vsm-mini">
                         <span>Fournisseur</span><i /><span>Processus</span><i /><span>Client</span>
                       </div>
-                      <div className="preview-vsm-stats">
-                        <small>3,2 j<br />Delai total</small>
-                        <small>1,1 j<br />VA</small>
-                        <small>34%<br />Valeur ajoutee</small>
+                      <div className="preview-vsm-notes">
+                        <span>Flux clair</span>
+                        <span>Irritants reperes</span>
                       </div>
                     </div>
                   </div>
