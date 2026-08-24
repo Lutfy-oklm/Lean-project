@@ -6275,11 +6275,11 @@ const CSS = `
 }
 .theme-light .preview-process-track{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+  grid-template-columns:repeat(9,1fr);
   gap:0;
   border:1px solid #D6E0EB;
   border-radius:8px;
-  padding:22px 14px 16px;
+  padding:20px 12px 14px;
   margin-bottom:14px;
 }
 .theme-light .preview-process-track div{
@@ -6291,7 +6291,7 @@ const CSS = `
   position:absolute;
   left:-50%;
   right:50%;
-  top:14px;
+  top:12px;
   height:2px;
   background:#D6E0EB;
 }
@@ -6301,8 +6301,8 @@ const CSS = `
 .theme-light .preview-process-track span{
   position:relative;
   z-index:1;
-  width:29px;
-  height:29px;
+  width:25px;
+  height:25px;
   border:2px solid #D6E0EB;
   border-radius:50%;
   background:#FFFFFF;
@@ -6324,14 +6324,16 @@ const CSS = `
   display:block;
 }
 .theme-light .preview-process-track strong{
-  margin-top:8px;
+  margin-top:7px;
   color:#061538;
-  font-size:10px;
+  font-size:8.5px;
+  line-height:1.15;
 }
 .theme-light .preview-process-track small{
   margin-top:3px;
   color:#536884;
-  font-size:10px;
+  font-size:8px;
+  line-height:1.15;
 }
 .theme-light .preview-project-row{
   min-height:44px;
@@ -9031,11 +9033,21 @@ export default function App() {
                     <div className="tone-blue"><b><BriefcaseBusiness size={16} /></b><strong>Onboarding fournisseur</strong><span><i style={{ width: '75%' }} /></span><small>Plan d'action consolide</small><em>Suivi</em></div>
                   </div>
                   <div className="preview-process-track">
-                    {['Definir', 'Modeliser', 'Analyser', 'Ameliorer', 'Deployer', 'Suivre'].map((item, index) => (
-                      <div key={item} className={index < 2 ? 'done' : index === 2 ? 'current' : ''}>
-                        <span>{index < 2 ? '\u2713' : index === 2 ? '\u25A1' : ''}</span>
+                    {[
+                      ['Preparer', 'Dossier'],
+                      ['Cadrer', 'Charte'],
+                      ['Observer', 'Terrain'],
+                      ['Cartographier', 'VSM'],
+                      ['Analyser', 'Causes'],
+                      ['Prioriser', 'Choix'],
+                      ['Concevoir', 'Solution'],
+                      ['Deployer', 'Pilote'],
+                      ['Controler', 'Suivi'],
+                    ].map(([item, detail], index) => (
+                      <div key={item} className={index < 4 ? 'done' : index === 4 ? 'current' : ''}>
+                        <span>{index < 4 ? '\u2713' : index === 4 ? '\u25A1' : ''}</span>
                         <strong>{item}</strong>
-                        <small>{['Cadrage', 'Processus', 'Diagnostic', 'Solutions', 'Plan', 'Pilotage'][index]}</small>
+                        <small>{detail}</small>
                       </div>
                     ))}
                   </div>
