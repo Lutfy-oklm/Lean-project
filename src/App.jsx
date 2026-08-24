@@ -5905,13 +5905,10 @@ const CSS = `
 }
 
 .theme-light .landing-mode{
-  background:
-    linear-gradient(rgba(16,35,63,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16,35,63,.035) 1px, transparent 1px),
-    radial-gradient(circle at 74% 22%, rgba(47,119,107,.07), transparent 24rem),
-    radial-gradient(circle at 12% 78%, rgba(201,131,43,.055), transparent 21rem),
-    linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%);
-  background-size:64px 64px,64px 64px,auto,auto,auto;
+  background:#FFFFFF;
+}
+.theme-light .landing-background{
+  display:none;
 }
 .theme-light .landing-page{
   width:min(1690px,100%);
